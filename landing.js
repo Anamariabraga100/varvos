@@ -22,10 +22,8 @@ function updateLandingAuthUI() {
   const authTrigger = document.getElementById('authTrigger');
   const navLogged = document.getElementById('navLogged');
   if (!authTrigger || !navLogged) return;
-  try {
-    const raw = localStorage.getItem(AUTH_STORAGE);
-    const user = raw ? JSON.parse(raw) : null;
-    const isLoggedIn = !!(user && (user.email || user.sub));
+  function applyUI(user) {
+    const isLoggedIn = !!(user && (user.email || user.sub || user.id));
     if (isLoggedIn) {
       authTrigger.classList.add('hidden');
       navLogged.classList.remove('hidden');
@@ -34,9 +32,37 @@ function updateLandingAuthUI() {
       authTrigger.classList.remove('hidden');
       navLogged.classList.add('hidden');
     }
+  }
+  try {
+    const raw = localStorage.getItem(AUTH_STORAGE);
+    let user = raw ? JSON.parse(raw) : null;
+    if (user && (user.email || user.sub || user.id)) {
+      applyUI(user);
+      return;
+    }
+    // Fallback: Supabase session (usuário logou por e-mail mas varvos_user não foi persistido)
+    const sb = window.varvosSupabase;
+    if (sb && sb.auth && sb.auth.getSession) {
+      sb.auth.getSession().then(function(res) {
+        var session = (res && res.data) ? res.data.session : null;
+        var authUser = session && session.user;
+        if (!authUser) { applyUI(null); return; }
+        var sync = window.varvosAuthSupabase && window.varvosAuthSupabase.syncUserFromEmail;
+        if (sync) {
+          sync(authUser).then(function(u) {
+            var final = u || { provider: 'email', email: authUser.email, id: authUser.id };
+            try { localStorage.setItem(AUTH_STORAGE, JSON.stringify(final)); } catch (_) {}
+            applyUI(final);
+          }).catch(function() { applyUI({ email: authUser.email, id: authUser.id }); });
+        } else {
+          applyUI({ email: authUser.email, id: authUser.id });
+        }
+      }).catch(function() { applyUI(null); });
+    } else {
+      applyUI(null);
+    }
   } catch {
-    authTrigger.classList.remove('hidden');
-    navLogged.classList.add('hidden');
+    applyUI(null);
   }
 }
 
@@ -78,10 +104,9 @@ function initLanding() {
   updateLandingAuthUI();
   initLandingHamburger();
 
-  // Atualizar UI ao voltar (bfcache), trocar de aba ou quando localStorage muda em outra aba
-  window.addEventListener('pageshow', (e) => {
-    if (e.persisted) updateLandingAuthUI();
-  });
+  // Atualizar UI ao carregar, voltar (bfcache), trocar de aba ou quando localStorage muda em outra aba
+  window.addEventListener('load', updateLandingAuthUI);
+  window.addEventListener('pageshow', () => updateLandingAuthUI());
   window.addEventListener('storage', () => updateLandingAuthUI());
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') updateLandingAuthUI();
