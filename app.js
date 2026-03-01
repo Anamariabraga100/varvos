@@ -3,6 +3,7 @@ const POLL_INTERVAL = 3000;
 const STORAGE_KEY = 'varvos_api_key';
 const HISTORY_STORAGE_KEY = 'varvos_history';
 const CREDITS_STORAGE_KEY = 'varvos_credits';
+const AUTH_STORAGE = 'varvos_user';
 
 let selectedModel = 'sora-2';
 let currentMode = 'video';
@@ -138,9 +139,14 @@ document.getElementById('creditsModalPlans')?.addEventListener('click', () => {
   openPlansModal();
 });
 
-// Header: créditos, botão +, hamburger e modal de planos
+// Header: créditos — preferir do usuário (Supabase) quando logado
 function getCredits() {
   try {
+    const userRaw = localStorage.getItem(AUTH_STORAGE);
+    if (userRaw) {
+      const user = JSON.parse(userRaw);
+      if (user.credits != null && user.credits !== undefined) return parseInt(user.credits, 10);
+    }
     const v = localStorage.getItem(CREDITS_STORAGE_KEY);
     return v != null ? parseInt(v, 10) : null;
   } catch { return null; }
@@ -168,9 +174,41 @@ function closePlansModal() {
   }
 }
 
+function updateHamburgerUser() {
+  const block = document.getElementById('hamburgerUser');
+  const nameEl = document.getElementById('hamburgerUserName');
+  const avatarEl = document.getElementById('hamburgerUserAvatar');
+  const initialEl = document.getElementById('hamburgerUserInitial');
+  const wrap = block?.querySelector('.hamburger-user-avatar-wrap');
+  if (!block || !nameEl) return;
+  try {
+    const raw = localStorage.getItem(AUTH_STORAGE);
+    const user = raw ? JSON.parse(raw) : null;
+    if (!user || !user.email) {
+      block.classList.add('hidden');
+      return;
+    }
+    block.classList.remove('hidden');
+    const name = user.name || user.email?.split('@')[0] || 'Usuário';
+    nameEl.textContent = name;
+    if (user.picture && avatarEl && wrap) {
+      avatarEl.src = user.picture;
+      avatarEl.alt = name;
+      wrap.classList.add('has-img');
+    } else if (initialEl && wrap) {
+      initialEl.textContent = (name.charAt(0) || '?').toUpperCase();
+      wrap.classList.remove('has-img');
+      if (avatarEl) avatarEl.removeAttribute('src');
+    }
+  } catch {
+    block.classList.add('hidden');
+  }
+}
+
 function openHamburger() {
   const o = document.getElementById('hamburgerOverlay');
   const b = document.getElementById('hamburgerBtn');
+  updateHamburgerUser();
   if (o) { o.classList.add('open'); o.setAttribute('aria-hidden', 'false'); }
   if (b) { b.setAttribute('aria-expanded', 'true'); }
   document.body.style.overflow = 'hidden';
@@ -202,6 +240,16 @@ document.querySelectorAll('.hamburger-close').forEach(a => {
 document.getElementById('hamburgerPlans')?.addEventListener('click', () => {
   closeHamburger();
   openPlansModal();
+});
+
+function logout() {
+  localStorage.removeItem(AUTH_STORAGE);
+  updateHamburgerUser();
+}
+
+document.getElementById('hamburgerLogout')?.addEventListener('click', () => {
+  logout();
+  closeHamburger();
 });
 
 // Plans modal: tabs e fechar

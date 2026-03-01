@@ -6,18 +6,24 @@ const authModalBackdrop = document.getElementById('authModalBackdrop');
 const authModalClose = document.getElementById('authModalClose');
 const authReturnTo = document.getElementById('authReturnTo');
 
+const clientId = window.VARVOS_CONFIG?.googleClientId;
+const container = document.getElementById('googleAuthContainerModal');
+const btnGoogle = document.getElementById('btnGoogle');
+
 function openAuthModal(returnTo) {
   if (!authModal) return;
   if (authReturnTo) authReturnTo.value = returnTo || REDIRECT_URL;
   authModal.classList.remove('hidden');
   document.body.style.overflow = 'hidden';
-  // Reset form state
   const authOptions = document.getElementById('authOptions');
   const emailForm = document.getElementById('emailForm');
   const authErrors = document.getElementById('authErrors');
   if (authOptions) authOptions.classList.remove('hidden');
   if (emailForm) emailForm.classList.add('hidden');
   if (authErrors) { authErrors.textContent = ''; authErrors.classList.add('hidden'); }
+  if (clientId && container && typeof google !== 'undefined' && google.accounts) {
+    initGoogleButtonInModal();
+  }
 }
 
 function closeAuthModal() {
@@ -30,7 +36,71 @@ function getReturnTo() {
   return authReturnTo ? authReturnTo.value : REDIRECT_URL;
 }
 
-// Triggers
+function decodeJwtPayload(token) {
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return null;
+    const payload = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    return JSON.parse(decodeURIComponent(escape(atob(payload))));
+  } catch {
+    return null;
+  }
+}
+
+async function handleGoogleCredential(response) {
+  const payload = decodeJwtPayload(response.credential);
+  if (!payload) return;
+  const base = { provider: 'google', email: payload.email || '', name: payload.name || '', picture: payload.picture || '', sub: payload.sub };
+  let user = base;
+  if (window.varvosAuthSupabase?.syncUserFromGoogle) {
+    try {
+      user = await window.varvosAuthSupabase.syncUserFromGoogle(payload) || base;
+    } catch {}
+  }
+  localStorage.setItem(AUTH_STORAGE, JSON.stringify(user));
+  closeAuthModal();
+  window.location.href = getReturnTo();
+}
+
+function initGoogleButtonInModal() {
+  if (!clientId || !container) return;
+  container.innerHTML = '';
+  google.accounts.id.initialize({
+    client_id: clientId,
+    callback: handleGoogleCredential,
+    auto_select: false
+  });
+  google.accounts.id.renderButton(container, {
+    type: 'standard',
+    theme: 'outline',
+    size: 'large',
+    text: 'signin_with',
+    shape: 'rectangular',
+    logo_alignment: 'left',
+    width: 320
+  });
+}
+
+function initGoogleOnLoad() {
+  if (!clientId || !container) return;
+  if (typeof google === 'undefined' || !google.accounts) {
+    setTimeout(initGoogleOnLoad, 100);
+    return;
+  }
+  initGoogleButtonInModal();
+}
+
+if (clientId) {
+  initGoogleOnLoad();
+} else if (btnGoogle) {
+  btnGoogle.style.display = '';
+  btnGoogle.addEventListener('click', () => {
+    localStorage.setItem(AUTH_STORAGE, JSON.stringify({ provider: 'google', email: 'google-user@varvos.com' }));
+    closeAuthModal();
+    window.location.href = getReturnTo();
+  });
+}
+
 document.getElementById('authTrigger')?.addEventListener('click', (e) => {
   e.preventDefault();
   openAuthModal(REDIRECT_URL);
@@ -62,7 +132,6 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
-// Auth options
 document.getElementById('btnEmail')?.addEventListener('click', () => {
   document.getElementById('authOptions').classList.add('hidden');
   document.getElementById('emailForm').classList.remove('hidden');
@@ -73,11 +142,6 @@ document.getElementById('btnBack')?.addEventListener('click', () => {
   document.getElementById('emailForm').classList.add('hidden');
   const authErrors = document.getElementById('authErrors');
   if (authErrors) { authErrors.textContent = ''; authErrors.classList.add('hidden'); }
-});
-
-document.getElementById('btnGoogle')?.addEventListener('click', () => {
-  localStorage.setItem(AUTH_STORAGE, JSON.stringify({ provider: 'google', email: 'google-user@varvos.com' }));
-  window.location.href = getReturnTo();
 });
 
 function validatePassword(password, passwordConfirm) {
@@ -111,5 +175,6 @@ document.getElementById('emailForm')?.addEventListener('submit', (e) => {
     email,
     hasPassword: !!password
   }));
+  closeAuthModal();
   window.location.href = getReturnTo();
 });

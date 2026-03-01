@@ -340,6 +340,17 @@
   <!-- Menu hambúrguer -->
   <div id="hamburgerOverlay" class="hamburger-overlay" aria-hidden="true">
     <div class="hamburger-panel">
+      <div id="hamburgerUser" class="hamburger-user hidden">
+        <div class="hamburger-user-avatar-wrap">
+          <img id="hamburgerUserAvatar" class="hamburger-user-avatar" alt="" src="">
+          <span id="hamburgerUserInitial" class="hamburger-user-initial"></span>
+        </div>
+        <div class="hamburger-user-info">
+          <span id="hamburgerUserName" class="hamburger-user-name"></span>
+          <span class="hamburger-user-badge">Conectado</span>
+        </div>
+        <button type="button" class="hamburger-logout" id="hamburgerLogout" title="Sair da conta">Sair</button>
+      </div>
       <a href="../video/">🎬 Criar vídeo</a>
       <a href="../imagem/">🖼️ Criar imagem</a>
       <a href=".">✨ Imitar movimento</a>
@@ -553,6 +564,8 @@
   </div>
 
   <script src="../config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../supabase.js"></script>
   <script src="../app.js"></script>
 </body>
 </html>

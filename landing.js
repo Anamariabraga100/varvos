@@ -1,4 +1,38 @@
+const AUTH_STORAGE = 'varvos_user';
+
+function updateLandingAuthUI() {
+  const authTrigger = document.getElementById('authTrigger');
+  const navLogged = document.getElementById('navLogged');
+  const navUserName = document.getElementById('navUserName');
+  try {
+    const raw = localStorage.getItem(AUTH_STORAGE);
+    const user = raw ? JSON.parse(raw) : null;
+    if (user && user.email) {
+      if (authTrigger) authTrigger.classList.add('hidden');
+      if (navLogged) navLogged.classList.remove('hidden');
+      const name = user.name || user.email?.split('@')[0] || 'Usuário';
+      if (navUserName) navUserName.textContent = name.split(' ')[0] || name;
+    } else {
+      if (authTrigger) authTrigger.classList.remove('hidden');
+      if (navLogged) navLogged.classList.add('hidden');
+    }
+  } catch {
+    if (authTrigger) authTrigger.classList.remove('hidden');
+    if (navLogged) navLogged.classList.add('hidden');
+  }
+}
+
+function initLandingLogout() {
+  document.getElementById('navLogout')?.addEventListener('click', () => {
+    localStorage.removeItem(AUTH_STORAGE);
+    updateLandingAuthUI();
+  });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+  updateLandingAuthUI();
+  initLandingLogout();
+
   const carousel = document.getElementById('videoCarousel');
   const prevBtn = document.getElementById('carouselPrev');
   const nextBtn = document.getElementById('carouselNext');
