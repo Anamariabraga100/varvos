@@ -144,12 +144,12 @@
 
 .auth-modal .auth-btn-email {
   border: none;
-  background: #1a73e8;
+  background: #1a1a1a;
   color: white;
 }
 
 .auth-modal .auth-btn-email:hover {
-  background: #1765cc;
+  background: #333333;
   color: white;
 }
 
@@ -207,8 +207,8 @@
 
 .auth-modal .auth-email-form input:focus {
   outline: none;
-  border-color: #1a73e8;
-  box-shadow: 0 0 0 1px #1a73e8;
+  border-color: #1a1a1a;
+  box-shadow: 0 0 0 1px #1a1a1a;
 }
 
 .auth-modal .auth-errors {
@@ -224,7 +224,7 @@
 
 .auth-modal .auth-btn-submit {
   margin-top: 8px;
-  background: #1a73e8;
+  background: #1a1a1a;
   color: white;
   border: none;
   border-radius: 4px;
@@ -232,14 +232,14 @@
 }
 
 .auth-modal .auth-btn-submit:hover {
-  background: #1765cc;
+  background: #333333;
   color: white;
 }
 
 .auth-modal .auth-back {
   background: none;
   border: none;
-  color: #1a73e8;
+  color: #1a1a1a;
   font-size: 0.875rem;
   cursor: pointer;
   padding: 8px 0;
@@ -248,7 +248,7 @@
 }
 
 .auth-modal .auth-back:hover {
-  color: #174ea6;
+  color: #333333;
 }
 
 .auth-modal .auth-legal {
@@ -259,7 +259,7 @@
 }
 
 .auth-modal .auth-legal a {
-  color: #1a73e8;
+  color: #1a1a1a;
   text-decoration: none;
 }
 
