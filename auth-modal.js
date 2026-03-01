@@ -108,18 +108,41 @@ document.getElementById('authTrigger')?.addEventListener('click', (e) => {
 
 document.getElementById('authTriggerHero')?.addEventListener('click', (e) => {
   e.preventDefault();
+  if (isLoggedIn()) {
+    window.location.href = REDIRECT_URL;
+    return;
+  }
   openAuthModal(REDIRECT_URL);
 });
 
+function isLoggedIn() {
+  try {
+    const raw = localStorage.getItem(AUTH_STORAGE);
+    const user = raw ? JSON.parse(raw) : null;
+    return !!(user && user.email);
+  } catch (_) {
+    return false;
+  }
+}
+
 document.getElementById('authTriggerCta')?.addEventListener('click', (e) => {
   e.preventDefault();
+  if (isLoggedIn()) {
+    window.location.href = REDIRECT_URL;
+    return;
+  }
   openAuthModal(REDIRECT_URL);
 });
 
 document.querySelectorAll('.auth-trigger').forEach(el => {
   el.addEventListener('click', (e) => {
     e.preventDefault();
-    openAuthModal(el.dataset.return || REDIRECT_URL);
+    const returnTo = el.dataset.return || REDIRECT_URL;
+    if (isLoggedIn()) {
+      window.location.href = returnTo;
+      return;
+    }
+    openAuthModal(returnTo);
   });
 });
 
@@ -135,46 +158,149 @@ document.addEventListener('keydown', (e) => {
 document.getElementById('btnEmail')?.addEventListener('click', () => {
   document.getElementById('authOptions').classList.add('hidden');
   document.getElementById('emailForm').classList.remove('hidden');
+  resetEmailForm();
 });
 
-document.getElementById('btnBack')?.addEventListener('click', () => {
-  document.getElementById('authOptions').classList.remove('hidden');
-  document.getElementById('emailForm').classList.add('hidden');
-  const authErrors = document.getElementById('authErrors');
-  if (authErrors) { authErrors.textContent = ''; authErrors.classList.add('hidden'); }
-});
-
-function validatePassword(password, passwordConfirm) {
-  const errors = [];
-  if (password.length < 8) errors.push('Use 8 caracteres ou mais.');
-  if (password !== passwordConfirm) errors.push('As senhas não conferem.');
-  return errors;
+function resetEmailForm() {
+  const emailStep = document.getElementById('emailStep');
+  const passwordStep = document.getElementById('passwordStep');
+  const email = document.getElementById('email');
+  const password = document.getElementById('password');
+  const passwordConfirm = document.getElementById('passwordConfirm');
+  if (emailStep) emailStep.classList.remove('hidden');
+  if (passwordStep) passwordStep.classList.add('hidden');
+  if (email) email.value = '';
+  if (password) password.value = '';
+  if (passwordConfirm) passwordConfirm.value = '';
+  ['authErrors', 'authErrorsStep2'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.textContent = ''; el.classList.add('hidden'); }
+  });
 }
 
-document.getElementById('emailForm')?.addEventListener('submit', (e) => {
-  e.preventDefault();
-  const email = document.getElementById('email').value.trim();
-  const password = document.getElementById('password').value;
-  const passwordConfirm = document.getElementById('passwordConfirm').value;
+document.getElementById('btnBack')?.addEventListener('click', () => {
+  const passwordStep = document.getElementById('passwordStep');
+  if (passwordStep && !passwordStep.classList.contains('hidden')) {
+    document.getElementById('emailStep')?.classList.remove('hidden');
+    passwordStep.classList.add('hidden');
+    const p = document.getElementById('password'); if (p) p.value = '';
+    const pc = document.getElementById('passwordConfirm'); if (pc) pc.value = '';
+    document.getElementById('authErrorsStep2')?.classList.add('hidden');
+  } else {
+    document.getElementById('authOptions').classList.remove('hidden');
+    document.getElementById('emailForm').classList.add('hidden');
+    resetEmailForm();
+  }
+});
+
+document.getElementById('btnEmailContinue')?.addEventListener('click', async () => {
+  const email = document.getElementById('email')?.value?.trim();
   const errorsEl = document.getElementById('authErrors');
-
   if (!email) return;
+  if (errorsEl) errorsEl.classList.add('hidden');
 
-  const errors = validatePassword(password, passwordConfirm);
-  if (errors.length) {
-    if (errorsEl) {
-      errorsEl.textContent = errors.join(' ');
-      errorsEl.classList.remove('hidden');
-    }
+  const sb = window.varvosSupabase;
+  if (!sb) {
+    if (errorsEl) { errorsEl.textContent = 'Serviço temporariamente indisponível.'; errorsEl.classList.remove('hidden'); }
     return;
+  }
+
+  const btn = document.getElementById('btnEmailContinue');
+  const origText = btn?.textContent;
+  if (btn) { btn.disabled = true; btn.textContent = 'Verificando...'; }
+
+  try {
+    const { data: exists, error } = await sb.rpc('check_email_registered', { p_email: email });
+    if (error) throw error;
+
+    document.getElementById('emailStep')?.classList.add('hidden');
+    const passwordStep = document.getElementById('passwordStep');
+    const confirmWrap = document.getElementById('passwordConfirmWrap');
+    const passwordLabel = document.getElementById('passwordLabel');
+    const passwordInput = document.getElementById('password');
+    const submitBtn = document.getElementById('btnPasswordSubmit');
+
+    if (exists) {
+      passwordLabel.textContent = 'Senha';
+      passwordInput.placeholder = 'Digite sua senha';
+      confirmWrap?.classList.add('hidden');
+      if (submitBtn) submitBtn.textContent = 'Entrar';
+    } else {
+      passwordLabel.textContent = 'Criar senha';
+      passwordInput.placeholder = 'Mínimo 8 caracteres';
+      confirmWrap?.classList.remove('hidden');
+      if (submitBtn) submitBtn.textContent = 'Criar conta';
+    }
+    passwordStep?.classList.remove('hidden');
+    document.getElementById('authErrorsStep2')?.classList.add('hidden');
+  } catch (e) {
+    console.error('check_email:', e);
+    if (errorsEl) { errorsEl.textContent = 'Não foi possível verificar o e-mail. Tente novamente.'; errorsEl.classList.remove('hidden'); }
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = origText || 'Continuar'; }
+  }
+});
+
+document.getElementById('btnPasswordSubmit')?.addEventListener('click', async () => {
+  const email = document.getElementById('email')?.value?.trim();
+  const password = document.getElementById('password')?.value;
+  const passwordConfirm = document.getElementById('passwordConfirm')?.value;
+  const confirmWrap = document.getElementById('passwordConfirmWrap');
+  const errorsEl = document.getElementById('authErrorsStep2');
+  const submitBtn = document.getElementById('btnPasswordSubmit');
+
+  const isSignup = confirmWrap && !confirmWrap.classList.contains('hidden');
+
+  if (isSignup) {
+    if (!password || password.length < 8) {
+      if (errorsEl) { errorsEl.textContent = 'Use 8 caracteres ou mais.'; errorsEl.classList.remove('hidden'); }
+      return;
+    }
+    if (password !== passwordConfirm) {
+      if (errorsEl) { errorsEl.textContent = 'As senhas não conferem.'; errorsEl.classList.remove('hidden'); }
+      return;
+    }
+  } else {
+    if (!password) {
+      if (errorsEl) { errorsEl.textContent = 'Digite sua senha.'; errorsEl.classList.remove('hidden'); }
+      return;
+    }
   }
   if (errorsEl) errorsEl.classList.add('hidden');
 
-  localStorage.setItem(AUTH_STORAGE, JSON.stringify({
-    provider: 'email',
-    email,
-    hasPassword: !!password
-  }));
-  closeAuthModal();
-  window.location.href = getReturnTo();
+  const sb = window.varvosSupabase;
+  if (!sb) {
+    if (errorsEl) { errorsEl.textContent = 'Serviço indisponível.'; errorsEl.classList.remove('hidden'); }
+    return;
+  }
+
+  if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = isSignup ? 'Criando...' : 'Entrando...'; }
+
+  try {
+    if (isSignup) {
+      const { data, error } = await sb.auth.signUp({ email, password });
+      if (error) throw error;
+      if (data?.user) {
+        const user = await (window.varvosAuthSupabase?.syncUserFromEmail(data.user) || Promise.resolve(null));
+        localStorage.setItem(AUTH_STORAGE, JSON.stringify(user || { provider: 'email', email: data.user.email }));
+      }
+    } else {
+      const { data, error } = await sb.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      if (data?.user) {
+        const user = await (window.varvosAuthSupabase?.syncUserFromEmail(data.user) || Promise.resolve(null));
+        localStorage.setItem(AUTH_STORAGE, JSON.stringify(user || { provider: 'email', email: data.user.email }));
+      }
+    }
+    closeAuthModal();
+    window.location.href = getReturnTo();
+  } catch (e) {
+    console.error('auth:', e);
+    if (errorsEl) {
+      errorsEl.textContent = e?.message?.includes('Invalid') ? 'Senha incorreta.' : (e?.message || 'Erro ao fazer login.');
+      errorsEl.classList.remove('hidden');
+    }
+  } finally {
+    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = isSignup ? 'Criar conta' : 'Entrar'; }
+  }
 });

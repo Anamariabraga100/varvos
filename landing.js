@@ -4,21 +4,23 @@ function updateLandingAuthUI() {
   const authTrigger = document.getElementById('authTrigger');
   const navLogged = document.getElementById('navLogged');
   const navUserName = document.getElementById('navUserName');
+  if (!authTrigger || !navLogged) return;
   try {
     const raw = localStorage.getItem(AUTH_STORAGE);
     const user = raw ? JSON.parse(raw) : null;
-    if (user && user.email) {
-      if (authTrigger) authTrigger.classList.add('hidden');
-      if (navLogged) navLogged.classList.remove('hidden');
+    const isLoggedIn = !!(user && (user.email || user.sub));
+    if (isLoggedIn) {
+      authTrigger.classList.add('hidden');
+      navLogged.classList.remove('hidden');
       const name = user.name || user.email?.split('@')[0] || 'Usuário';
       if (navUserName) navUserName.textContent = name.split(' ')[0] || name;
     } else {
-      if (authTrigger) authTrigger.classList.remove('hidden');
-      if (navLogged) navLogged.classList.add('hidden');
+      authTrigger.classList.remove('hidden');
+      navLogged.classList.add('hidden');
     }
   } catch {
-    if (authTrigger) authTrigger.classList.remove('hidden');
-    if (navLogged) navLogged.classList.add('hidden');
+    authTrigger.classList.remove('hidden');
+    navLogged.classList.add('hidden');
   }
 }
 
@@ -32,6 +34,15 @@ function initLandingLogout() {
 function initLanding() {
   updateLandingAuthUI();
   initLandingLogout();
+
+  // Atualizar UI ao voltar (bfcache), trocar de aba ou quando localStorage muda em outra aba
+  window.addEventListener('pageshow', (e) => {
+    if (e.persisted) updateLandingAuthUI();
+  });
+  window.addEventListener('storage', () => updateLandingAuthUI());
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') updateLandingAuthUI();
+  });
 
   const carousel = document.getElementById('videoCarousel');
   const prevBtn = document.getElementById('carouselPrev');

@@ -1,8 +1,23 @@
 /**
  * Integração auth + Supabase
- * Salva/cria usuário no banco ao logar com Google
+ * Salva/cria usuário no banco ao logar com Google ou e-mail
  */
 window.varvosAuthSupabase = {
+  async syncUserFromEmail(authUser) {
+    const sb = window.varvosSupabase;
+    if (!sb || !authUser?.email || !authUser?.id) return null;
+    try {
+      await sb.rpc('upsert_user_from_email', {
+        p_email: authUser.email,
+        p_auth_uid: authUser.id
+      });
+      const { data: user } = await sb.from('users').select('id, email, name, picture, credits, plan').eq('id', authUser.id).single();
+      return user ? { provider: 'email', ...user } : { provider: 'email', email: authUser.email, id: authUser.id, credits: 0 };
+    } catch (e) {
+      console.error('auth-supabase syncUserFromEmail:', e);
+      return { provider: 'email', email: authUser.email, id: authUser.id, credits: 0 };
+    }
+  },
   async syncUserFromGoogle(payload) {
     const sb = window.varvosSupabase;
     if (!sb) return null;
