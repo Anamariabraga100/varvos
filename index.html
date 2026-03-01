@@ -207,7 +207,7 @@
     <div class="video-modal-content">
       <button type="button" class="video-modal-close close-modal" id="videoModalClose" aria-label="Fechar">✕</button>
       <div class="video-modal-player">
-        <video id="videoModalPlayer" controls autoplay playsinline loop></video>
+        <video id="videoModalPlayer" autoplay playsinline loop muted></video>
       </div>
       <div class="video-modal-actions">
         <p class="video-modal-desc">Crie um vídeo semelhante ou use o Imitar Movimento para colocar seu rosto fazendo a dança.</p>
@@ -299,6 +299,11 @@
     }
     document.getElementById('videoModalBackdrop')?.addEventListener('click', closeModal);
     document.getElementById('videoModalClose')?.addEventListener('click', closeModal);
+    modalVideo.addEventListener('click', function(e) {
+      e.stopPropagation();
+      modalVideo.muted = !modalVideo.muted;
+      modalVideo.play().catch(function(){});
+    });
     document.addEventListener('keydown', function(e) {
       if (e.key === 'Escape' && !videoModal.classList.contains('hidden')) closeModal();
     });
@@ -317,7 +322,7 @@
         var src = card.dataset.videoSrc || (card.querySelector('video') && card.querySelector('video').src);
         if (!src) return;
         modalVideo.src = src;
-        modalVideo.muted = false;
+        modalVideo.muted = true;
         modalVideo.load();
         videoModal.classList.remove('hidden');
         document.querySelectorAll('.video-card video').forEach(function(v){ v.muted = true; v.pause(); });
