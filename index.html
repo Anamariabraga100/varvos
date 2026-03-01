@@ -41,39 +41,31 @@
       <div class="carousel-wrapper">
         <div class="carousel" id="videoCarousel">
           <div class="carousel-track">
-            <div class="video-card">
-              <video src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" muted loop playsinline></video>
-              <button class="mute-btn" aria-label="Som">🔇</button>
+              <div class="video-card" data-video-src="https://magai.b-cdn.net/persona-banner/2.mp4">
+              <video src="https://magai.b-cdn.net/persona-banner/2.mp4" muted loop playsinline autoplay preload="auto"></video>
+              <button type="button" class="mute-btn" aria-label="Som">🔇</button>
             </div>
-            <div class="video-card">
-              <video src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4" muted loop playsinline></video>
-              <button class="mute-btn" aria-label="Som">🔇</button>
+            <div class="video-card" data-video-src="https://cdn.higgsfield.ai/kling_motion_control_preset/062dcd0d-2b81-4e82-8757-8bb1cd491581.mp4">
+              <video src="https://cdn.higgsfield.ai/kling_motion_control_preset/062dcd0d-2b81-4e82-8757-8bb1cd491581.mp4" muted loop playsinline autoplay preload="auto"></video>
+              <button type="button" class="mute-btn" aria-label="Som">🔇</button>
             </div>
-            <div class="video-card">
-              <video src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4" muted loop playsinline></video>
-              <button class="mute-btn" aria-label="Som">🔇</button>
+            <div class="video-card" data-video-src="https://cdn.higgsfield.ai/kling_motion_control_preset/1ad056fe-79aa-4347-afdc-2b4e360fbed1.mp4">
+              <video src="https://cdn.higgsfield.ai/kling_motion_control_preset/1ad056fe-79aa-4347-afdc-2b4e360fbed1.mp4" muted loop playsinline autoplay preload="auto"></video>
+              <button type="button" class="mute-btn" aria-label="Som">🔇</button>
             </div>
-            <div class="video-card">
-              <video src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4" muted loop playsinline></video>
-              <button class="mute-btn" aria-label="Som">🔇</button>
-            </div>
-            <div class="video-card">
-              <video src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4" muted loop playsinline></video>
-              <button class="mute-btn" aria-label="Som">🔇</button>
-            </div>
-            <div class="video-card">
-              <div class="video-placeholder">
-                <span>▶</span>
-                <small>Seu próximo vídeo</small>
-              </div>
+            <div class="video-card" data-video-src="https://cdn.higgsfield.ai/kling_motion_control_preset/fc0bb74c-2a62-4113-99cb-f0ee05aaacf3.mp4">
+              <video src="https://cdn.higgsfield.ai/kling_motion_control_preset/fc0bb74c-2a62-4113-99cb-f0ee05aaacf3.mp4" muted loop playsinline autoplay preload="auto"></video>
+              <button type="button" class="mute-btn" aria-label="Som">🔇</button>
             </div>
           </div>
-        </div>
+      </div>
         <div class="carousel-nav left" id="carouselPrev">‹</div>
         <div class="carousel-nav right" id="carouselNext">›</div>
       </div>
     </section>
+  </div>
 
+  <div class="landing">
     <section class="social-proof">
       <p>Usado por criadores de conteúdo, e-commerces e agências para TikTok Ads, Meta e performance</p>
     </section>
@@ -207,6 +199,25 @@
         <p>Copyright © 2025 VARVOS</p>
       </div>
     </footer>
+  </div>
+
+  <!-- Modal Vídeo -->
+  <div id="video-modal" class="video-modal hidden" role="dialog" aria-modal="true" aria-label="Vídeo em destaque">
+    <div class="video-modal-backdrop" id="videoModalBackdrop"></div>
+    <div class="video-modal-content">
+      <button type="button" class="video-modal-close close-modal" id="videoModalClose" aria-label="Fechar">✕</button>
+      <div class="video-modal-player">
+        <video id="videoModalPlayer" controls autoplay playsinline></video>
+      </div>
+      <div class="video-modal-actions">
+        <h3>O que você pode fazer com esse vídeo</h3>
+        <p class="video-modal-desc">Escolha o rosto da pessoa que deseja usar e recrie o movimento ou a dança com IA. Sua foto, o movimento do vídeo.</p>
+        <div class="video-modal-buttons">
+          <a href="imitar-movimento/" class="video-modal-btn video-modal-btn-primary">Imitar movimento</a>
+          <a href="imitar-movimento/" class="video-modal-btn">Recriar dança</a>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Modal Auth -->
