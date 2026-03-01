@@ -738,18 +738,18 @@ footer {
 
 .video-modal-content {
   position: relative;
-  background: transparent;
+  background: #111;
   border-radius: 20px;
-  overflow: visible;
+  overflow: hidden;
   max-width: 280px;
   width: 100%;
-  box-shadow: none;
+  box-shadow: 0 16px 40px rgba(0,0,0,0.5);
 }
 
 .video-modal-close {
   position: absolute;
-  top: -44px;
-  right: 0;
+  top: 12px;
+  right: 12px;
   width: 36px;
   height: 36px;
   border: none;
@@ -785,7 +785,8 @@ footer {
 }
 
 .video-modal-actions {
-  padding: 16px 0 0;
+  padding: 16px;
+  background: #1a1a1c;
 }
 
 .video-modal-desc {

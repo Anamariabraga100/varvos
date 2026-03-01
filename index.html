@@ -210,10 +210,10 @@
         <video id="videoModalPlayer" autoplay playsinline loop muted></video>
       </div>
       <div class="video-modal-actions">
-        <p class="video-modal-desc">Crie um vídeo semelhante ou use o Imitar Movimento para colocar seu rosto fazendo a dança.</p>
+        <p class="video-modal-desc">Crie um vídeo semelhante ou use o Imitar Movimento para colocar outra pessoa fazendo a dança.</p>
         <div class="video-modal-buttons">
-          <a href="video/" class="video-modal-btn video-modal-btn-primary">Criar vídeo semelhante</a>
-          <a href="imitar-movimento/" class="video-modal-btn">Imitar movimento</a>
+          <a href="video/" class="video-modal-btn video-modal-btn-primary" data-video-modal-action="video/">Criar vídeo semelhante</a>
+          <a href="imitar-movimento/" class="video-modal-btn" data-video-modal-action="imitar-movimento/">Imitar movimento</a>
         </div>
       </div>
     </div>
@@ -316,6 +316,22 @@
         if (btn) btn.textContent = video.muted ? '🔇' : '🔊';
       }
     }
+    videoModal.querySelectorAll('[data-video-modal-action]').forEach(function(btn) {
+      btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        var dest = btn.getAttribute('data-video-modal-action');
+        if (!dest) return;
+        var user = null;
+        try { user = JSON.parse(localStorage.getItem('varvos_user') || 'null'); } catch(_) {}
+        if (user && user.email) {
+          window.location.href = dest;
+        } else {
+          closeModal();
+          if (typeof openAuthModal === 'function') { openAuthModal(dest); }
+          else { window.location.href = dest; }
+        }
+      });
+    });
     document.querySelectorAll('.video-card').forEach(function(card) {
       card.addEventListener('click', function(e) {
         if (e.target.closest('.mute-btn')) { toggleMute(card); return; }
