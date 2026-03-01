@@ -2,6 +2,7 @@ const API_BASE = 'https://api.vidgo.ai';
 const POLL_INTERVAL = 3000;
 const STORAGE_KEY = 'varvos_api_key';
 const HISTORY_STORAGE_KEY = 'varvos_history';
+const CREDITS_STORAGE_KEY = 'varvos_credits';
 
 let selectedModel = 'sora-2';
 let currentMode = 'video';
@@ -28,15 +29,37 @@ const btnVerify = document.getElementById('btnVerify');
 const historyList = document.getElementById('historyList');
 const historyEmpty = document.getElementById('historyEmpty');
 const btnClearHistory = document.getElementById('btnClearHistory');
+const loadingMessage = document.getElementById('loadingMessage');
+const loadingPlaceholder = document.getElementById('loadingPlaceholder');
+const creditsModal = document.getElementById('creditsModal');
 
 // Prompt suggestion chips
 document.querySelectorAll('.chip').forEach(chip => {
   chip.addEventListener('click', () => {
     const p = chip.dataset.prompt || '';
     const prompt = document.getElementById('prompt');
-    if (prompt) prompt.value = p;
+    if (prompt) { prompt.value = p; updateClearPromptVisibility(); }
   });
 });
+
+// Limpar prompt
+function updateClearPromptVisibility() {
+  const prompt = document.getElementById('prompt');
+  const btn = document.getElementById('btnClearPrompt');
+  if (!prompt || !btn) return;
+  btn.classList.toggle('empty', !prompt.value.trim());
+}
+
+document.getElementById('btnClearPrompt')?.addEventListener('click', () => {
+  const prompt = document.getElementById('prompt');
+  if (prompt) { prompt.value = ''; prompt.focus(); updateClearPromptVisibility(); }
+});
+
+document.getElementById('prompt')?.addEventListener('input', updateClearPromptVisibility);
+document.getElementById('prompt')?.addEventListener('change', updateClearPromptVisibility);
+
+// Init clear button visibility
+updateClearPromptVisibility();
 
 // Modal vídeo ampliado - Social & UGC Ads
 const videoModal = document.getElementById('videoModal');
@@ -95,8 +118,108 @@ videoModal?.querySelector('.video-modal-backdrop')?.addEventListener('click', cl
 if (btnClonarPrompt) btnClonarPrompt.addEventListener('click', clonarPromptDoModal);
 
 document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && videoModal && !videoModal.classList.contains('hidden')) closeVideoModal();
+  if (e.key === 'Escape') {
+    const hamburger = document.getElementById('hamburgerOverlay');
+    const plans = document.getElementById('plansModal');
+    if (hamburger?.classList.contains('open')) closeHamburger();
+    else if (plans && !plans.classList.contains('hidden')) closePlansModal();
+    else if (videoModal && !videoModal.classList.contains('hidden')) closeVideoModal();
+    else if (creditsModal && !creditsModal.classList.contains('hidden')) closeCreditsModal();
+  }
 });
+
+document.getElementById('creditsModalClose')?.addEventListener('click', closeCreditsModal);
+document.querySelector('.credits-modal-backdrop')?.addEventListener('click', closeCreditsModal);
+document.getElementById('creditsModalDismiss')?.addEventListener('click', closeCreditsModal);
+
+// Credits modal: "Ver planos" abre o modal de planos
+document.getElementById('creditsModalPlans')?.addEventListener('click', () => {
+  closeCreditsModal();
+  openPlansModal();
+});
+
+// Header: créditos, botão +, hamburger e modal de planos
+function getCredits() {
+  try {
+    const v = localStorage.getItem(CREDITS_STORAGE_KEY);
+    return v != null ? parseInt(v, 10) : null;
+  } catch { return null; }
+}
+
+function updateCreditsDisplay() {
+  const n = getCredits();
+  const txt = n != null ? String(n) : '0';
+  document.querySelectorAll('#headerCredits, #hamburgerCredits').forEach(el => { if (el) el.textContent = txt; });
+}
+
+function openPlansModal() {
+  const m = document.getElementById('plansModal');
+  if (m) {
+    m.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+}
+
+function closePlansModal() {
+  const m = document.getElementById('plansModal');
+  if (m) {
+    m.classList.add('hidden');
+    document.body.style.overflow = '';
+  }
+}
+
+function openHamburger() {
+  const o = document.getElementById('hamburgerOverlay');
+  const b = document.getElementById('hamburgerBtn');
+  if (o) { o.classList.add('open'); o.setAttribute('aria-hidden', 'false'); }
+  if (b) { b.setAttribute('aria-expanded', 'true'); }
+  document.body.style.overflow = 'hidden';
+}
+
+function closeHamburger() {
+  const o = document.getElementById('hamburgerOverlay');
+  const b = document.getElementById('hamburgerBtn');
+  if (o) { o.classList.remove('open'); o.setAttribute('aria-hidden', 'true'); }
+  if (b) { b.setAttribute('aria-expanded', 'false'); }
+  document.body.style.overflow = '';
+}
+
+document.getElementById('btnAddCredits')?.addEventListener('click', () => { openPlansModal(); });
+document.getElementById('hamburgerBtn')?.addEventListener('click', () => {
+  const o = document.getElementById('hamburgerOverlay');
+  if (o?.classList.contains('open')) closeHamburger();
+  else openHamburger();
+});
+
+document.getElementById('hamburgerOverlay')?.addEventListener('click', (e) => {
+  if (e.target.id === 'hamburgerOverlay') closeHamburger();
+});
+
+document.querySelectorAll('.hamburger-close').forEach(a => {
+  a.addEventListener('click', () => { closeHamburger(); });
+});
+
+document.getElementById('hamburgerPlans')?.addEventListener('click', () => {
+  closeHamburger();
+  openPlansModal();
+});
+
+// Plans modal: tabs e fechar
+document.querySelectorAll('.plans-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    const t = tab.dataset.tab;
+    document.querySelectorAll('.plans-tab').forEach(x => x.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('plansAvulsos')?.classList.toggle('hidden', t !== 'avulsos');
+    document.getElementById('plansMensais')?.classList.toggle('hidden', t !== 'mensais');
+  });
+});
+
+document.getElementById('plansModalClose')?.addEventListener('click', closePlansModal);
+document.querySelector('.plans-modal-backdrop')?.addEventListener('click', closePlansModal);
+
+// Init créditos
+updateCreditsDisplay();
 
 // Vídeos Social & UGC Ads — loop e mudo ao rolar (igual à landing)
 const samplesObserver = new IntersectionObserver((entries) => {
@@ -125,6 +248,10 @@ function applyMode(mode) {
   document.getElementById('videoFields').classList.toggle('hidden', currentMode !== 'video');
   document.getElementById('imageFields').classList.toggle('hidden', currentMode !== 'image');
   document.getElementById('motionFields').classList.toggle('hidden', currentMode !== 'motion');
+  const configWrap = document.getElementById('configAdvancedWrap');
+  if (configWrap) configWrap.classList.toggle('hidden', currentMode === 'motion');
+  const promptBlock = document.getElementById('createPromptBlock');
+  if (promptBlock) promptBlock.classList.toggle('hidden', currentMode === 'motion');
   const promptSuggestionsVideo = document.getElementById('promptSuggestionsVideo');
   const promptSuggestionsImage = document.getElementById('promptSuggestionsImage');
   const promptInputWrap = document.getElementById('promptInputWrap');
@@ -446,11 +573,18 @@ async function submitTask(body) {
     body: JSON.stringify(body)
   });
 
-  const data = await res.json();
+  let data;
+  try {
+    data = await res.json();
+  } catch (_) {
+    throw new Error(`Erro ${res.status}`);
+  }
 
   if (!res.ok) {
-    const msg = data?.error?.message || data?.detail || `Erro ${res.status}`;
-    throw new Error(msg);
+    const msg = (data?.error?.message || data?.detail || `Erro ${res.status}`).toString();
+    const err = new Error(msg);
+    err.isCredits = /credit|insufficient|saldo|quota|balance|crédito/i.test(msg);
+    throw err;
   }
 
   return data?.data?.task_id || null;
@@ -469,6 +603,72 @@ async function getTaskStatus(taskId) {
 
 const STATUS_PT = { not_started: 'Na fila', running: 'Gerando', finished: 'Pronto', failed: 'Falhou' };
 
+const LOADING_MESSAGES = {
+  video: [
+    'Enviando seu prompt para a IA...',
+    'A IA está criando seu vídeo...',
+    'Gerando frames e movimentos...',
+    'Renderizando o vídeo...',
+    'Quase pronto! Finalizando...'
+  ],
+  image: [
+    'Enviando seu prompt...',
+    'A IA está desenhando sua imagem...',
+    'Aplicando estilo e detalhes...',
+    'Quase pronto!'
+  ],
+  motion: [
+    'Analisando o movimento de referência...',
+    'A IA está imitando o movimento...',
+    'Aplicando ao seu personagem...',
+    'Quase pronto!'
+  ]
+};
+
+let loadingMsgIndex = 0;
+let loadingMsgInterval = null;
+
+function startLoadingMessages() {
+  const msgs = LOADING_MESSAGES[currentMode] || LOADING_MESSAGES.video;
+  loadingMsgIndex = 0;
+  if (loadingMessage) loadingMessage.textContent = msgs[0];
+  if (loadingPlaceholder) loadingPlaceholder.classList.remove('hidden');
+  loadingMsgInterval = setInterval(() => {
+    loadingMsgIndex = (loadingMsgIndex + 1) % msgs.length;
+    if (loadingMessage) loadingMessage.textContent = msgs[loadingMsgIndex];
+  }, 4000);
+}
+
+function stopLoadingMessages() {
+  if (loadingMsgInterval) {
+    clearInterval(loadingMsgInterval);
+    loadingMsgInterval = null;
+  }
+  if (loadingMessage) loadingMessage.textContent = '';
+  if (loadingPlaceholder) loadingPlaceholder.classList.add('hidden');
+}
+
+function openCreditsModal() {
+  stopLoadingMessages();
+  outputResult.classList.add('hidden');
+  outputPlaceholder.classList.remove('hidden');
+  if (creditsModal) {
+    creditsModal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+}
+
+function closeCreditsModal() {
+  if (creditsModal) {
+    creditsModal.classList.add('hidden');
+    document.body.style.overflow = '';
+  }
+}
+
+function isCreditsError(msg) {
+  return msg && /credit|insufficient|saldo|quota|balance|crédito/i.test(msg.toString());
+}
+
 function updateOutputUI(data) {
   const status = data.status || '';
   taskStatusEl.textContent = STATUS_PT[status] || status;
@@ -477,6 +677,7 @@ function updateOutputUI(data) {
   progressFill.style.width = (data.progress || 0) + '%';
 
   if (data.status === 'finished' && data.files?.length) {
+    stopLoadingMessages();
     const videoFile = data.files.find(f => f.file_type === 'video');
     const imageFiles = data.files.filter(f => f.file_type === 'image');
 
@@ -509,7 +710,13 @@ function updateOutputUI(data) {
     }
     statusMessage.className = 'status-message success';
   } else if (data.status === 'failed') {
-    statusMessage.textContent = data.error_message || 'Algo deu errado. Tente novamente.';
+    const errMsg = (data.error_message || 'Algo deu errado. Tente novamente.').toString();
+    if (isCreditsError(errMsg)) {
+      openCreditsModal();
+      return;
+    }
+    stopLoadingMessages();
+    statusMessage.textContent = errMsg;
     statusMessage.className = 'status-message error';
   } else {
     const msg = currentMode === 'motion' ? 'Imitando movimento...' : (currentMode === 'video' ? 'Gerando seu vídeo...' : 'Gerando sua imagem...');
@@ -536,7 +743,10 @@ async function pollUntilComplete(taskId) {
         if (data.status === 'failed') {
           currentTaskId = null;
           btnVerify.classList.add('hidden');
-          reject(new Error(data.error_message || 'Geração falhou'));
+          const errMsg = data.error_message || 'Geração falhou';
+          const err = new Error(errMsg);
+          err.isCredits = isCreditsError(errMsg);
+          reject(err);
           return;
         }
 
@@ -577,8 +787,6 @@ async function verifyStatus() {
 
 async function generateMedia(body) {
   btnGenerate.disabled = true;
-  outputPlaceholder.classList.add('hidden');
-  outputResult.classList.remove('hidden');
   videoPlayer.src = '';
   videoPlayer.style.display = 'none';
   imageGallery.classList.add('hidden');
@@ -586,18 +794,23 @@ async function generateMedia(body) {
   downloadBtn.classList.add('hidden');
   btnVerify.classList.remove('hidden');
   btnVerify.disabled = false;
-  taskStatusEl.textContent = 'Enviando...';
-  taskStatusEl.className = 'status-badge';
-  taskProgressEl.textContent = '0%';
-  progressFill.style.width = '0%';
-  statusMessage.textContent = 'Enviando requisição...';
-  statusMessage.className = 'status-message';
 
   try {
     const taskId = await submitTask(body);
     if (!taskId) {
       throw new Error('Nenhum task_id retornado');
     }
+
+    outputPlaceholder.classList.add('hidden');
+    outputResult.classList.remove('hidden');
+    taskStatusEl.textContent = 'Enviando...';
+    taskStatusEl.className = 'status-badge';
+    taskProgressEl.textContent = '0%';
+    progressFill.style.width = '0%';
+    statusMessage.textContent = 'Enviando requisição...';
+    statusMessage.className = 'status-message';
+    startLoadingMessages();
+    document.getElementById('currentResultSection')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
     currentTaskId = taskId;
     updateOutputUI({ status: 'not_started', progress: 0 });
@@ -608,8 +821,13 @@ async function generateMedia(body) {
       addToHistory(result, lastPrompt);
     }
   } catch (err) {
-    statusMessage.textContent = err.message || 'Erro na geração';
-    statusMessage.className = 'status-message error';
+    stopLoadingMessages();
+    if (err.isCredits) {
+      openCreditsModal();
+    } else {
+      statusMessage.textContent = err.message || 'Erro na geração';
+      statusMessage.className = 'status-message error';
+    }
     btnVerify.classList.add('hidden');
     if (pollTimeoutId) clearTimeout(pollTimeoutId);
   } finally {

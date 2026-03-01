@@ -1,0 +1,185 @@
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: 'Outfit', -apple-system, sans-serif;
+  background: #fafbfc;
+  color: #1a1a1a;
+  -webkit-font-smoothing: antialiased;
+}
+
+.precos-page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 0;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  text-decoration: none;
+}
+
+.logo:hover { color: #1a1a1a; }
+
+.nav-btn {
+  padding: 10px 20px;
+  background: #1a1a1a;
+  color: white;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.nav-btn:hover { background: #333; color: white; }
+
+.precos-hero {
+  text-align: center;
+  padding: 48px 24px 40px;
+}
+
+.precos-hero h1 {
+  margin: 0 0 12px;
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.precos-hero p {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #6b6b6b;
+}
+
+.precos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+  padding-bottom: 48px;
+}
+
+.preco-card {
+  background: white;
+  border: 1px solid #e5e5e5;
+  border-radius: 16px;
+  padding: 28px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.preco-destaque {
+  border-color: #1a1a1a;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+}
+
+.preco-badge {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #6b6b6b;
+  margin-bottom: 12px;
+}
+
+.preco-badge-off {
+  background: #1a1a1a;
+  color: white;
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+
+.preco-card h2 {
+  margin: 0 0 12px;
+  font-size: 1.35rem;
+}
+
+.preco-valor {
+  margin-bottom: 4px;
+}
+
+.preco-valor-num {
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.preco-valor-desc {
+  font-size: 0.95rem;
+  font-weight: 400;
+  color: #6b6b6b;
+}
+
+.preco-por {
+  margin: 0 0 20px;
+  font-size: 0.9rem;
+  color: #6b6b6b;
+}
+
+.preco-por em { color: #1a1a1a; font-style: normal; }
+
+.preco-card ul {
+  margin: 0 0 24px;
+  padding: 0;
+  list-style: none;
+  flex: 1;
+}
+
+.preco-card li {
+  padding: 6px 0;
+  font-size: 0.9rem;
+  padding-left: 20px;
+  position: relative;
+}
+
+.preco-card li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: #1a1a1a;
+  font-weight: 700;
+}
+
+.btn-preco {
+  display: block;
+  text-align: center;
+  padding: 14px 24px;
+  background: #1a1a1a;
+  color: white;
+  border-radius: 10px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+
+.btn-preco:hover { background: #333; color: white; }
+
+.btn-preco-destaque {
+  background: #1a1a1a;
+}
+
+.btn-preco-destaque:hover { background: #333; color: white; }
+
+footer {
+  text-align: center;
+  padding: 24px 0;
+}
+
+footer a {
+  color: #6b6b6b;
+  text-decoration: none;
+}
+
+footer a:hover { color: #1a1a1a; text-decoration: underline; }

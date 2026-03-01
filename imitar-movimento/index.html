@@ -7,7 +7,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/svg+xml" href="../favicon.svg">
   <link rel="stylesheet" href="../styles.css">
+  <link rel="stylesheet" href="../credits-modal.css">
+  <link rel="stylesheet" href="../plans-modal.css">
 </head>
 <body>
   <div class="app">
@@ -19,6 +22,19 @@
         </svg>
         <span class="logo-text">VARVOS</span>
       </a>
+      <div class="header-right">
+        <div class="header-credits-wrap">
+          <span class="header-credits">
+            <svg class="credits-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" aria-hidden="true"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+            <span id="headerCredits" class="credits-count">—</span>
+            <span class="credits-label">créditos</span>
+          </span>
+          <button type="button" class="btn-add-credits" id="btnAddCredits" title="Comprar créditos" aria-label="Comprar créditos">+</button>
+        </div>
+        <button type="button" class="hamburger-btn" id="hamburgerBtn" aria-label="Menu" aria-expanded="false">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
     </header>
 
     <main class="main">
@@ -26,47 +42,37 @@
         <form id="generateForm" class="create-form">
           <input type="hidden" id="mode" name="mode" value="video">
 
-          <!-- Caixa acima: O que você quer criar? + modos -->
-          <div class="create-tab-box">
-            <span class="create-tab-label">O que você quer criar?</span>
-            <div class="mode-switcher-inline">
+          <!-- Título e modos — minimalista -->
+          <div class="create-header">
+            <span class="create-label">O que você quer criar?</span>
+            <div class="mode-switcher">
               <a href="../video/" class="mode-btn" data-mode="video"><span class="mode-btn-icon">🎬</span> Vídeo</a>
               <a href="../imagem/" class="mode-btn" data-mode="image"><span class="mode-btn-icon">🖼️</span> Imagem</a>
               <a href="." class="mode-btn active" data-mode="motion"><span class="mode-btn-icon">✨</span> Imitar Movimento</a>
             </div>
           </div>
 
-          <!-- Card principal: sugestões + texto + botão + config -->
-          <div class="prompt-section">
-            <div id="promptSuggestionsVideo" class="prompt-suggestions prompt-suggestions-top hidden">
-              <div class="suggestion-chips">
-                <button type="button" class="chip" data-prompt="Close-up cinematográfico de produto de luxo girando lentamente 360° em superfície branca minimalista, iluminação de estúdio suave e difusa, estilo fotografia de produto profissional, baixa profundidade de campo, reflexos sutis, qualidade 4K, ideal para e-commerce e anúncios TikTok">Produto em rotação</button>
-                <button type="button" class="chip" data-prompt="Vídeo unboxing estilo UGC: mãos abrindo caixa elegante do produto com reação de surpresa e alegria autêntica, iluminação quente interior, estética de filmagem smartphone, fundo suave, formato vertical 9:16, trending para anúncios em redes sociais">Unboxing</button>
-                <button type="button" class="chip" data-prompt="Antes e depois split screen: lado esquerdo pele com imperfeições, lado direito pele radiante após uso do produto, iluminação natural, pessoa real, estilo depoimento autêntico, overlay de texto '7 dias depois', profissional mas próximo, formato vertical Reels e TikTok">Antes e depois</button>
-                <button type="button" class="chip" data-prompt="Depoimento UGC autêntico: mulher 30 anos falando diretamente à câmera com sorriso genuíno segurando o produto, luz natural suave da janela, fundo acolhedor em casa, fala 'uso há 2 semanas e minha pele nunca esteve melhor', estética smartphone crua, alta conversão para ads">Depoimento</button>
-                <button type="button" class="chip" data-prompt="Oferta limitada urgente: produto centralizado com countdown, preço original riscado, desconto em destaque, esquema vermelho e branco, animações de texto dinâmicas, estilo FOMO, formato vertical otimizado para TikTok Ads e Instagram">Oferta limitada</button>
-                <button type="button" class="chip" data-prompt="Demo de app: mulher sorrindo à câmera segurando smartphone mostrando interface do app, polegar rolando funcionalidades, ambiente moderno iluminado, expressão animada, formato vertical, estilo UGC, ideal para lançamento e anúncios TikTok">Demo de app</button>
-                <button type="button" class="chip" data-prompt="Produto com modelo: mulher segurando frasco de skincare, fundo branco clean, iluminação de estúdio suave, pose confiante, produto em destaque, estética fashion e beleza, qualidade comercial high-end, vertical 9:16 para ads sociais">Produto com modelo</button>
-                <button type="button" class="chip" data-prompt="Anúncio UGC estilo TikTok viral: criador falando direto à câmera com alta energia segurando o produto, roupa casual, fundo quarto ou sala, vibe autêntica 'você precisa disso', cortes rápidos, texto overlay com gancho, formato vertical, estilo ad viral">UGC TikTok</button>
+          <!-- Fluxo (motion: sem prompt, só uploads) -->
+          <div class="create-flow">
+            <div id="createPromptBlock" class="hidden">
+            <div id="promptInputWrap" class="prompt-hero hidden">
+              <div class="prompt-field-wrap">
+                <textarea id="prompt" name="prompt" rows="4" placeholder="Descreva o vídeo que você quer criar…"></textarea>
+                <div class="prompt-field-bar">
+                  <button type="button" class="btn-clear-prompt" id="btnClearPrompt" title="Limpar">Limpar</button>
+                  <span class="prompt-powered">Powered by VARVOS AI</span>
+                </div>
               </div>
             </div>
-            <div id="promptSuggestionsImage" class="prompt-suggestions prompt-suggestions-top hidden">
-              <div class="suggestion-chips">
-                <button type="button" class="chip" data-prompt="Retrato profissional de pessoa em fundo neutro, iluminação de estúdio suave, pose natural, alta resolução">Retrato profissional</button>
-                <button type="button" class="chip" data-prompt="Produto de beleza em close-up, superfície branca minimalista, iluminação difusa, reflexos sutis, estilo e-commerce">Produto e-commerce</button>
-                <button type="button" class="chip" data-prompt="Paisagem serena ao pôr do sol, montanhas e céu dramático, atmosfera cinematográfica">Paisagem ao pôr do sol</button>
-                <button type="button" class="chip" data-prompt="Ilustração cartoon colorida, personagem simpático, estilo desenho animado moderno">Ilustração cartoon</button>
-                <button type="button" class="chip" data-prompt="Conceito abstrato criativo, formas geométricas, cores vibrantes, arte digital">Conceito criativo</button>
-                <button type="button" class="chip" data-prompt="Close-up de rosto com maquiagem elegante, iluminação dramática, fundo escuro">Beleza editorial</button>
-                <button type="button" class="chip" data-prompt="Ambiente de escritório moderno, mesa com laptop, planta, luz natural">Escritório minimalista</button>
-                <button type="button" class="chip" data-prompt="Mood board de moda, composição flat lay, tecidos e acessórios organizados">Mood board moda</button>
-              </div>
-            </div>
-            <div id="promptInputWrap" class="hidden">
-              <textarea id="prompt" name="prompt" rows="4" placeholder="Descreva em detalhes o vídeo ou imagem que deseja..."></textarea>
+            <div id="promptSuggestionsVideo" class="prompt-suggestions hidden"></div>
+            <div id="promptSuggestionsImage" class="prompt-suggestions hidden"></div>
+            <div class="create-divider"></div>
             </div>
 
-            <!-- Config acima do botão -->
+            <div id="configAdvancedWrap" class="hidden">
+              <details class="config-advanced">
+                <summary>Opções</summary>
+                <div class="config-inner">
             <div id="videoFields" class="mode-fields form-options form-options-compact">
             <div class="config-row">
               <div class="field field-compact">
@@ -153,6 +159,9 @@
               </div>
             </div>
           </div>
+                </div>
+              </details>
+            </div>
 
             <!-- Imitar Movimento -->
           <div id="motionFields" class="mode-fields hidden form-options form-options-compact">
@@ -228,8 +237,13 @@
             <span id="taskProgress" class="task-progress">0%</span>
             <div class="progress-bar"><div id="progressFill" class="progress-fill"></div></div>
           </div>
+          <p id="loadingMessage" class="loading-message"></p>
           <button type="button" class="btn-verify hidden" id="btnVerify">🔄 Verificar</button>
           <div class="media-container">
+            <div id="loadingPlaceholder" class="loading-placeholder hidden">
+              <div class="loading-spinner"></div>
+              <p class="loading-placeholder-text">Criando seu conteúdo com IA...</p>
+            </div>
             <video id="videoPlayer" controls preload="metadata" class="media-output"></video>
             <div id="imageGallery" class="image-gallery hidden"></div>
           </div>
@@ -321,6 +335,205 @@
         </div>
       </section>
     </main>
+  </div>
+
+  <!-- Menu hambúrguer -->
+  <div id="hamburgerOverlay" class="hamburger-overlay" aria-hidden="true">
+    <div class="hamburger-panel">
+      <a href="../video/">🎬 Criar vídeo</a>
+      <a href="../imagem/">🖼️ Criar imagem</a>
+      <a href=".">✨ Imitar movimento</a>
+      <a href="#seus-videos" class="hamburger-close">📁 Seus vídeos</a>
+      <button type="button" class="hamburger-item" id="hamburgerPlans">💰 Planos e créditos</button>
+      <div class="credits-row">
+        💳 <span id="hamburgerCredits">—</span> créditos disponíveis
+      </div>
+      <p class="powered">Powered by Vidgo</p>
+    </div>
+  </div>
+
+  <!-- Modal de planos -->
+  <div id="plansModal" class="plans-modal hidden" role="dialog" aria-modal="true" aria-labelledby="plansModalTitle">
+    <div class="plans-modal-backdrop"></div>
+    <div class="plans-modal-card">
+      <button type="button" class="plans-modal-close" id="plansModalClose" aria-label="Fechar">×</button>
+      <h2 id="plansModalTitle" class="plans-modal-title">Escolha seu plano</h2>
+      <p class="plans-modal-sub">Créditos avulsos ou assinatura mensal. Flexível para o seu fluxo.</p>
+
+      <div class="plans-tabs">
+        <button type="button" class="plans-tab active" data-tab="avulsos">Créditos Avulsos</button>
+        <button type="button" class="plans-tab" data-tab="mensais">Planos Mensais</button>
+      </div>
+
+      <div id="plansAvulsos" class="plans-tab-content">
+        <div class="plan-card plan-featured">
+          <span class="plan-badge">Plano mais escolhido</span>
+          <h3 class="plan-name">Popular</h3>
+          <p class="plan-desc">Melhor custo-benefício</p>
+          <div class="plan-price">
+            <span class="plan-current">R$ 39,90</span>
+            <span class="plan-per">R$ 3,33 por vídeo</span>
+          </div>
+          <div class="plan-credits">🎬 12 vídeos (60 créditos)</div>
+          <ul class="plan-features">
+            <li>12 vídeos inclusos</li>
+            <li>Vídeos prontos pra postar</li>
+            <li>Vídeos de 15s ou 25s</li>
+            <li>Qualidade Full HD profissional</li>
+            <li>Sem marca d'água — 100% seu</li>
+            <li>Fotos ultra realistas</li>
+            <li>Efeito de movimento realista</li>
+          </ul>
+          <a href="../precos.html?plano=popular" class="plan-cta">Escolher plano</a>
+          <span class="plan-guarantee">Garantia de 7 dias</span>
+        </div>
+        <div class="plan-card">
+          <h3 class="plan-name">Starter</h3>
+          <p class="plan-desc">Para começar</p>
+          <div class="plan-price">
+            <span class="plan-current">R$ 14,90</span>
+            <span class="plan-per">R$ 3,73 por vídeo</span>
+          </div>
+          <div class="plan-credits">🎬 4 vídeos (20 créditos)</div>
+          <ul class="plan-features">
+            <li>4 vídeos inclusos</li>
+            <li>Vídeos prontos pra postar</li>
+            <li>Vídeos de 15s ou 25s</li>
+            <li>Qualidade Full HD profissional</li>
+            <li>Sem marca d'água — 100% seu</li>
+            <li>Fotos ultra realistas</li>
+          </ul>
+          <a href="../precos.html?plano=starter" class="plan-cta plan-cta-outline">Escolher plano</a>
+          <span class="plan-guarantee">Garantia de 7 dias</span>
+        </div>
+        <div class="plan-card">
+          <h3 class="plan-name">Pro</h3>
+          <p class="plan-desc">Maior eficiência por crédito</p>
+          <div class="plan-price">
+            <span class="plan-current">R$ 79,90</span>
+            <span class="plan-per">R$ 2,96 por vídeo</span>
+          </div>
+          <div class="plan-credits">🎬 27 vídeos (135 créditos)</div>
+          <ul class="plan-features">
+            <li>27 vídeos inclusos</li>
+            <li>Vídeos prontos pra postar</li>
+            <li>Vídeos de 15s ou 25s</li>
+            <li>Qualidade Full HD profissional</li>
+            <li>Sem marca d'água — 100% seu</li>
+            <li>Fotos ultra realistas</li>
+            <li>Efeito de movimento realista</li>
+          </ul>
+          <a href="../precos.html?plano=pro-avulso" class="plan-cta plan-cta-outline">Escolher plano</a>
+          <span class="plan-guarantee">Garantia de 7 dias</span>
+        </div>
+        <div class="plan-card">
+          <h3 class="plan-name">Escala</h3>
+          <p class="plan-desc">Para alto volume</p>
+          <div class="plan-price">
+            <span class="plan-current">R$ 297,00</span>
+            <span class="plan-per">R$ 2,48 por vídeo</span>
+          </div>
+          <div class="plan-credits">🎬 120 vídeos (600 créditos)</div>
+          <ul class="plan-features">
+            <li>120 vídeos inclusos</li>
+            <li>Vídeos prontos pra postar</li>
+            <li>Vídeos de 15s ou 25s</li>
+            <li>Qualidade Full HD profissional</li>
+            <li>Sem marca d'água — 100% seu</li>
+            <li>Fotos ultra realistas</li>
+            <li>Efeito de movimento realista</li>
+            <li>Geração 2x mais rápida</li>
+          </ul>
+          <a href="../precos.html?plano=escala" class="plan-cta plan-cta-outline">Escolher plano</a>
+          <span class="plan-guarantee">Garantia de 7 dias</span>
+        </div>
+      </div>
+
+      <div id="plansMensais" class="plans-tab-content hidden">
+        <div class="plan-card plan-featured">
+          <span class="plan-badge">Plano mais escolhido</span>
+          <h3 class="plan-name">Pro</h3>
+          <p class="plan-desc">Melhor custo-benefício</p>
+          <div class="plan-price">
+            <span class="plan-current">R$ 149,90/mês</span>
+            <span class="plan-per">R$ 1,49 por vídeo</span>
+          </div>
+          <div class="plan-credits">🎬 100 vídeos/mês (500 créditos)</div>
+          <ul class="plan-features">
+            <li>100 vídeos inclusos/mês</li>
+            <li>Vídeos prontos pra postar</li>
+            <li>Full HD sem marca d'água — 100% seu</li>
+            <li>Fotos ultra realistas</li>
+            <li>Efeito de movimento realista</li>
+            <li>Geração 2x mais rápida</li>
+            <li>Renovação automática todo mês</li>
+            <li>Prioridade máxima na fila</li>
+          </ul>
+          <a href="../precos.html?plano=pro" class="plan-cta">Ativar plano Pro</a>
+          <span class="plan-guarantee">Garantia de 7 dias</span>
+        </div>
+        <div class="plan-card">
+          <h3 class="plan-name">Start</h3>
+          <p class="plan-desc">Para quem está começando</p>
+          <div class="plan-price">
+            <span class="plan-current">R$ 59,90/mês</span>
+            <span class="plan-per">R$ 2,00 por vídeo</span>
+          </div>
+          <div class="plan-credits">🎬 30 vídeos/mês (150 créditos)</div>
+          <ul class="plan-features">
+            <li>30 vídeos inclusos/mês</li>
+            <li>Vídeos prontos pra postar</li>
+            <li>Full HD sem marca d'água — 100% seu</li>
+            <li>Fotos ultra realistas</li>
+            <li>Efeito de movimento realista</li>
+            <li>Geração 2x mais rápida</li>
+            <li>Renovação automática todo mês</li>
+          </ul>
+          <a href="../precos.html?plano=start" class="plan-cta plan-cta-outline">Ativar plano</a>
+          <span class="plan-guarantee">Garantia de 7 dias</span>
+        </div>
+        <div class="plan-card">
+          <h3 class="plan-name">Agency</h3>
+          <p class="plan-desc">Para alto volume</p>
+          <div class="plan-price">
+            <span class="plan-current">R$ 497,00/mês</span>
+            <span class="plan-per">R$ 1,24 por vídeo</span>
+          </div>
+          <div class="plan-credits">🎬 400 vídeos/mês (2000 créditos)</div>
+          <ul class="plan-features">
+            <li>400 vídeos inclusos/mês</li>
+            <li>Vídeos prontos pra postar</li>
+            <li>Full HD sem marca d'água — 100% seu</li>
+            <li>Fotos ultra realistas</li>
+            <li>Efeito de movimento realista</li>
+            <li>Renovação automática todo mês</li>
+            <li>Prioridade máxima na fila</li>
+            <li>Suporte prioritário via WhatsApp</li>
+          </ul>
+          <a href="../precos.html?plano=agency" class="plan-cta plan-cta-outline">Ativar plano</a>
+          <span class="plan-guarantee">Garantia de 7 dias</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal sem créditos -->
+  <div id="creditsModal" class="credits-modal hidden" role="dialog" aria-modal="true" aria-labelledby="creditsModalTitle">
+    <div class="credits-modal-backdrop"></div>
+    <div class="credits-modal-card">
+      <button type="button" class="credits-modal-close" id="creditsModalClose" aria-label="Fechar">×</button>
+      <div class="credits-modal-icon">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <rect x="2" y="5" width="20" height="14" rx="2"/>
+          <line x1="2" y1="10" x2="22" y2="10"/>
+        </svg>
+      </div>
+      <h2 id="creditsModalTitle" class="credits-modal-title">Continuar criando</h2>
+      <p class="credits-modal-desc">Seus créditos acabaram. Adicione mais para seguir gerando vídeos e imagens com IA.</p>
+      <p class="credits-modal-offer">Escolha créditos avulsos ou assinatura mensal — flexível para o seu fluxo.</p>
+      <button type="button" class="credits-modal-btn" id="creditsModalPlans">Ver planos</button>
+      <button type="button" class="credits-modal-dismiss" id="creditsModalDismiss">Fechar</button>
+    </div>
   </div>
 
   <!-- Modal vídeo ampliado - Social & UGC Ads -->
