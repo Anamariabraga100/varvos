@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VARVOS — Criar imagem com IA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <a href="../landing.html" class="logo">
+        <svg class="logo-icon" width="28" height="28" viewBox="0 0 24 24" fill="none">
+          <path d="M12 2L2 7l10 5 10-5-10-5z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M2 17l10 5 10-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="logo-text">VARVOS</span>
+      </a>
+    </header>
+
+    <main class="main">
+      <section class="section-create" id="criar">
+        <form id="generateForm" class="create-form">
+          <input type="hidden" id="mode" name="mode" value="video">
+
+          <!-- Caixa acima: O que você quer criar? + modos -->
+          <div class="create-tab-box">
+            <span class="create-tab-label">O que você quer criar?</span>
+            <div class="mode-switcher-inline">
+              <a href="../video/" class="mode-btn" data-mode="video"><span class="mode-btn-icon">🎬</span> Vídeo</a>
+              <a href="." class="mode-btn active" data-mode="image"><span class="mode-btn-icon">🖼️</span> Imagem</a>
+              <a href="../imitar-movimento/" class="mode-btn" data-mode="motion"><span class="mode-btn-icon">✨</span> Imitar Movimento</a>
+            </div>
+          </div>
+
+          <!-- Card principal: sugestões + texto + botão + config -->
+          <div class="prompt-section">
+            <div id="promptSuggestionsVideo" class="prompt-suggestions prompt-suggestions-top hidden">
+              <div class="suggestion-chips">
+                <button type="button" class="chip" data-prompt="Close-up cinematográfico de produto de luxo girando lentamente 360° em superfície branca minimalista, iluminação de estúdio suave e difusa, estilo fotografia de produto profissional, baixa profundidade de campo, reflexos sutis, qualidade 4K, ideal para e-commerce e anúncios TikTok">Produto em rotação</button>
+                <button type="button" class="chip" data-prompt="Vídeo unboxing estilo UGC: mãos abrindo caixa elegante do produto com reação de surpresa e alegria autêntica, iluminação quente interior, estética de filmagem smartphone, fundo suave, formato vertical 9:16, trending para anúncios em redes sociais">Unboxing</button>
+                <button type="button" class="chip" data-prompt="Antes e depois split screen: lado esquerdo pele com imperfeições, lado direito pele radiante após uso do produto, iluminação natural, pessoa real, estilo depoimento autêntico, overlay de texto '7 dias depois', profissional mas próximo, formato vertical Reels e TikTok">Antes e depois</button>
+                <button type="button" class="chip" data-prompt="Depoimento UGC autêntico: mulher 30 anos falando diretamente à câmera com sorriso genuíno segurando o produto, luz natural suave da janela, fundo acolhedor em casa, fala 'uso há 2 semanas e minha pele nunca esteve melhor', estética smartphone crua, alta conversão para ads">Depoimento</button>
+                <button type="button" class="chip" data-prompt="Oferta limitada urgente: produto centralizado com countdown, preço original riscado, desconto em destaque, esquema vermelho e branco, animações de texto dinâmicas, estilo FOMO, formato vertical otimizado para TikTok Ads e Instagram">Oferta limitada</button>
+                <button type="button" class="chip" data-prompt="Demo de app: mulher sorrindo à câmera segurando smartphone mostrando interface do app, polegar rolando funcionalidades, ambiente moderno iluminado, expressão animada, formato vertical, estilo UGC, ideal para lançamento e anúncios TikTok">Demo de app</button>
+                <button type="button" class="chip" data-prompt="Produto com modelo: mulher segurando frasco de skincare, fundo branco clean, iluminação de estúdio suave, pose confiante, produto em destaque, estética fashion e beleza, qualidade comercial high-end, vertical 9:16 para ads sociais">Produto com modelo</button>
+                <button type="button" class="chip" data-prompt="Anúncio UGC estilo TikTok viral: criador falando direto à câmera com alta energia segurando o produto, roupa casual, fundo quarto ou sala, vibe autêntica 'você precisa disso', cortes rápidos, texto overlay com gancho, formato vertical, estilo ad viral">UGC TikTok</button>
+              </div>
+            </div>
+            <div id="promptSuggestionsImage" class="prompt-suggestions prompt-suggestions-top">
+              <div class="suggestion-chips">
+                <button type="button" class="chip" data-prompt="Retrato profissional de pessoa em fundo neutro, iluminação de estúdio suave, pose natural, alta resolução">Retrato profissional</button>
+                <button type="button" class="chip" data-prompt="Produto de beleza em close-up, superfície branca minimalista, iluminação difusa, reflexos sutis, estilo e-commerce">Produto e-commerce</button>
+                <button type="button" class="chip" data-prompt="Paisagem serena ao pôr do sol, montanhas e céu dramático, atmosfera cinematográfica">Paisagem ao pôr do sol</button>
+                <button type="button" class="chip" data-prompt="Ilustração cartoon colorida, personagem simpático, estilo desenho animado moderno">Ilustração cartoon</button>
+                <button type="button" class="chip" data-prompt="Conceito abstrato criativo, formas geométricas, cores vibrantes, arte digital">Conceito criativo</button>
+                <button type="button" class="chip" data-prompt="Close-up de rosto com maquiagem elegante, iluminação dramática, fundo escuro">Beleza editorial</button>
+                <button type="button" class="chip" data-prompt="Ambiente de escritório moderno, mesa com laptop, planta, luz natural">Escritório minimalista</button>
+                <button type="button" class="chip" data-prompt="Mood board de moda, composição flat lay, tecidos e acessórios organizados">Mood board moda</button>
+              </div>
+            </div>
+            <div id="promptInputWrap">
+              <textarea id="prompt" name="prompt" rows="4" placeholder="Descreva em detalhes o vídeo ou imagem que deseja..." required></textarea>
+            </div>
+
+            <!-- Config acima do botão -->
+            <div id="videoFields" class="mode-fields form-options form-options-compact">
+            <div class="config-row">
+              <div class="field field-compact">
+                <label for="duration">Duração</label>
+                <select id="duration" name="duration">
+                  <option value="10">10s</option>
+                  <option value="15" selected>15s</option>
+                </select>
+              </div>
+              <div class="field field-compact">
+                <label for="aspectRatio">Formato</label>
+                <select id="aspectRatio" name="aspect_ratio">
+                  <option value="16:9" selected>YouTube (16:9)</option>
+                  <option value="9:16">Stories (Reels, TikTok)</option>
+                  <option value="1:1">Destaque (1:1)</option>
+                </select>
+              </div>
+              <div class="field field-compact">
+                <label for="style">Estilo</label>
+                <select id="style" name="style">
+                  <option value="">Nenhum</option>
+                  <option value="anime">Anime</option>
+                  <option value="nostalgic">Nostálgico</option>
+                  <option value="selfie">Selfie</option>
+                  <option value="news">Notícias</option>
+                  <option value="comic">HQ</option>
+                </select>
+              </div>
+              <div class="field field-compact field-ref">
+                <label>Ref. (opcional)</label>
+                <div class="file-upload file-upload-compact" id="imageRefUpload">
+                <input type="file" id="imageRefFile" accept="image/jpeg,image/png,image/webp" hidden>
+                <div class="file-upload-area" id="imageRefArea">
+                  <span class="file-upload-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></span>
+                  <span class="file-upload-text">Imagem</span>
+                </div>
+                <div class="file-preview hidden" id="imageRefPreview">
+                  <img id="imageRefPreviewImg" alt="Preview">
+                  <button type="button" class="file-remove" id="imageRefRemove">✕</button>
+                </div>
+              </div>
+              </div>
+              <label class="checkbox-label checkbox-compact">
+                <input type="checkbox" id="watermark" name="watermark">
+                <span>Marca d'água</span>
+              </label>
+            </div>
+            </div>
+
+            <!-- Image fields -->
+          <div id="imageFields" class="mode-fields hidden form-options form-options-compact">
+            <div class="field-row">
+              <div class="field">
+                <label for="imgSize">Tamanho</label>
+                <select id="imgSize" name="img_size">
+                  <option value="1:1" selected>1:1</option>
+                  <option value="2:3">2:3</option>
+                  <option value="3:2">3:2</option>
+                </select>
+              </div>
+              <div class="field" id="imgCountField">
+                <label for="imgCount">Quantidade</label>
+                <select id="imgCount" name="img_count">
+                  <option value="1" selected>1 imagem</option>
+                  <option value="2">2 imagens</option>
+                  <option value="3">3 imagens</option>
+                  <option value="4">4 imagens</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="field" id="imgRefField">
+              <label>Imagem de referência (opcional)</label>
+              <div class="file-upload" id="imgRefUpload">
+                <input type="file" id="imgRefFile" accept="image/jpeg,image/png,image/webp" hidden>
+                <div class="file-upload-area" id="imgRefArea">
+                  <span class="file-upload-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></span>
+                  <span class="file-upload-text">Clique ou arraste uma imagem</span>
+                </div>
+                <div class="file-preview hidden" id="imgRefPreview">
+                  <img id="imgRefPreviewImg" alt="Preview">
+                  <button type="button" class="file-remove" id="imgRefRemove">✕ Remover</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+            <!-- Imitar Movimento -->
+          <div id="motionFields" class="mode-fields hidden form-options form-options-compact">
+            <div class="field">
+              <label>1. Vídeo de referência (a dança / movimento) <span class="required">*</span></label>
+              <p class="field-hint">O movimento que será imitado. 3–30 seg, MP4/MOV/MKV (máx 100MB). Mostre cabeça, ombros e torso.</p>
+              <div class="file-upload" id="motionRefVideoUpload">
+                <input type="file" id="motionRefVideoFile" accept="video/mp4,video/quicktime,video/x-matroska" hidden>
+                <div class="file-upload-area" id="motionRefVideoArea">
+                  <span class="file-upload-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="4" width="20" height="16" rx="2"/><polygon points="10 8 16 12 10 16 10 8"/></svg></span>
+                  <span class="file-upload-text">Clique ou arraste o vídeo de referência</span>
+                </div>
+                <div class="file-preview hidden" id="motionRefVideoPreview">
+                  <video id="motionRefVideoPreviewVid" controls muted style="max-width:100%;max-height:120px;"></video>
+                  <button type="button" class="file-remove" id="motionRefVideoRemove">✕ Remover</button>
+                </div>
+              </div>
+            </div>
+            <div class="field">
+              <label>2. Foto do personagem (quem vai aparecer) <span class="required">*</span></label>
+              <p class="field-hint">A pessoa/personagem que fará o movimento. JPEG/PNG/WebP (máx 10MB). Mostre cabeça, ombros e torso.</p>
+              <div class="file-upload" id="motionCharImageUpload">
+                <input type="file" id="motionCharImageFile" accept="image/jpeg,image/png,image/webp" hidden>
+                <div class="file-upload-area" id="motionCharImageArea">
+                  <span class="file-upload-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></span>
+                  <span class="file-upload-text">Clique ou arraste a foto do personagem</span>
+                </div>
+                <div class="file-preview hidden" id="motionCharImagePreview">
+                  <img id="motionCharImagePreviewImg" alt="Personagem">
+                  <button type="button" class="file-remove" id="motionCharImageRemove">✕ Remover</button>
+                </div>
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label for="motionOrientation">Orientação do personagem</label>
+                <select id="motionOrientation" name="motion_orientation">
+                  <option value="image">Imagem (máx 10s)</option>
+                  <option value="video">Vídeo (máx 30s)</option>
+                </select>
+                <p class="field-hint-small">Imagem = segue pose da foto. Vídeo = segue pose do vídeo ref.</p>
+              </div>
+              <div class="field">
+                <label for="motionResolution">Resolução</label>
+                <select id="motionResolution" name="motion_resolution">
+                  <option value="720p">720p (padrão)</option>
+                  <option value="1080p">1080p (alta qualidade)</option>
+                </select>
+              </div>
+            </div>
+            <div id="motionReadyState" class="motion-ready-state" aria-live="polite"></div>
+          </div>
+
+            <div class="prompt-actions">
+              <button type="submit" class="btn-generate btn-generate-inline" id="btnGenerate">
+                <span id="btnGenerateText">Gerar vídeo</span>
+                <span class="btn-credits">✨</span>
+              </button>
+            </div>
+        </form>
+      </section>
+
+      <!-- Resultado atual -->
+      <section class="section-result" id="currentResultSection">
+        <h3 class="section-title">Resultado</h3>
+        <div id="outputPlaceholder" class="output-placeholder">
+          <div class="placeholder-icon">🎬</div>
+          <p>Seu resultado aparecerá aqui</p>
+        </div>
+        <div id="outputResult" class="output-result hidden">
+          <div class="task-status-bar">
+            <span id="taskStatus" class="status-badge">—</span>
+            <span id="taskProgress" class="task-progress">0%</span>
+            <div class="progress-bar"><div id="progressFill" class="progress-fill"></div></div>
+          </div>
+          <button type="button" class="btn-verify hidden" id="btnVerify">🔄 Verificar</button>
+          <div class="media-container">
+            <video id="videoPlayer" controls preload="metadata" class="media-output"></video>
+            <div id="imageGallery" class="image-gallery hidden"></div>
+          </div>
+          <p id="statusMessage" class="status-message"></p>
+          <a id="downloadBtn" class="btn-download hidden" href="#" download>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Baixar
+          </a>
+        </div>
+      </section>
+
+      <!-- Como fazer? -->
+      <section class="section-como-fazer">
+        <details class="mode-howto mode-howto-standalone" id="comoFazerVideo">
+          <summary><strong>Como fazer? (Vídeo)</strong></summary>
+          <div class="mode-howto-content">
+            <p><strong>1. Escreva o prompt</strong> — Descreva o vídeo em detalhes. <strong>2. Configure duração e formato</strong> — YouTube, Stories ou Destaque. <strong>3. Imagem de referência (opcional)</strong> — Envie uma foto para guiar o estilo.</p>
+          </div>
+        </details>
+        <details class="mode-howto mode-howto-standalone hidden" id="comoFazerImage">
+          <summary><strong>Como fazer? (Imagem)</strong></summary>
+          <div class="mode-howto-content">
+            <p><strong>1. Escreva o prompt</strong> — Descreva a imagem em detalhes. <strong>2. Escolha tamanho e quantidade</strong> — 1:1, 2:3 ou 3:2. <strong>3. Imagem de referência (opcional)</strong> — Para inspirar o estilo.</p>
+          </div>
+        </details>
+        <details class="mode-howto mode-howto-standalone hidden" id="comoFazerMotion">
+          <summary><strong>Como fazer? (Imitar Movimento)</strong></summary>
+          <div class="mode-howto-content">
+            <p><strong>1. Vídeo de referência</strong> — A dança ou movimento (3–30 seg). <strong>2. Foto do personagem</strong> — Quem vai aparecer fazendo o movimento. Ambos devem mostrar cabeça, ombros e torso.</p>
+          </div>
+        </details>
+      </section>
+
+      <!-- Seus vídeos criados -->
+      <section class="section-creations" id="seus-videos">
+        <h3 class="section-title">Seus vídeos e imagens</h3>
+        <div id="historyList" class="creations-grid"></div>
+        <div id="historyEmpty" class="creations-empty">
+          <p>Ainda não há criações</p>
+          <span class="history-hint">Tudo que você gerar aparecerá aqui</span>
+        </div>
+        <button type="button" class="btn-clear-history hidden" id="btnClearHistory">Limpar</button>
+      </section>
+
+      <!-- Social & UGC Ads -->
+      <section class="section-samples" id="inspire-se">
+        <h3 class="section-title">Social &amp; UGC Ads</h3>
+        <p class="section-subtitle">Descubra anúncios pensados para redes sociais e estilo UGC, feitos para parecer nativos e autênticos.</p>
+        <div class="carousel-wrapper samples-wrap">
+          <div class="carousel samples-carousel" id="samplesCarousel">
+            <div class="carousel-track samples-track">
+              <button type="button" class="video-card sample-video-slot" data-prompt="Criador segurando placa com novidade, estilo anúncio viral para redes sociais">
+                <video src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" muted loop playsinline></video>
+              </button>
+              <button type="button" class="video-card sample-video-slot" data-prompt="Mulher mostrando app no celular sorrindo para câmera, estilo UGC autêntico">
+                <video src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4" muted loop playsinline></video>
+              </button>
+              <button type="button" class="video-card sample-video-slot" data-prompt="Mulher trabalhando no laptop, lifestyle moderno para anúncio de produto">
+                <video src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4" muted loop playsinline></video>
+              </button>
+              <button type="button" class="video-card sample-video-slot" data-prompt="Homem animado segurando celular com app, energia alta para TikTok Ads">
+                <video src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4" muted loop playsinline></video>
+              </button>
+              <button type="button" class="video-card sample-video-slot" data-prompt="Modelo apresentando protetor solar SPF 50, close-up produto">
+                <video src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4" muted loop playsinline></video>
+              </button>
+              <button type="button" class="video-card sample-video-slot" data-prompt="Modelo com produto skincare em destaque, fundo clean profissional">
+                <video src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4" muted loop playsinline></video>
+              </button>
+              <button type="button" class="video-card sample-video-slot" data-prompt="Promoção Sale com desconto, urgência e FOMO para conversão">
+                <video src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" muted loop playsinline></video>
+              </button>
+              <button type="button" class="video-card sample-video-slot" data-prompt="Depoimento UGC autêntico falando direto à câmera sobre produto">
+                <video src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" muted loop playsinline></video>
+              </button>
+              <button type="button" class="video-card sample-video-slot" data-prompt="Unboxing com reação de surpresa, estilo orgânico para ads">
+                <video src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4" muted loop playsinline></video>
+              </button>
+              <button type="button" class="video-card sample-video-slot" data-prompt="Produto em rotação 360° em fundo branco minimalista">
+                <video src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4" muted loop playsinline></video>
+              </button>
+              <div class="video-card video-placeholder-slot">
+                <div class="video-placeholder"><span>▶</span><small>Seu próximo vídeo</small></div>
+              </div>
+            </div>
+          </div>
+          <div class="carousel-nav left" id="samplesPrev">‹</div>
+          <div class="carousel-nav right" id="samplesNext">›</div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Modal vídeo ampliado - Social & UGC Ads -->
+  <div id="videoModal" class="video-modal hidden">
+    <div class="video-modal-backdrop"></div>
+    <div class="video-modal-content">
+      <button type="button" class="video-modal-close" id="videoModalClose" aria-label="Fechar">×</button>
+      <div class="video-modal-player">
+        <video id="videoModalVideo" controls loop playsinline></video>
+      </div>
+      <div class="video-modal-info">
+        <label>Prompt usado:</label>
+        <p id="videoModalPrompt" class="video-modal-prompt"></p>
+        <button type="button" class="btn-clonar-prompt" id="btnClonarPrompt">Clonar prompt</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../config.js"></script>
+  <script src="../app.js"></script>
+</body>
+</html>
