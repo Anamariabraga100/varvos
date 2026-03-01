@@ -103,6 +103,10 @@ if (clientId) {
 
 document.getElementById('authTrigger')?.addEventListener('click', (e) => {
   e.preventDefault();
+  if (isLoggedIn()) {
+    window.location.href = REDIRECT_URL;
+    return;
+  }
   openAuthModal(REDIRECT_URL);
 });
 
