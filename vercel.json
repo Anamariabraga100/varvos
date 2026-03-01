@@ -1,5 +1,6 @@
 {
   "buildCommand": "npm run build",
+  "outputDirectory": ".",
   "redirects": [{"source": "/index.html", "destination": "/", "permanent": true}],
   "cleanUrls": true
 }
