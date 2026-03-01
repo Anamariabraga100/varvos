@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teste — Vídeos + Modal</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: system-ui, sans-serif; background: #f5f5f5; min-height: 100vh; padding: 24px; }
+    h1 { margin: 0 0 24px; font-size: 1.25rem; color: #333; }
+    .carousel-section { padding: 16px 0; overflow: hidden; position: relative; }
+    .carousel-wrapper { position: relative; width: 100%; }
+    .carousel {
+      overflow-x: auto;
+      overflow-y: hidden;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .carousel::-webkit-scrollbar { display: none; }
+    .carousel-track { display: flex; gap: 12px; padding: 0 24px 0 0; width: max-content; }
+    .video-card {
+      flex-shrink: 0;
+      width: 180px;
+      aspect-ratio: 9/16;
+      border-radius: 20px;
+      overflow: hidden;
+      background: #111;
+      position: relative;
+      scroll-snap-align: start;
+      cursor: pointer;
+      box-shadow: 0 12px 32px rgba(0,0,0,0.12);
+    }
+    .video-card video { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .mute-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 32px;
+      height: 32px;
+      border: none;
+      border-radius: 8px;
+      background: rgba(0,0,0,0.5);
+      color: white;
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2;
+    }
+    .carousel-nav {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: white;
+      border: 1px solid #e5e5e5;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+    .carousel-nav.left { left: 12px; }
+    .carousel-nav.right { right: 12px; }
+
+    /* Modal */
+    .video-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: rgba(0, 0, 0, 0.75);
+    }
+    .video-modal.hidden { display: none; }
+    .video-modal-backdrop { position: absolute; inset: 0; cursor: pointer; }
+    .video-modal-content {
+      position: relative;
+      background: #111;
+      border-radius: 20px;
+      overflow: hidden;
+      max-width: 420px;
+      width: 100%;
+    }
+    .video-modal-close {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 40px;
+      height: 40px;
+      border: none;
+      border-radius: 50%;
+      background: rgba(0,0,0,0.6);
+      color: white;
+      font-size: 1.2rem;
+      cursor: pointer;
+      z-index: 2;
+    }
+    .video-modal-player { aspect-ratio: 9/16; background: #000; }
+    .video-modal-player video { width: 100%; height: 100%; object-fit: contain; }
+    .video-modal-actions { padding: 24px; color: white; }
+    .video-modal-actions h3 { margin: 0 0 8px; font-size: 1rem; }
+    .video-modal-actions p { margin: 0; font-size: 0.9rem; opacity: 0.9; }
+  </style>
+</head>
+<body>
+  <h1>🧪 Teste de vídeos — Clique no card para abrir o modal</h1>
+
+  <section class="carousel-section">
+    <div class="carousel-wrapper">
+      <div class="carousel" id="videoCarousel">
+        <div class="carousel-track">
+          <div class="video-card" data-video-src="https://magai.b-cdn.net/persona-banner/2.mp4">
+            <video src="https://magai.b-cdn.net/persona-banner/2.mp4" muted loop playsinline autoplay></video>
+            <button type="button" class="mute-btn" aria-label="Som">🔇</button>
+          </div>
+          <div class="video-card" data-video-src="https://cdn.higgsfield.ai/kling_motion_control_preset/062dcd0d-2b81-4e82-8757-8bb1cd491581.mp4">
+            <video src="https://cdn.higgsfield.ai/kling_motion_control_preset/062dcd0d-2b81-4e82-8757-8bb1cd491581.mp4" muted loop playsinline autoplay></video>
+            <button type="button" class="mute-btn" aria-label="Som">🔇</button>
+          </div>
+          <div class="video-card" data-video-src="https://cdn.higgsfield.ai/kling_motion_control_preset/1ad056fe-79aa-4347-afdc-2b4e360fbed1.mp4">
+            <video src="https://cdn.higgsfield.ai/kling_motion_control_preset/1ad056fe-79aa-4347-afdc-2b4e360fbed1.mp4" muted loop playsinline autoplay></video>
+            <button type="button" class="mute-btn" aria-label="Som">🔇</button>
+          </div>
+          <div class="video-card" data-video-src="https://cdn.higgsfield.ai/kling_motion_control_preset/fc0bb74c-2a62-4113-99cb-f0ee05aaacf3.mp4">
+            <video src="https://cdn.higgsfield.ai/kling_motion_control_preset/fc0bb74c-2a62-4113-99cb-f0ee05aaacf3.mp4" muted loop playsinline autoplay></video>
+            <button type="button" class="mute-btn" aria-label="Som">🔇</button>
+          </div>
+        </div>
+      </div>
+      <div class="carousel-nav left" id="carouselPrev">‹</div>
+      <div class="carousel-nav right" id="carouselNext">›</div>
+    </div>
+  </section>
+
+  <div id="video-modal" class="video-modal hidden">
+    <div class="video-modal-backdrop" id="videoModalBackdrop"></div>
+    <div class="video-modal-content">
+      <button type="button" class="video-modal-close" id="videoModalClose" aria-label="Fechar">✕</button>
+      <div class="video-modal-player">
+        <video id="videoModalPlayer" controls autoplay playsinline></video>
+      </div>
+      <div class="video-modal-actions">
+        <h3>Modal aberto</h3>
+        <p>Use os controles nativos para desmutar, fullscreen, etc.</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      const videoModal = document.getElementById('video-modal');
+      const modalVideo = videoModal ? videoModal.querySelector('video') : null;
+
+      if (!videoModal || !modalVideo) {
+        console.error('Modal ou vídeo não encontrado');
+        return;
+      }
+
+      function closeModal() {
+        videoModal.classList.add('hidden');
+        modalVideo.pause();
+        modalVideo.src = '';
+      }
+
+      document.getElementById('videoModalBackdrop')?.addEventListener('click', closeModal);
+      document.getElementById('videoModalClose')?.addEventListener('click', closeModal);
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !videoModal.classList.contains('hidden')) closeModal();
+      });
+
+      function toggleMute(card) {
+        const video = card?.querySelector('video');
+        const btn = card?.querySelector('.mute-btn');
+        if (video) {
+          video.muted = !video.muted;
+          video.play().catch(() => {});
+          if (btn) btn.textContent = video.muted ? '🔇' : '🔊';
+        }
+      }
+
+      document.querySelectorAll('.video-card').forEach((card) => {
+        card.addEventListener('click', (e) => {
+          if (e.target.closest('.mute-btn')) {
+            toggleMute(card);
+            return;
+          }
+          const src = card.dataset.videoSrc || card.querySelector('video')?.src;
+          if (!src) return;
+          modalVideo.src = src;
+          modalVideo.muted = true;
+          modalVideo.load();
+          videoModal.classList.remove('hidden');
+          modalVideo.play().catch(() => {});
+        });
+      });
+
+      const carousel = document.getElementById('videoCarousel');
+      document.getElementById('carouselPrev')?.addEventListener('click', () => carousel?.scrollBy({ left: -192, behavior: 'smooth' }));
+      document.getElementById('carouselNext')?.addEventListener('click', () => carousel?.scrollBy({ left: 192, behavior: 'smooth' }));
+    })();
+  </script>
+</body>
+</html>

@@ -207,14 +207,13 @@
     <div class="video-modal-content">
       <button type="button" class="video-modal-close close-modal" id="videoModalClose" aria-label="Fechar">✕</button>
       <div class="video-modal-player">
-        <video id="videoModalPlayer" controls autoplay playsinline></video>
+        <video id="videoModalPlayer" controls autoplay playsinline loop></video>
       </div>
       <div class="video-modal-actions">
-        <h3>O que você pode fazer com esse vídeo</h3>
-        <p class="video-modal-desc">Escolha o rosto da pessoa que deseja usar e recrie o movimento ou a dança com IA. Sua foto, o movimento do vídeo.</p>
+        <p class="video-modal-desc">Crie um vídeo semelhante ou use o Imitar Movimento para colocar seu rosto fazendo a dança.</p>
         <div class="video-modal-buttons">
-          <a href="imitar-movimento/" class="video-modal-btn video-modal-btn-primary">Imitar movimento</a>
-          <a href="imitar-movimento/" class="video-modal-btn">Recriar dança</a>
+          <a href="video/" class="video-modal-btn video-modal-btn-primary">Criar vídeo semelhante</a>
+          <a href="imitar-movimento/" class="video-modal-btn">Imitar movimento</a>
         </div>
       </div>
     </div>
@@ -287,6 +286,46 @@
     </div>
   </div>
 
+  <script>
+  (function() {
+    var videoModal = document.getElementById('video-modal');
+    var modalVideo = videoModal ? videoModal.querySelector('video') : null;
+    if (!videoModal || !modalVideo) return;
+    function closeModal() {
+      videoModal.classList.add('hidden');
+      modalVideo.pause();
+      modalVideo.src = '';
+      document.querySelectorAll('.video-card video').forEach(function(v){ v.muted = true; v.play().catch(function(){}); });
+    }
+    document.getElementById('videoModalBackdrop')?.addEventListener('click', closeModal);
+    document.getElementById('videoModalClose')?.addEventListener('click', closeModal);
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && !videoModal.classList.contains('hidden')) closeModal();
+    });
+    function toggleMute(card) {
+      var video = card ? card.querySelector('video') : null;
+      var btn = card ? card.querySelector('.mute-btn') : null;
+      if (video) {
+        video.muted = !video.muted;
+        video.play().catch(function(){});
+        if (btn) btn.textContent = video.muted ? '🔇' : '🔊';
+      }
+    }
+    document.querySelectorAll('.video-card').forEach(function(card) {
+      card.addEventListener('click', function(e) {
+        if (e.target.closest('.mute-btn')) { toggleMute(card); return; }
+        var src = card.dataset.videoSrc || (card.querySelector('video') && card.querySelector('video').src);
+        if (!src) return;
+        modalVideo.src = src;
+        modalVideo.muted = false;
+        modalVideo.load();
+        videoModal.classList.remove('hidden');
+        document.querySelectorAll('.video-card video').forEach(function(v){ v.muted = true; v.pause(); });
+        modalVideo.play().catch(function(){});
+      });
+    });
+  })();
+  </script>
   <script src="config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase.js"></script>

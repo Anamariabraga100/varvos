@@ -44,51 +44,8 @@ function initLanding() {
     nextBtn.addEventListener('click', () => carousel.scrollBy({ left: 192, behavior: 'smooth' }));
   }
 
-  function toggleMute(card) {
-    const video = card?.querySelector('video');
-    const btn = card?.querySelector('.mute-btn');
-    if (video) {
-      video.muted = !video.muted;
-      video.play().catch(() => {});
-      if (btn) {
-        btn.classList.toggle('unmuted', !video.muted);
-        btn.textContent = video.muted ? '🔇' : '🔊';
-      }
-    }
-  }
-
-  const videoModal = document.getElementById('video-modal');
-  const modalVideo = videoModal ? videoModal.querySelector('video') : null;
-
-  if (videoModal && modalVideo) {
-    function closeVideoModal() {
-      videoModal.classList.add('hidden');
-      modalVideo.pause();
-      modalVideo.src = '';
-    }
-    const videoModalBackdrop = document.getElementById('videoModalBackdrop');
-    const videoModalClose = document.getElementById('videoModalClose');
-    if (videoModalBackdrop) videoModalBackdrop.addEventListener('click', closeVideoModal);
-    if (videoModalClose) videoModalClose.addEventListener('click', closeVideoModal);
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && !videoModal.classList.contains('hidden')) closeVideoModal();
-    });
-    document.querySelectorAll('.video-card').forEach((card) => {
-      card.addEventListener('click', (e) => {
-        if (e.target.closest('.mute-btn')) {
-          toggleMute(card);
-          return;
-        }
-        const src = card.dataset.videoSrc || card.querySelector('video')?.src;
-        if (!src) return;
-        modalVideo.src = src;
-        modalVideo.muted = true;
-        modalVideo.load();
-        videoModal.classList.remove('hidden');
-        modalVideo.play().catch(() => {});
-      });
-    });
-  }
+  // Modal de vídeo: lógica no index.html (script inline) para garantir execução antes de auth/supabase
+  // Carrossel scroll e toggleMute ficam no landing.js; abertura do modal no inline
 
   // Click-to-toggle mute em vídeos da seção de features
   document.querySelectorAll('.feature-card-media video').forEach(video => {
