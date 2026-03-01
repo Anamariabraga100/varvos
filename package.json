@@ -1,0 +1,8 @@
+{
+  "name": "varvos",
+  "private": true,
+  "scripts": {
+    "build": "node scripts/build-config.js",
+    "vercel-build": "node scripts/build-config.js"
+  }
+}
