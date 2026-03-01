@@ -1,9 +1,26 @@
 const AUTH_STORAGE = 'varvos_user';
 
+function populateLandingHamburgerUser(user) {
+  const nameEl = document.getElementById('landingHamburgerUserName');
+  const avatarEl = document.getElementById('landingHamburgerAvatar');
+  const initialEl = document.getElementById('landingHamburgerInitial');
+  const wrap = document.querySelector('.landing-hamburger-avatar-wrap');
+  if (!nameEl) return;
+  const name = user?.name || user?.email?.split('@')[0] || 'Usuário';
+  nameEl.textContent = name;
+  if (user?.picture && avatarEl && wrap) {
+    avatarEl.src = user.picture;
+    avatarEl.alt = name;
+    wrap.classList.add('has-img');
+  } else if (initialEl && wrap) {
+    initialEl.textContent = (name.charAt(0) || '?').toUpperCase();
+    wrap.classList.remove('has-img');
+  }
+}
+
 function updateLandingAuthUI() {
   const authTrigger = document.getElementById('authTrigger');
   const navLogged = document.getElementById('navLogged');
-  const navUserName = document.getElementById('navUserName');
   if (!authTrigger || !navLogged) return;
   try {
     const raw = localStorage.getItem(AUTH_STORAGE);
@@ -12,8 +29,7 @@ function updateLandingAuthUI() {
     if (isLoggedIn) {
       authTrigger.classList.add('hidden');
       navLogged.classList.remove('hidden');
-      const name = user.name || user.email?.split('@')[0] || 'Usuário';
-      if (navUserName) navUserName.textContent = name.split(' ')[0] || name;
+      populateLandingHamburgerUser(user);
     } else {
       authTrigger.classList.remove('hidden');
       navLogged.classList.add('hidden');
@@ -24,16 +40,43 @@ function updateLandingAuthUI() {
   }
 }
 
-function initLandingLogout() {
-  document.getElementById('navLogout')?.addEventListener('click', () => {
+function toggleLandingHamburger(open) {
+  const overlay = document.getElementById('landingHamburgerOverlay');
+  const btn = document.getElementById('landingHamburgerBtn');
+  if (!overlay || !btn) return;
+  const isOpen = open ?? !overlay.classList.contains('open');
+  overlay.classList.toggle('open', isOpen);
+  overlay.setAttribute('aria-hidden', String(!isOpen));
+  btn.setAttribute('aria-expanded', String(isOpen));
+  document.body.style.overflow = isOpen ? 'hidden' : '';
+}
+
+function initLandingHamburger() {
+  const btn = document.getElementById('landingHamburgerBtn');
+  const overlay = document.getElementById('landingHamburgerOverlay');
+  const logoutBtn = document.getElementById('landingHamburgerLogout');
+  btn?.addEventListener('click', () => toggleLandingHamburger());
+  overlay?.addEventListener('click', (e) => {
+    if (e.target === overlay) toggleLandingHamburger(false);
+  });
+  overlay?.querySelectorAll('a').forEach((a) => {
+    a.addEventListener('click', () => toggleLandingHamburger(false));
+  });
+  logoutBtn?.addEventListener('click', () => {
     localStorage.removeItem(AUTH_STORAGE);
+    toggleLandingHamburger(false);
     updateLandingAuthUI();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && overlay?.classList.contains('open')) {
+      toggleLandingHamburger(false);
+    }
   });
 }
 
 function initLanding() {
   updateLandingAuthUI();
-  initLandingLogout();
+  initLandingHamburger();
 
   // Atualizar UI ao voltar (bfcache), trocar de aba ou quando localStorage muda em outra aba
   window.addEventListener('pageshow', (e) => {

@@ -23,10 +23,11 @@
       </a>
       <div class="nav-auth">
         <a href="#" class="nav-btn" id="authTrigger">Entrar · Criar conta</a>
-        <span class="nav-logged hidden" id="navLogged">
-          <a href="video/" class="nav-btn nav-user">Olá, <span id="navUserName"></span></a>
-          <button type="button" class="nav-logout" id="navLogout">Sair</button>
-        </span>
+        <div class="nav-logged hidden" id="navLogged">
+          <button type="button" class="hamburger-btn" id="landingHamburgerBtn" aria-label="Menu" aria-expanded="false">
+            <span></span><span></span><span></span>
+          </button>
+        </div>
       </div>
     </header>
 
@@ -201,6 +202,27 @@
     </footer>
   </div>
 
+  <!-- Menu hambúrguer (logado) -->
+  <div id="landingHamburgerOverlay" class="landing-hamburger-overlay" aria-hidden="true">
+    <div class="landing-hamburger-panel">
+      <div id="landingHamburgerUser" class="landing-hamburger-user">
+        <div class="landing-hamburger-avatar-wrap">
+          <img id="landingHamburgerAvatar" class="landing-hamburger-avatar" alt="" src="">
+          <span id="landingHamburgerInitial" class="landing-hamburger-initial"></span>
+        </div>
+        <div class="landing-hamburger-user-info">
+          <span id="landingHamburgerUserName" class="landing-hamburger-user-name"></span>
+          <span class="landing-hamburger-badge">Conectado</span>
+        </div>
+        <button type="button" class="landing-hamburger-logout" id="landingHamburgerLogout">Sair</button>
+      </div>
+      <a href="video/">Criar vídeo</a>
+      <a href="imagem/">Criar imagem</a>
+      <a href="imitar-movimento/">Imitar movimento</a>
+      <a href="precos.html">Planos e créditos</a>
+    </div>
+  </div>
+
   <!-- Modal Vídeo -->
   <div id="video-modal" class="video-modal hidden" role="dialog" aria-modal="true" aria-label="Vídeo em destaque">
     <div class="video-modal-backdrop" id="videoModalBackdrop"></div>
@@ -210,7 +232,7 @@
         <video id="videoModalPlayer" autoplay playsinline loop muted></video>
       </div>
       <div class="video-modal-actions">
-        <p class="video-modal-desc">Crie um vídeo semelhante ou use o Imitar Movimento para colocar outra pessoa fazendo a dança.</p>
+        <p class="video-modal-desc">Crie um vídeo semelhante ou use o Imitar Movimento para colocar outra pessoa imitando os movimentos.</p>
         <div class="video-modal-buttons">
           <a href="video/" class="video-modal-btn video-modal-btn-primary" data-video-modal-action="video/">Criar vídeo semelhante</a>
           <a href="imitar-movimento/" class="video-modal-btn" data-video-modal-action="imitar-movimento/">Imitar movimento</a>
@@ -245,7 +267,7 @@
 
         <div class="auth-body">
           <h1 class="auth-title" id="authModalTitle">Comece a Criar.</h1>
-          <p class="auth-subtitle">Crie uma conta <strong>gratuita</strong></p>
+          <p class="auth-subtitle" id="authSubtitle">Digite seu e-mail para continuar</p>
 
           <input type="hidden" id="authReturnTo" value="video/">
 
@@ -274,6 +296,7 @@
               <button type="button" class="auth-btn auth-btn-submit" id="btnEmailContinue">Continuar</button>
             </div>
             <div id="passwordStep" class="hidden">
+              <p class="auth-step-hint hidden" id="passwordStepHint"></p>
               <label for="password" id="passwordLabel">Senha</label>
               <input type="password" id="password" name="password" placeholder="Digite sua senha" autocomplete="current-password">
               <div id="passwordConfirmWrap" class="hidden">
@@ -346,7 +369,7 @@
         var src = card.dataset.videoSrc || (card.querySelector('video') && card.querySelector('video').src);
         if (!src) return;
         modalVideo.src = src;
-        modalVideo.muted = true;
+        modalVideo.muted = false;
         modalVideo.load();
         videoModal.classList.remove('hidden');
         document.querySelectorAll('.video-card video').forEach(function(v){ v.muted = true; v.pause(); });

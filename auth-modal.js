@@ -158,6 +158,8 @@ document.addEventListener('keydown', (e) => {
 document.getElementById('btnEmail')?.addEventListener('click', () => {
   document.getElementById('authOptions').classList.add('hidden');
   document.getElementById('emailForm').classList.remove('hidden');
+  const sub = document.getElementById('authSubtitle');
+  if (sub) sub.innerHTML = 'Digite seu e-mail para continuar';
   resetEmailForm();
 });
 
@@ -169,6 +171,8 @@ function resetEmailForm() {
   const passwordConfirm = document.getElementById('passwordConfirm');
   if (emailStep) emailStep.classList.remove('hidden');
   if (passwordStep) passwordStep.classList.add('hidden');
+  const hint = document.getElementById('passwordStepHint');
+  if (hint) hint.classList.add('hidden');
   if (email) email.value = '';
   if (password) password.value = '';
   if (passwordConfirm) passwordConfirm.value = '';
@@ -220,12 +224,18 @@ document.getElementById('btnEmailContinue')?.addEventListener('click', async () 
     const passwordInput = document.getElementById('password');
     const submitBtn = document.getElementById('btnPasswordSubmit');
 
+    const sub = document.getElementById('authSubtitle');
+    const hint = document.getElementById('passwordStepHint');
     if (exists) {
+      if (sub) sub.innerHTML = 'Entre na sua <strong>conta</strong>';
+      if (hint) { hint.textContent = 'Digite sua senha para entrar.'; hint.classList.remove('hidden'); }
       passwordLabel.textContent = 'Senha';
       passwordInput.placeholder = 'Digite sua senha';
       confirmWrap?.classList.add('hidden');
       if (submitBtn) submitBtn.textContent = 'Entrar';
     } else {
+      if (sub) sub.innerHTML = 'Crie uma conta <strong>gratuita</strong>';
+      if (hint) { hint.textContent = 'Crie uma senha com no mínimo 8 caracteres.'; hint.classList.remove('hidden'); }
       passwordLabel.textContent = 'Criar senha';
       passwordInput.placeholder = 'Mínimo 8 caracteres';
       confirmWrap?.classList.remove('hidden');

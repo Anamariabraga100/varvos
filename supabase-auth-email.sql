@@ -1,5 +1,8 @@
 -- Autenticação por e-mail/senha (execute no Supabase SQL Editor)
 -- Rode APÓS o supabase-schema.sql
+--
+-- IMPORTANTE: Desative confirmação de e-mail no Supabase para cadastro imediato.
+-- Dashboard → Authentication → Providers → Email → desmarque "Confirm email"
 
 -- Verifica se o e-mail já está cadastrado no Supabase Auth
 CREATE OR REPLACE FUNCTION public.check_email_registered(p_email TEXT)

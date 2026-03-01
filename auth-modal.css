@@ -16,6 +16,10 @@
   display: none;
 }
 
+.auth-modal .hidden {
+  display: none !important;
+}
+
 .auth-modal-backdrop {
   position: absolute;
   inset: 0;
@@ -220,6 +224,16 @@
 
 .auth-modal .auth-errors.hidden {
   display: none;
+}
+
+.auth-modal .auth-step-hint {
+  margin: 0 0 8px;
+  font-size: 0.9rem;
+  color: #5f6368;
+}
+
+.auth-modal .auth-step-hint.hidden {
+  display: none !important;
 }
 
 .auth-modal .auth-btn-submit {

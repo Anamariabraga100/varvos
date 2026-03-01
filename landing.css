@@ -1,5 +1,7 @@
 :root {
   --bg: #ffffff;
+  --bg-card: #ffffff;
+  --bg-soft: #f5f5f5;
   --bg-dark: #0a0a0c;
   --text: #1a1a1a;
   --text-muted: #6b6b6b;
@@ -86,6 +88,184 @@ header {
   display: flex;
   align-items: center;
   gap: 12px;
+}
+
+/* Botão hambúrguer */
+.hamburger-btn {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.hamburger-btn span {
+  display: block;
+  width: 20px;
+  height: 2px;
+  background: var(--text);
+  border-radius: 1px;
+  transition: 0.2s ease;
+}
+
+.hamburger-btn[aria-expanded="true"] span:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+
+.hamburger-btn[aria-expanded="true"] span:nth-child(2) { opacity: 0; }
+
+.hamburger-btn[aria-expanded="true"] span:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+/* Overlay hambúrguer */
+.landing-hamburger-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1500;
+  background: rgba(0,0,0,0.3);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s, visibility 0.2s;
+}
+
+.landing-hamburger-overlay.open {
+  opacity: 1;
+  visibility: visible;
+}
+
+.landing-hamburger-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(300px, 85vw);
+  background: var(--bg-card);
+  box-shadow: -4px 0 24px rgba(0,0,0,0.08);
+  z-index: 1501;
+  transform: translateX(100%);
+  transition: transform 0.25s ease;
+  padding: 80px 24px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.landing-hamburger-overlay.open .landing-hamburger-panel {
+  transform: translateX(0);
+}
+
+.landing-hamburger-panel a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  color: var(--text);
+  text-decoration: none;
+  transition: background 0.2s;
+}
+
+.landing-hamburger-panel a:hover {
+  background: var(--bg-soft);
+}
+
+.landing-hamburger-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  margin: -8px -8px 8px -8px;
+  border-radius: 8px;
+  background: var(--bg-soft);
+}
+
+.landing-hamburger-avatar-wrap {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--btn-bg);
+}
+
+.landing-hamburger-avatar {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.landing-hamburger-avatar-wrap .landing-hamburger-avatar {
+  display: none;
+}
+
+.landing-hamburger-avatar-wrap.has-img .landing-hamburger-avatar {
+  display: block;
+}
+
+.landing-hamburger-avatar-wrap.has-img .landing-hamburger-initial {
+  display: none;
+}
+
+.landing-hamburger-initial {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  font-weight: 600;
+  color: white;
+}
+
+.landing-hamburger-user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.landing-hamburger-user-name {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.landing-hamburger-badge {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  opacity: 0.9;
+}
+
+.landing-hamburger-logout {
+  margin-left: auto;
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: color 0.2s, border-color 0.2s, background 0.2s;
+}
+
+.landing-hamburger-logout:hover {
+  color: var(--text);
+  border-color: var(--text-muted);
+  background: var(--bg-soft);
 }
 
 .nav-logout {
