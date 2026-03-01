@@ -13,7 +13,7 @@
   <div class="auth-page">
     <div class="auth-card">
       <header class="auth-header">
-        <a href="index.html" class="auth-logo">
+        <a href="/" class="auth-logo">
           <div class="auth-logo-icon">
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
               <defs>
@@ -28,7 +28,7 @@
           </div>
           <span>VARVOS</span>
         </a>
-        <a href="index.html" class="auth-close" aria-label="Fechar">✕</a>
+        <a href="/" class="auth-close" aria-label="Fechar">✕</a>
       </header>
 
       <div class="auth-body">
@@ -54,7 +54,10 @@
           <label for="email">E-mail</label>
           <input type="email" id="email" name="email" placeholder="seu@email.com" required autocomplete="email">
           <label for="password">Senha</label>
-          <input type="password" id="password" name="password" placeholder="Mínimo 6 caracteres" minlength="6" autocomplete="new-password">
+          <input type="password" id="password" name="password" placeholder="Mínimo 8 caracteres" autocomplete="new-password">
+          <label for="passwordConfirm">Confirmar senha</label>
+          <input type="password" id="passwordConfirm" name="password_confirm" placeholder="Repita a senha" autocomplete="new-password">
+          <p class="auth-errors hidden" id="authErrors"></p>
           <button type="submit" class="auth-btn auth-btn-submit">Criar conta</button>
           <button type="button" class="auth-back" id="btnBack">← Voltar</button>
         </form>

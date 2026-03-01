@@ -17,11 +17,32 @@ document.getElementById('btnGoogle').addEventListener('click', () => {
   window.location.href = returnTo;
 });
 
+function validatePassword(password, passwordConfirm) {
+  const errors = [];
+  if (password.length < 8) errors.push('Use 8 caracteres ou mais.');
+  if (password !== passwordConfirm) errors.push('As senhas não conferem.');
+  return errors;
+}
+
 document.getElementById('emailForm').addEventListener('submit', (e) => {
   e.preventDefault();
   const email = document.getElementById('email').value.trim();
   const password = document.getElementById('password').value;
+  const passwordConfirm = document.getElementById('passwordConfirm').value;
+  const errorsEl = document.getElementById('authErrors');
+
   if (!email) return;
+
+  const errors = validatePassword(password, passwordConfirm);
+  if (errors.length) {
+    if (errorsEl) {
+      errorsEl.textContent = errors.join(' ');
+      errorsEl.classList.remove('hidden');
+    }
+    return;
+  }
+  if (errorsEl) errorsEl.classList.add('hidden');
+
   localStorage.setItem(AUTH_STORAGE, JSON.stringify({
     provider: 'email',
     email,

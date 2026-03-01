@@ -1,94 +1,91 @@
-:root {
-  --auth-bg: #fafafa;
-  --auth-card: #ffffff;
-  --auth-text: #1a1a1a;
-  --auth-text-muted: #6b6b6b;
-  --auth-border: #e5e5e5;
-  --auth-btn-dark: #1a1a1a;
-  --auth-btn-dark-hover: #333333;
-  --auth-link: #0066cc;
-}
-
-* {
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
-  background: var(--auth-bg);
-  color: var(--auth-text);
-  min-height: 100vh;
+/* Auth Modal — estilos do card dentro do modal (sem afetar body da landing) */
+.auth-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 24px;
-  -webkit-font-smoothing: antialiased;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  transition: opacity 0.2s;
 }
 
-.auth-page {
+.auth-modal.hidden {
+  display: none;
+}
+
+.auth-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  cursor: pointer;
+}
+
+.auth-modal-content {
+  position: relative;
   width: 100%;
   max-width: 420px;
+  max-height: 90vh;
+  overflow-y: auto;
 }
 
-.auth-card {
-  background: var(--auth-card);
+/* Card styles — estilo Google */
+.auth-modal .auth-card {
+  background: #ffffff;
   border: 1px solid #dadce0;
   border-radius: 8px;
   box-shadow: 0 1px 2px rgba(60, 64, 67, 0.3), 0 1px 3px 1px rgba(60, 64, 67, 0.15);
   overflow: hidden;
 }
 
-.auth-header {
+.auth-modal .auth-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 24px 24px 0;
 }
 
-.auth-logo {
+.auth-modal .auth-logo {
   display: flex;
   align-items: center;
   gap: 10px;
   font-size: 1.25rem;
   font-weight: 700;
-  color: var(--auth-text);
+  color: #1a1a1a;
   text-decoration: none;
 }
 
-.auth-logo-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.auth-modal .auth-logo:hover {
+  color: #1a1a1a;
 }
 
-.auth-logo:hover {
-  color: var(--auth-text);
-}
-
-.auth-close {
+.auth-modal .auth-close {
   width: 36px;
   height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--auth-text-muted);
+  color: #6b6b6b;
   text-decoration: none;
   font-size: 1.2rem;
   border-radius: 8px;
   transition: all 0.2s;
+  background: none;
+  border: none;
+  cursor: pointer;
 }
 
-.auth-close:hover {
-  background: var(--auth-bg);
-  color: var(--auth-text);
+.auth-modal .auth-close:hover {
+  background: #fafafa;
+  color: #1a1a1a;
 }
 
-.auth-body {
-  padding: 32px 24px 28px;
+.auth-modal .auth-body {
+  padding: 40px 40px 36px;
 }
 
-.auth-title {
+.auth-modal .auth-title {
   margin: 0 0 8px;
   font-size: 1.5rem;
   font-weight: 400;
@@ -96,28 +93,28 @@ body {
   letter-spacing: normal;
 }
 
-.auth-subtitle {
+.auth-modal .auth-subtitle {
   margin: 0 0 32px;
   font-size: 0.875rem;
   color: #5f6368;
   line-height: 1.4;
 }
 
-.auth-subtitle strong {
-  color: var(--auth-text);
+.auth-modal .auth-subtitle strong {
+  color: #1a1a1a;
 }
 
-.auth-options {
+.auth-modal .auth-options {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.auth-options.hidden {
+.auth-modal .auth-options.hidden {
   display: none;
 }
 
-.auth-btn {
+.auth-modal .auth-btn {
   width: 100%;
   padding: 14px 20px;
   border-radius: 10px;
@@ -130,102 +127,102 @@ body {
   justify-content: center;
   gap: 10px;
   transition: all 0.2s;
-  border: 1px solid var(--auth-border);
-  background: var(--auth-card);
-  color: var(--auth-text);
+  border: 1px solid #e5e5e5;
+  background: #ffffff;
+  color: #1a1a1a;
 }
 
-.auth-btn-google {
-  border-color: var(--auth-border);
-  background: var(--auth-card);
+.auth-modal .auth-btn-google {
+  border-color: #dadce0;
+  background: #ffffff;
 }
 
-.auth-btn-google:hover {
-  background: #f8f8f8;
-  border-color: #ddd;
+.auth-modal .auth-btn-google:hover {
+  background: #f8f9fa;
+  border-color: #dadce0;
 }
 
-.auth-btn-email {
+.auth-modal .auth-btn-email {
   border: none;
   background: #1a73e8;
   color: white;
 }
 
-.auth-btn-email:hover {
+.auth-modal .auth-btn-email:hover {
   background: #1765cc;
   color: white;
 }
 
-.auth-divider {
+.auth-modal .auth-divider {
   display: flex;
   align-items: center;
   gap: 16px;
   margin: 4px 0;
 }
 
-.auth-divider::before,
-.auth-divider::after {
+.auth-modal .auth-divider::before,
+.auth-modal .auth-divider::after {
   content: '';
   flex: 1;
   height: 1px;
-  background: var(--auth-border);
+  background: #e5e5e5;
 }
 
-.auth-divider span {
+.auth-modal .auth-divider span {
   font-size: 0.8rem;
-  color: var(--auth-text-muted);
+  color: #6b6b6b;
   font-weight: 500;
 }
 
-.auth-email-form {
+.auth-modal .auth-email-form {
   margin-top: 24px;
   display: flex;
   flex-direction: column;
   gap: 20px;
 }
 
-.auth-email-form.hidden {
+.auth-modal .auth-email-form.hidden {
   display: none;
 }
 
-.auth-email-form label {
+.auth-modal .auth-email-form label {
   font-size: 0.875rem;
   font-weight: 400;
   color: #3c4043;
 }
 
-.auth-email-form input {
+.auth-modal .auth-email-form input {
   padding: 13px 15px;
   border: 1px solid #dadce0;
   border-radius: 4px;
   font-family: inherit;
   font-size: 1rem;
-  background: var(--auth-card);
+  background: #ffffff;
   transition: border-color 0.15s, box-shadow 0.15s;
 }
 
-.auth-email-form input::placeholder {
+.auth-modal .auth-email-form input::placeholder {
   color: #5f6368;
 }
 
-.auth-email-form input:focus {
+.auth-modal .auth-email-form input:focus {
   outline: none;
   border-color: #1a73e8;
   box-shadow: 0 0 0 1px #1a73e8;
 }
 
-.auth-errors {
+.auth-modal .auth-errors {
   margin: 0;
   font-size: 0.8125rem;
   color: #d93025;
   line-height: 1.4;
 }
 
-.auth-errors.hidden {
+.auth-modal .auth-errors.hidden {
   display: none;
 }
 
-.auth-btn-submit {
+.auth-modal .auth-btn-submit {
   margin-top: 8px;
   background: #1a73e8;
   color: white;
@@ -234,12 +231,12 @@ body {
   padding: 12px 24px;
 }
 
-.auth-btn-submit:hover {
+.auth-modal .auth-btn-submit:hover {
   background: #1765cc;
   color: white;
 }
 
-.auth-back {
+.auth-modal .auth-back {
   background: none;
   border: none;
   color: #1a73e8;
@@ -250,22 +247,22 @@ body {
   align-self: flex-start;
 }
 
-.auth-back:hover {
+.auth-modal .auth-back:hover {
   color: #174ea6;
 }
 
-.auth-legal {
+.auth-modal .auth-legal {
   margin: 28px 0 0;
   font-size: 0.75rem;
   color: #5f6368;
   line-height: 1.5;
 }
 
-.auth-legal a {
+.auth-modal .auth-legal a {
   color: #1a73e8;
   text-decoration: none;
 }
 
-.auth-legal a:hover {
+.auth-modal .auth-legal a:hover {
   text-decoration: underline;
 }
