@@ -19,22 +19,35 @@ let motionRefVideoUrl = '';   // Kling: reference video
 const generateForm = document.getElementById('generateForm');
 const btnGenerate = document.getElementById('btnGenerate');
 const outputPlaceholder = document.getElementById('outputPlaceholder');
-const outputResult = document.getElementById('outputResult');
-const videoPlayer = document.getElementById('videoPlayer');
-const imageGallery = document.getElementById('imageGallery');
-const downloadBtn = document.getElementById('downloadBtn');
-const downloadWarning = document.getElementById('downloadWarning');
-const statusMessage = document.getElementById('statusMessage');
-const taskStatusEl = document.getElementById('taskStatus');
-const taskProgressEl = document.getElementById('taskProgress');
-const progressFill = document.getElementById('progressFill');
+const outputResultsList = document.getElementById('outputResultsList');
+
+function getCardRefs(cardEl) {
+  if (!cardEl) return null;
+  return {
+    card: cardEl,
+    taskStatusEl: cardEl.querySelector('.status-badge'),
+    taskProgressEl: cardEl.querySelector('.task-progress'),
+    progressFill: cardEl.querySelector('.progress-fill'),
+    loadingPlaceholder: cardEl.querySelector('.loading-placeholder'),
+    videoPlayer: cardEl.querySelector('.media-output'),
+    imageGallery: cardEl.querySelector('.image-gallery'),
+    statusMessage: cardEl.querySelector('.status-message'),
+    downloadWarning: cardEl.querySelector('.download-warning'),
+    downloadBtn: cardEl.querySelector('.btn-download')
+  };
+}
+function getCardByIndex(i) {
+  const card = outputResultsList?.querySelector(`.output-result-card[data-card="${i}"]`);
+  return card ? getCardRefs(card) : null;
+}
 const btnVerify = document.getElementById('btnVerify'); // Removido da UI, mantido para compatibilidade
 const historyList = document.getElementById('historyList');
 const historyEmpty = document.getElementById('historyEmpty');
 const btnClearHistory = document.getElementById('btnClearHistory');
-const loadingMessage = document.getElementById('loadingMessage');
-const loadingPlaceholder = document.getElementById('loadingPlaceholder');
 const creditsModal = document.getElementById('creditsModal');
+
+const activeTasks = new Map();
+const EXPECTED_DURATION_MS = 10 * 60 * 1000;
 
 // Prompt suggestion chips
 document.querySelectorAll('.chip').forEach(chip => {
@@ -144,7 +157,9 @@ async function triggerDownload(url, filename) {
   }
 }
 
-downloadBtn?.addEventListener('click', (e) => {
+outputResultsList?.addEventListener('click', (e) => {
+  const downloadBtn = e.target.closest('.btn-download');
+  if (!downloadBtn) return;
   const href = downloadBtn.getAttribute('href');
   if (href && href !== '#') {
     e.preventDefault();
@@ -153,19 +168,15 @@ downloadBtn?.addEventListener('click', (e) => {
   }
 });
 
-// Clique no vídeo gerado para abrir modal
-const mediaContainer = document.querySelector('.media-container');
-if (mediaContainer && videoPlayer) {
-  mediaContainer.style.cursor = 'pointer';
-  mediaContainer.addEventListener('click', (e) => {
-    if (e.target.closest('.btn-download')) return;
-    const src = videoPlayer.src || videoPlayer.getAttribute('src');
-    if (src) {
-      const prompt = document.getElementById('prompt')?.value || '';
-      openVideoModal(src, prompt);
-    }
-  });
-}
+// Clique no vídeo gerado para abrir modal (delegação)
+outputResultsList?.addEventListener('click', (e) => {
+  const mediaContainer = e.target.closest('.media-container');
+  if (!mediaContainer) return;
+  if (e.target.closest('.btn-download')) return;
+  const video = mediaContainer.querySelector('.media-output');
+  const src = video?.src || video?.getAttribute('src');
+  if (src) openVideoModal(src, '');
+});
 
 // Event delegation: histórico — download e clique para abrir vídeo
 historyList?.addEventListener('click', (e) => {
@@ -782,22 +793,18 @@ async function getTaskStatus(taskId) {
 
 const STATUS_PT = { not_started: 'Na fila', running: 'Gerando', finished: 'Pronto', failed: 'Falhou' };
 
-function startLoadingMessages() {
-  if (loadingPlaceholder) loadingPlaceholder.classList.remove('hidden');
+function startLoadingForCard(cardRefs) {
+  if (cardRefs?.loadingPlaceholder) cardRefs.loadingPlaceholder.classList.remove('hidden');
 }
 
-function stopLoadingMessages() {
-  if (progressBarInterval) {
-    clearInterval(progressBarInterval);
-    progressBarInterval = null;
-  }
-  if (loadingPlaceholder) loadingPlaceholder.classList.add('hidden');
+function stopLoadingForCard(cardRefs) {
+  if (cardRefs?.loadingPlaceholder) cardRefs.loadingPlaceholder.classList.add('hidden');
 }
 
 function openCreditsModal() {
-  stopLoadingMessages();
-  outputResult.classList.add('hidden');
-  outputPlaceholder.classList.remove('hidden');
+  activeTasks.forEach(m => stopLoadingForCard(m.cardRefs));
+  if (outputResultsList) outputResultsList.classList.add('hidden');
+  if (outputPlaceholder) outputPlaceholder.classList.remove('hidden');
   if (creditsModal) {
     creditsModal.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
@@ -815,93 +822,84 @@ function isCreditsError(msg) {
   return msg && /credit|insufficient|saldo|quota|balance|crédito/i.test(msg.toString());
 }
 
-let progressBarInterval = null;
-function updateProgressBarFromElapsed() {
-  if (!generationStartTime || !progressFill || !taskProgressEl) return;
-  const elapsed = Date.now() - generationStartTime;
-  const pct = Math.min(100, Math.round((elapsed / EXPECTED_DURATION_MS) * 100));
-  progressFill.style.width = pct + '%';
-  taskProgressEl.textContent = pct + '%';
-}
-
-function updateOutputUI(data) {
+function updateOutputUI(data, cardRefs, startTime) {
+  if (!cardRefs) return;
+  const { taskStatusEl, taskProgressEl, progressFill, loadingPlaceholder, videoPlayer, imageGallery, statusMessage, downloadWarning, downloadBtn } = cardRefs;
   const status = data.status || '';
-  taskStatusEl.textContent = STATUS_PT[status] || status;
-  taskStatusEl.className = 'status-badge ' + status;
-  const apiProgress = data.progress || 0;
-  if (generationStartTime && (status === 'processing' || status === 'not_started' || status === 'pending' || !status)) {
-    const elapsedPct = Math.min(100, Math.round(((Date.now() - generationStartTime) / EXPECTED_DURATION_MS) * 100));
-    taskProgressEl.textContent = elapsedPct + '%';
-    progressFill.style.width = elapsedPct + '%';
-    if (!progressBarInterval) {
-      progressBarInterval = setInterval(updateProgressBarFromElapsed, 1000);
-    }
-  } else {
-    if (progressBarInterval) {
-      clearInterval(progressBarInterval);
-      progressBarInterval = null;
-    }
-    taskProgressEl.textContent = (apiProgress || 0) + '%';
-    progressFill.style.width = (apiProgress || 0) + '%';
+  if (taskStatusEl) {
+    taskStatusEl.textContent = STATUS_PT[status] || status;
+    taskStatusEl.className = 'status-badge ' + status;
   }
+  const apiProgress = data.progress || 0;
+  if (taskProgressEl) taskProgressEl.textContent = apiProgress + '%';
+  if (progressFill) progressFill.style.width = apiProgress + '%';
 
   if (data.status === 'finished' && data.files?.length) {
-    stopLoadingMessages();
+    activeTasks.delete(data.task_id);
+    stopLoadingForCard(cardRefs);
+    if (videoPlayer) {
+      videoPlayer.src = '';
+      videoPlayer.style.display = 'none';
+    }
+    if (imageGallery) {
+      imageGallery.classList.add('hidden');
+      imageGallery.innerHTML = '';
+    }
+
     const videoFile = data.files.find(f => f.file_type === 'video');
     const imageFiles = data.files.filter(f => f.file_type === 'image');
 
-    videoPlayer.src = '';
-    videoPlayer.style.display = 'none';
-    imageGallery.classList.add('hidden');
-    imageGallery.innerHTML = '';
-
     if (videoFile) {
-      videoPlayer.src = videoFile.file_url;
-      videoPlayer.style.display = 'block';
-      downloadBtn.href = videoFile.file_url;
-      downloadBtn.download = `varvos-video-${data.task_id}.mp4`;
-      downloadBtn.classList.remove('hidden');
+      if (videoPlayer) {
+        videoPlayer.src = videoFile.file_url;
+        videoPlayer.style.display = 'block';
+      }
+      if (downloadBtn) {
+        downloadBtn.href = videoFile.file_url;
+        downloadBtn.download = `varvos-video-${data.task_id}.mp4`;
+        downloadBtn.classList.remove('hidden');
+      }
       if (downloadWarning) downloadWarning.classList.remove('hidden');
-      const elapsed = generationStartTime ? Date.now() - generationStartTime : EXPECTED_DURATION_MS;
-      statusMessage.textContent = elapsed < EXPECTED_DURATION_MS
-        ? 'Boas notícias! Seu vídeo ficou pronto antes do tempo estimado. Você já pode baixar.'
-        : 'Vídeo pronto!';
-    } else if (imageFiles.length) {
-      imageGallery.classList.remove('hidden');
-      imageFiles.forEach((file, i) => {
-        const item = document.createElement('div');
-        item.className = 'gallery-item';
-        item.innerHTML = `<img src="${file.file_url}" alt="Imagem ${i + 1}"><a href="${file.file_url}" download="varvos-image-${data.task_id}-${i + 1}.png">Baixar</a>`;
-        imageGallery.appendChild(item);
-      });
-      if (imageFiles.length === 1) {
+      const elapsed = startTime ? Date.now() - startTime : EXPECTED_DURATION_MS;
+      if (statusMessage) statusMessage.textContent = elapsed < EXPECTED_DURATION_MS ? 'Boas notícias! Seu vídeo ficou pronto antes do tempo estimado. Você já pode baixar.' : 'Vídeo pronto!';
+    } else if (imageFiles?.length) {
+      if (imageGallery) {
+        imageGallery.classList.remove('hidden');
+        imageFiles.forEach((file, i) => {
+          const item = document.createElement('div');
+          item.className = 'gallery-item';
+          item.innerHTML = `<img src="${file.file_url}" alt="Imagem ${i + 1}"><a href="${file.file_url}" download="varvos-image-${data.task_id}-${i + 1}.png">Baixar</a>`;
+          imageGallery.appendChild(item);
+        });
+      }
+      if (imageFiles.length === 1 && downloadBtn) {
         downloadBtn.href = imageFiles[0].file_url;
         downloadBtn.download = `varvos-image-${data.task_id}.png`;
         downloadBtn.classList.remove('hidden');
-        if (downloadWarning) downloadWarning.classList.remove('hidden');
       }
-      statusMessage.textContent = imageFiles.length === 1 ? 'Imagem pronta!' : `${imageFiles.length} imagens prontas!`;
+      if (downloadWarning) downloadWarning.classList.remove('hidden');
+      if (statusMessage) statusMessage.textContent = imageFiles.length === 1 ? 'Imagem pronta!' : `${imageFiles.length} imagens prontas!`;
     }
-    statusMessage.className = 'status-message success';
+    if (statusMessage) statusMessage.className = 'status-message success';
   } else if (data.status === 'failed') {
+    activeTasks.delete(data.task_id);
     const errMsg = (data.error_message || '').toString();
     if (isCreditsError(errMsg)) {
       openCreditsModal();
       return;
     }
-    stopLoadingMessages();
-    statusMessage.textContent = 'Há muitos vídeos na fila, por isso está ocorrendo este erro. Tente novamente em alguns minutos.';
-    statusMessage.className = 'status-message error';
+    stopLoadingForCard(cardRefs);
+    if (statusMessage) {
+      statusMessage.textContent = 'Há muitos vídeos na fila, por isso está ocorrendo este erro. Tente novamente em alguns minutos.';
+      statusMessage.className = 'status-message error';
+    }
   } else {
     if (downloadWarning) downloadWarning.classList.add('hidden');
-    statusMessage.textContent = '';
-    statusMessage.className = 'status-message';
+    if (statusMessage) statusMessage.textContent = '';
   }
 }
 
-let pollTimeoutId = null;
-const EXPECTED_DURATION_MS = 10 * 60 * 1000; // 10 minutos
-let generationStartTime = null;
+const pollTimeouts = new Map();
 
 function getCurrentUserId() {
   try {
@@ -911,14 +909,26 @@ function getCurrentUserId() {
   } catch { return null; }
 }
 
-async function saveActiveTask(taskId) {
+async function saveActiveTask(taskId, startTime) {
   const payload = {
     taskId,
-    startTime: generationStartTime || Date.now(),
+    startTime: startTime || Date.now(),
     mode: currentMode
   };
   try {
-    sessionStorage.setItem(ACTIVE_TASK_STORAGE, JSON.stringify(payload));
+    const stored = sessionStorage.getItem(ACTIVE_TASK_STORAGE);
+    let tasks = [];
+    if (stored) {
+      const d = JSON.parse(stored);
+      tasks = Array.isArray(d.tasks) ? d.tasks : (d.taskId ? [{ taskId: d.taskId, startTime: d.startTime || Date.now(), mode: d.mode || 'video' }] : []);
+    }
+    const idx = tasks.findIndex(t => t.taskId === taskId);
+    if (idx >= 0) tasks[idx] = payload;
+    else {
+      tasks.push(payload);
+      if (tasks.length > 2) tasks.shift();
+    }
+    sessionStorage.setItem(ACTIVE_TASK_STORAGE, JSON.stringify({ tasks }));
   } catch (e) {}
   const userId = getCurrentUserId();
   const sb = window.varvosSupabase;
@@ -941,7 +951,10 @@ async function clearActiveTask(onlyIfTaskId = null) {
       const stored = sessionStorage.getItem(ACTIVE_TASK_STORAGE);
       if (stored) {
         const d = JSON.parse(stored);
-        if (d.taskId === onlyIfTaskId) sessionStorage.removeItem(ACTIVE_TASK_STORAGE);
+        const tasks = Array.isArray(d.tasks) ? d.tasks : (d.taskId ? [d] : []);
+        const filtered = tasks.filter(t => t.taskId !== onlyIfTaskId);
+        if (filtered.length === 0) sessionStorage.removeItem(ACTIVE_TASK_STORAGE);
+        else sessionStorage.setItem(ACTIVE_TASK_STORAGE, JSON.stringify({ tasks: filtered }));
       }
     } else {
       sessionStorage.removeItem(ACTIVE_TASK_STORAGE);
@@ -958,7 +971,7 @@ async function clearActiveTask(onlyIfTaskId = null) {
   }
 }
 
-async function getStoredActiveTask() {
+async function getStoredActiveTasks() {
   const userId = getCurrentUserId();
   const sb = window.varvosSupabase;
   if (userId && sb) {
@@ -966,36 +979,37 @@ async function getStoredActiveTask() {
       const { data } = await sb.from('user_active_tasks').select('task_id, started_at, mode').eq('user_id', userId).maybeSingle();
       if (data) {
         const startTime = data.started_at ? new Date(data.started_at).getTime() : Date.now();
-        return { taskId: data.task_id, startTime, mode: data.mode || 'video' };
+        return [{ taskId: data.task_id, startTime, mode: data.mode || 'video' }];
       }
-    } catch (e) { console.warn('getStoredActiveTask Supabase:', e); }
+    } catch (e) { console.warn('getStoredActiveTasks Supabase:', e); }
   }
   try {
     const stored = sessionStorage.getItem(ACTIVE_TASK_STORAGE);
     if (stored) {
       const d = JSON.parse(stored);
-      return { taskId: d.taskId, startTime: d.startTime || Date.now(), mode: d.mode || 'video' };
+      const tasks = Array.isArray(d.tasks) ? d.tasks : (d.taskId ? [{ taskId: d.taskId, startTime: d.startTime || Date.now(), mode: d.mode || 'video' }] : []);
+      return tasks.slice(0, 2);
     }
   } catch (e) {}
-  return null;
+  return [];
 }
 
-async function pollUntilComplete(taskId) {
+async function pollUntilComplete(taskId, cardRefs, startTime) {
   return new Promise((resolve, reject) => {
     const check = async () => {
       try {
         const data = await getTaskStatus(taskId);
-        updateOutputUI(data);
+        updateOutputUI(data, cardRefs, startTime);
 
         if (data.status === 'finished') {
-          currentTaskId = null;
+          if (currentTaskId === taskId) currentTaskId = null;
           await clearActiveTask(taskId);
           if (btnVerify) btnVerify.classList.add('hidden');
           resolve(data);
           return;
         }
         if (data.status === 'failed') {
-          currentTaskId = null;
+          if (currentTaskId === taskId) currentTaskId = null;
           await clearActiveTask(taskId);
           if (btnVerify) btnVerify.classList.add('hidden');
           const errMsg = data.error_message || 'Geração falhou';
@@ -1005,9 +1019,10 @@ async function pollUntilComplete(taskId) {
           return;
         }
 
-        pollTimeoutId = setTimeout(check, POLL_INTERVAL);
+        const tid = setTimeout(check, POLL_INTERVAL);
+        pollTimeouts.set(taskId, tid);
       } catch (err) {
-        currentTaskId = null;
+        if (currentTaskId === taskId) currentTaskId = null;
         clearActiveTask(taskId).catch(() => {});
         if (btnVerify) btnVerify.classList.add('hidden');
         reject(err);
@@ -1017,52 +1032,82 @@ async function pollUntilComplete(taskId) {
   });
 }
 
+function getAvailableCardIndex() {
+  const card0 = outputResultsList?.querySelector('.output-result-card[data-card="0"]');
+  const card1 = outputResultsList?.querySelector('.output-result-card[data-card="1"]');
+  const inUse0 = Array.from(activeTasks.values()).some(m => m.cardRefs?.card === card0);
+  const inUse1 = Array.from(activeTasks.values()).some(m => m.cardRefs?.card === card1);
+  if (!inUse0) return 0;
+  if (!inUse1) return 1;
+  return 0;
+}
+
 async function generateMedia(body) {
   btnGenerate.disabled = true;
-  generationStartTime = Date.now();
-  videoPlayer.src = '';
-  videoPlayer.style.display = 'none';
-  imageGallery.classList.add('hidden');
-  imageGallery.innerHTML = '';
-  downloadBtn.classList.add('hidden');
-  if (downloadWarning) downloadWarning.classList.add('hidden');
+  const startTime = Date.now();
+  const cardIndex = getAvailableCardIndex();
+  const cardRefs = getCardByIndex(cardIndex);
 
+  if (!cardRefs) {
+    btnGenerate.disabled = false;
+    return;
+  }
+
+  const card = cardRefs.card;
+  if (card.classList.contains('hidden')) card.classList.remove('hidden');
+
+  if (cardRefs.videoPlayer) {
+    cardRefs.videoPlayer.src = '';
+    cardRefs.videoPlayer.style.display = 'none';
+  }
+  if (cardRefs.imageGallery) {
+    cardRefs.imageGallery.classList.add('hidden');
+    cardRefs.imageGallery.innerHTML = '';
+  }
+  if (cardRefs.downloadBtn) cardRefs.downloadBtn.classList.add('hidden');
+  if (cardRefs.downloadWarning) cardRefs.downloadWarning.classList.add('hidden');
+
+  let taskId = null;
   try {
-    const taskId = await submitTask(body);
-    if (!taskId) {
-      throw new Error('Nenhum task_id retornado');
-    }
+    taskId = await submitTask(body);
+    if (!taskId) throw new Error('Nenhum task_id retornado');
 
     outputPlaceholder.classList.add('hidden');
-    outputResult.classList.remove('hidden');
-    taskStatusEl.textContent = 'Enviando...';
-    taskStatusEl.className = 'status-badge';
-    taskProgressEl.textContent = '0%';
-    progressFill.style.width = '0%';
-    statusMessage.textContent = '';
-    statusMessage.className = 'status-message';
-    startLoadingMessages();
+    outputResultsList.classList.remove('hidden');
+
+    if (cardRefs.taskStatusEl) cardRefs.taskStatusEl.textContent = 'Enviando...';
+    if (cardRefs.taskStatusEl) cardRefs.taskStatusEl.className = 'status-badge';
+    if (cardRefs.taskProgressEl) cardRefs.taskProgressEl.textContent = '0%';
+    if (cardRefs.progressFill) cardRefs.progressFill.style.width = '0%';
+    if (cardRefs.statusMessage) cardRefs.statusMessage.textContent = '';
+
+    activeTasks.set(taskId, { cardRefs, startTime });
+    startLoadingForCard(cardRefs);
     document.getElementById('currentResultSection')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
     currentTaskId = taskId;
-    saveActiveTask(taskId);
-    updateOutputUI({ status: 'not_started', progress: 0 });
+    saveActiveTask(taskId, startTime);
+    updateOutputUI({ status: 'not_started', progress: 0 }, cardRefs, startTime);
 
-    const result = await pollUntilComplete(taskId);
-    if (pollTimeoutId) clearTimeout(pollTimeoutId);
+    btnGenerate.disabled = false;
+
+    const result = await pollUntilComplete(taskId, cardRefs, startTime);
+    const tid = pollTimeouts.get(taskId);
+    if (tid) { clearTimeout(tid); pollTimeouts.delete(taskId); }
     if (result?.status === 'finished' && result?.files?.length) {
       addToHistory(result, lastPrompt);
     }
   } catch (err) {
-    stopLoadingMessages();
+    if (taskId) activeTasks.delete(taskId);
+    stopLoadingForCard(cardRefs);
     if (err.isCredits) {
       openCreditsModal();
-    } else {
-      statusMessage.textContent = 'Há muitos vídeos na fila, por isso está ocorrendo este erro. Tente novamente em alguns minutos.';
-      statusMessage.className = 'status-message error';
+    } else if (cardRefs.statusMessage) {
+      cardRefs.statusMessage.textContent = 'Há muitos vídeos na fila, por isso está ocorrendo este erro. Tente novamente em alguns minutos.';
+      cardRefs.statusMessage.className = 'status-message error';
     }
-    if (pollTimeoutId) clearTimeout(pollTimeoutId);
-  } finally {
+    const tid = pollTimeouts.get(taskId);
+    if (tid) { clearTimeout(tid); pollTimeouts.delete(taskId); }
     btnGenerate.disabled = false;
   }
 }
@@ -1126,47 +1171,74 @@ if (refVideoParam && pathname.includes('imitar-movimento')) {
   } catch (_) {}
 }
 
-// Restaurar tarefa em andamento após recarregar (Supabase se logado, senão sessionStorage)
+// Restaurar tarefas em andamento após recarregar (Supabase se logado, senão sessionStorage)
 async function restoreActiveTask() {
-  if (!outputPlaceholder || !outputResult) return;
-  const data = await getStoredActiveTask();
-  if (!data || !data.taskId) return;
-
-  currentTaskId = data.taskId;
-  generationStartTime = data.startTime || Date.now();
-  if (data.mode) {
-    currentMode = data.mode;
-    const modeEl = document.getElementById('mode');
-    if (modeEl) modeEl.value = data.mode;
-    applyMode(data.mode);
-  }
+  if (!outputPlaceholder || !outputResultsList) return;
+  const tasks = await getStoredActiveTasks();
+  if (tasks.length === 0) return;
 
   outputPlaceholder.classList.add('hidden');
-  outputResult.classList.remove('hidden');
-  startLoadingMessages();
-  if (loadingPlaceholder) loadingPlaceholder.classList.remove('hidden');
-  document.getElementById('currentResultSection')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  outputResultsList.classList.remove('hidden');
 
-  pollUntilComplete(data.taskId)
-    .then((result) => {
-      if (pollTimeoutId) clearTimeout(pollTimeoutId);
-      if (result?.status === 'finished' && result?.files?.length) {
-        addToHistory(result, lastPrompt || '');
-      }
-    })
-    .catch((err) => {
-      if (pollTimeoutId) clearTimeout(pollTimeoutId);
-      stopLoadingMessages();
-      if (err.isCredits) {
-        openCreditsModal();
-      } else {
-        statusMessage.textContent = 'Há muitos vídeos na fila, por isso está ocorrendo este erro. Tente novamente em alguns minutos.';
-        statusMessage.className = 'status-message error';
-      }
-    })
-    .finally(() => {
-      btnGenerate.disabled = false;
-    });
+  const restoreOne = (data, cardIndex) => {
+    const cardRefs = getCardByIndex(cardIndex);
+    if (!cardRefs || !data?.taskId) return;
+
+    const startTime = data.startTime || Date.now();
+    if (cardIndex === 0 && data.mode) {
+      currentMode = data.mode;
+      const modeEl = document.getElementById('mode');
+      if (modeEl) modeEl.value = data.mode;
+      applyMode(data.mode);
+    }
+
+    if (cardRefs.videoPlayer) {
+      cardRefs.videoPlayer.src = '';
+      cardRefs.videoPlayer.style.display = 'none';
+    }
+    if (cardRefs.imageGallery) {
+      cardRefs.imageGallery.classList.add('hidden');
+      cardRefs.imageGallery.innerHTML = '';
+    }
+
+    cardRefs.card.classList.remove('hidden');
+    activeTasks.set(data.taskId, { cardRefs, startTime });
+    startLoadingForCard(cardRefs);
+
+    if (cardRefs.taskStatusEl) cardRefs.taskStatusEl.textContent = 'Enviando...';
+    if (cardRefs.taskProgressEl) cardRefs.taskProgressEl.textContent = '0%';
+    if (cardRefs.progressFill) cardRefs.progressFill.style.width = '0%';
+
+    pollUntilComplete(data.taskId, cardRefs, startTime)
+      .then((result) => {
+        const tid = pollTimeouts.get(data.taskId);
+        if (tid) { clearTimeout(tid); pollTimeouts.delete(data.taskId); }
+        if (result?.status === 'finished' && result?.files?.length) {
+          addToHistory(result, lastPrompt || '');
+        }
+      })
+      .catch((err) => {
+        const tid = pollTimeouts.get(data.taskId);
+        if (tid) { clearTimeout(tid); pollTimeouts.delete(data.taskId); }
+        activeTasks.delete(data.taskId);
+        stopLoadingForCard(cardRefs);
+        if (err.isCredits) {
+          openCreditsModal();
+        } else if (cardRefs.statusMessage) {
+          cardRefs.statusMessage.textContent = 'Há muitos vídeos na fila, por isso está ocorrendo este erro. Tente novamente em alguns minutos.';
+          cardRefs.statusMessage.className = 'status-message error';
+        }
+      })
+      .finally(() => {
+        btnGenerate.disabled = false;
+      });
+  };
+
+  tasks.forEach((data, i) => restoreOne(data, i));
+  if (tasks.length > 0) {
+    currentTaskId = tasks[0].taskId;
+    document.getElementById('currentResultSection')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
 }
 
 restoreActiveTask();

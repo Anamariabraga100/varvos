@@ -243,27 +243,49 @@
           <div class="placeholder-icon">🎬</div>
           <p>Seu resultado aparecerá aqui</p>
         </div>
-        <div id="outputResult" class="output-result hidden">
-          <div class="task-status-bar">
-            <span id="taskStatus" class="status-badge">—</span>
-            <span id="taskProgress" class="task-progress">0%</span>
-            <div class="progress-bar"><div id="progressFill" class="progress-fill"></div></div>
-          </div>
-          <p id="loadingMessage" class="loading-message"></p>
-          <div class="media-container">
-            <div id="loadingPlaceholder" class="loading-placeholder hidden">
-              <div class="loading-spinner"></div>
+        <div id="outputResultsList" class="output-results-list hidden">
+          <div class="output-result-card" data-card="0">
+            <div class="task-status-bar">
+              <span class="status-badge">—</span>
+              <span class="task-progress">0%</span>
+              <div class="progress-bar"><div class="progress-fill"></div></div>
             </div>
-            <video id="videoPlayer" controls preload="metadata" class="media-output"></video>
-            <div id="imageGallery" class="image-gallery hidden"></div>
+            <div class="media-container">
+              <div class="loading-placeholder hidden">
+                <div class="loading-spinner"></div>
+              </div>
+              <video controls preload="metadata" class="media-output"></video>
+              <div class="image-gallery hidden"></div>
+            </div>
+            <p class="creation-disclaimer">Você pode fechar esta página e voltar depois — seu progresso será mantido. Também pode abrir outra aba e gerar outro vídeo ao mesmo tempo.</p>
+            <p class="status-message"></p>
+            <p class="download-warning hidden">⚠️ Os arquivos ficam disponíveis por até 24 horas no servidor. Baixe agora para não perder.</p>
+            <a class="btn-download hidden" href="#" download>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Baixar
+            </a>
           </div>
-          <p class="creation-disclaimer">Você pode fechar esta página e voltar depois — seu progresso será mantido. Também pode abrir outra aba e gerar outro vídeo ao mesmo tempo.</p>
-          <p id="statusMessage" class="status-message"></p>
-          <p id="downloadWarning" class="download-warning hidden">⚠️ Os arquivos ficam disponíveis por até 24 horas no servidor. Baixe agora para não perder.</p>
-          <a id="downloadBtn" class="btn-download hidden" href="#" download>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            Baixar
-          </a>
+          <div class="output-result-card hidden" data-card="1">
+            <div class="task-status-bar">
+              <span class="status-badge">—</span>
+              <span class="task-progress">0%</span>
+              <div class="progress-bar"><div class="progress-fill"></div></div>
+            </div>
+            <div class="media-container">
+              <div class="loading-placeholder hidden">
+                <div class="loading-spinner"></div>
+              </div>
+              <video controls preload="metadata" class="media-output"></video>
+              <div class="image-gallery hidden"></div>
+            </div>
+            <p class="creation-disclaimer">Você pode fechar esta página e voltar depois — seu progresso será mantido. Também pode abrir outra aba e gerar outro vídeo ao mesmo tempo.</p>
+            <p class="status-message"></p>
+            <p class="download-warning hidden">⚠️ Os arquivos ficam disponíveis por até 24 horas no servidor. Baixe agora para não perder.</p>
+            <a class="btn-download hidden" href="#" download>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Baixar
+            </a>
+          </div>
         </div>
       </section>
 
