@@ -21,6 +21,28 @@ const btnGenerate = document.getElementById('btnGenerate');
 const outputPlaceholder = document.getElementById('outputPlaceholder');
 const outputResultsList = document.getElementById('outputResultsList');
 
+const LOADING_PHRASES = {
+  video: [
+    'Preparando sua criação…',
+    'A IA está analisando sua criação…',
+    'Gerando frames e movimentos…',
+    'Compondo cenas e iluminação…',
+    'Renderizando o vídeo em alta qualidade…',
+    'Ajustando detalhes finais…',
+    'Quase pronto! Finalizando…'
+  ],
+  motion: [
+    'Analisando o movimento de referência…',
+    'A IA está mapeando os gestos…',
+    'Transferindo o movimento para seu personagem…',
+    'Aplicando expressões e timing…',
+    'Renderizando a imitação…',
+    'Quase pronto!'
+  ]
+};
+
+const loadingIntervals = new WeakMap();
+
 function getCardRefs(cardEl) {
   if (!cardEl) return null;
   return {
@@ -29,6 +51,7 @@ function getCardRefs(cardEl) {
     taskProgressEl: cardEl.querySelector('.task-progress'),
     progressFill: cardEl.querySelector('.progress-fill'),
     loadingPlaceholder: cardEl.querySelector('.loading-placeholder'),
+    loadingTextEl: cardEl.querySelector('.loading-placeholder-text'),
     videoPlayer: cardEl.querySelector('.media-output'),
     imageGallery: cardEl.querySelector('.image-gallery'),
     statusMessage: cardEl.querySelector('.status-message'),
@@ -824,12 +847,26 @@ async function getTaskStatus(taskId) {
 
 const STATUS_PT = { not_started: 'Na fila', running: 'Gerando', finished: 'Pronto', failed: 'Falhou' };
 
-function startLoadingForCard(cardRefs) {
-  if (cardRefs?.loadingPlaceholder) cardRefs.loadingPlaceholder.classList.remove('hidden');
+function startLoadingForCard(cardRefs, mode) {
+  if (!cardRefs?.loadingPlaceholder) return;
+  cardRefs.loadingPlaceholder.classList.remove('hidden');
+  const phrases = LOADING_PHRASES[mode] || LOADING_PHRASES.video;
+  let idx = 0;
+  if (cardRefs.loadingTextEl) cardRefs.loadingTextEl.textContent = phrases[0];
+  const tid = setInterval(() => {
+    idx = (idx + 1) % phrases.length;
+    if (cardRefs.loadingTextEl) cardRefs.loadingTextEl.textContent = phrases[idx];
+  }, 5000);
+  loadingIntervals.set(cardRefs.card, tid);
 }
 
 function stopLoadingForCard(cardRefs) {
   if (cardRefs?.loadingPlaceholder) cardRefs.loadingPlaceholder.classList.add('hidden');
+  const tid = cardRefs?.card && loadingIntervals.get(cardRefs.card);
+  if (tid) {
+    clearInterval(tid);
+    loadingIntervals.delete(cardRefs.card);
+  }
 }
 
 function openCreditsModal() {
@@ -1113,7 +1150,7 @@ async function generateMedia(body) {
     if (cardRefs.statusMessage) cardRefs.statusMessage.textContent = '';
 
     activeTasks.set(taskId, { cardRefs, startTime });
-    startLoadingForCard(cardRefs);
+    startLoadingForCard(cardRefs, currentMode);
     document.getElementById('currentResultSection')?.scrollIntoView({ behavior: 'smooth', block: 'end' });
 
     currentTaskId = taskId;
@@ -1229,7 +1266,7 @@ async function restoreActiveTask() {
 
     cardRefs.card.classList.remove('hidden');
     activeTasks.set(data.taskId, { cardRefs, startTime });
-    startLoadingForCard(cardRefs);
+    startLoadingForCard(cardRefs, data.mode || 'video');
 
     if (cardRefs.taskStatusEl) cardRefs.taskStatusEl.textContent = 'Enviando...';
     if (cardRefs.taskProgressEl) cardRefs.taskProgressEl.textContent = '0%';
