@@ -1083,7 +1083,7 @@ async function generateMedia(body) {
 
     activeTasks.set(taskId, { cardRefs, startTime });
     startLoadingForCard(cardRefs);
-    document.getElementById('currentResultSection')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    document.getElementById('currentResultSection')?.scrollIntoView({ behavior: 'smooth', block: 'end' });
 
     currentTaskId = taskId;
     saveActiveTask(taskId, startTime);
@@ -1185,12 +1185,7 @@ async function restoreActiveTask() {
     if (!cardRefs || !data?.taskId) return;
 
     const startTime = data.startTime || Date.now();
-    if (cardIndex === 0 && data.mode) {
-      currentMode = data.mode;
-      const modeEl = document.getElementById('mode');
-      if (modeEl) modeEl.value = data.mode;
-      applyMode(data.mode);
-    }
+    // Não altera o modo da página — mantém o que o usuário escolheu (vídeo ou imitar movimento)
 
     if (cardRefs.videoPlayer) {
       cardRefs.videoPlayer.src = '';
@@ -1237,7 +1232,7 @@ async function restoreActiveTask() {
   tasks.forEach((data, i) => restoreOne(data, i));
   if (tasks.length > 0) {
     currentTaskId = tasks[0].taskId;
-    document.getElementById('currentResultSection')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    document.getElementById('currentResultSection')?.scrollIntoView({ behavior: 'smooth', block: 'end' });
   }
 }
 
