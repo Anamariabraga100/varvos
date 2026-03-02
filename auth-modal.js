@@ -65,6 +65,9 @@ async function handleGoogleCredential(response) {
 function initGoogleButtonInModal() {
   if (!clientId || !container) return;
   container.innerHTML = '';
+  var w = container.parentElement && container.parentElement.offsetWidth > 0
+    ? container.parentElement.offsetWidth
+    : 360;
   google.accounts.id.initialize({
     client_id: clientId,
     callback: handleGoogleCredential,
@@ -72,12 +75,12 @@ function initGoogleButtonInModal() {
   });
   google.accounts.id.renderButton(container, {
     type: 'standard',
-    theme: 'outline',
+    theme: 'filled_black',
     size: 'large',
     text: 'signin_with',
     shape: 'rectangular',
     logo_alignment: 'left',
-    width: 320
+    width: w
   });
 }
 

@@ -29,7 +29,7 @@
 .auth-modal-content {
   position: relative;
   width: 100%;
-  max-width: 420px;
+  max-width: min(420px, calc(100vw - 48px));
   max-height: 90vh;
   overflow-y: auto;
 }
@@ -47,7 +47,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 24px 24px 0;
+  padding: 32px clamp(24px, 5vw, 48px) 0;
 }
 
 .auth-modal .auth-logo {
@@ -86,11 +86,11 @@
 }
 
 .auth-modal .auth-body {
-  padding: 40px 40px 36px;
+  padding: 40px clamp(24px, 5vw, 48px) 36px;
 }
 
 .auth-modal .auth-title {
-  margin: 0 0 8px;
+  margin: 0 0 12px;
   font-size: 1.5rem;
   font-weight: 400;
   color: #202124;
@@ -98,7 +98,7 @@
 }
 
 .auth-modal .auth-subtitle {
-  margin: 0 0 32px;
+  margin: 0 0 24px;
   font-size: 0.875rem;
   color: #5f6368;
   line-height: 1.4;
@@ -111,7 +111,13 @@
 .auth-modal .auth-options {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  align-items: stretch;
+  gap: 16px;
+}
+
+.auth-modal #googleAuthContainerModal {
+  width: 100%;
+  min-width: 0;
 }
 
 .auth-modal .auth-options.hidden {
@@ -120,7 +126,7 @@
 
 .auth-modal .auth-btn {
   width: 100%;
-  padding: 14px 20px;
+  padding: 16px 20px;
   border-radius: 10px;
   font-family: inherit;
   font-size: 1rem;
@@ -137,24 +143,21 @@
 }
 
 .auth-modal .auth-btn-google {
-  border-color: #dadce0;
-  background: #ffffff;
-}
-
-.auth-modal .auth-btn-google:hover {
-  background: #f8f9fa;
-  border-color: #dadce0;
-}
-
-.auth-modal .auth-btn-email {
   border: none;
   background: #1a1a1a;
   color: white;
 }
 
+.auth-modal .auth-btn-email {
+  border: 2px solid #9ca3af;
+  background: #ffffff;
+  color: #1a1a1a;
+  transition: background 0.2s, border-color 0.2s;
+}
+
 .auth-modal .auth-btn-email:hover {
-  background: #333333;
-  color: white;
+  background: #f8f9fa;
+  border-color: #6b7280;
 }
 
 .auth-modal .auth-divider {
@@ -162,12 +165,13 @@
   align-items: center;
   gap: 16px;
   margin: 4px 0;
+  width: 100%;
 }
 
 .auth-modal .auth-divider::before,
 .auth-modal .auth-divider::after {
   content: '';
-  flex: 1;
+  flex: 0 1 32%;
   height: 1px;
   background: #e5e5e5;
 }
@@ -182,23 +186,37 @@
   margin-top: 24px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 24px;
 }
 
 .auth-modal .auth-email-form.hidden {
   display: none;
 }
 
+.auth-modal .auth-email-form #emailStep,
+.auth-modal .auth-email-form #passwordStep {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.auth-modal .auth-email-form #passwordConfirmWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .auth-modal .auth-email-form label {
   font-size: 0.875rem;
   font-weight: 400;
   color: #3c4043;
+  margin-bottom: 0;
 }
 
 .auth-modal .auth-email-form input {
-  padding: 13px 15px;
+  padding: 16px 18px;
   border: 1px solid #dadce0;
-  border-radius: 4px;
+  border-radius: 8px;
   font-family: inherit;
   font-size: 1rem;
   background: #ffffff;
@@ -237,12 +255,18 @@
 }
 
 .auth-modal .auth-btn-submit {
-  margin-top: 8px;
+  margin-top: 0;
+  width: 100%;
   background: #1a1a1a;
   color: white;
   border: none;
-  border-radius: 4px;
-  padding: 12px 24px;
+  border-radius: 8px;
+  padding: 16px 24px;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
 }
 
 .auth-modal .auth-btn-submit:hover {
@@ -253,20 +277,22 @@
 .auth-modal .auth-back {
   background: none;
   border: none;
-  color: #1a1a1a;
-  font-size: 0.875rem;
+  color: #9ca3af;
+  font-size: 0.8rem;
   cursor: pointer;
-  padding: 8px 0;
+  padding: 4px 0;
   font-family: inherit;
   align-self: flex-start;
 }
 
 .auth-modal .auth-back:hover {
-  color: #333333;
+  color: #6b7280;
 }
 
 .auth-modal .auth-legal {
-  margin: 28px 0 0;
+  margin: 24px 0 0;
+  padding-top: 24px;
+  border-top: 1px solid #f3f4f6;
   font-size: 0.75rem;
   color: #5f6368;
   line-height: 1.5;
