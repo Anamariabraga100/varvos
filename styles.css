@@ -1136,6 +1136,15 @@ select:focus {
   font-size: 0.9rem;
 }
 
+.loading-placeholder-hint {
+  margin: 8px 0 0;
+  color: rgba(255,255,255,0.5);
+  font-size: 0.82rem;
+  max-width: 320px;
+  text-align: center;
+  line-height: 1.4;
+}
+
 .loading-message {
   margin: 0;
   font-size: 0.9rem;
@@ -1187,6 +1196,27 @@ select:focus {
 
 .btn-download:hover { background: var(--btn-hover); color: white; }
 .btn-download.hidden { display: none !important; }
+
+.download-warning {
+  margin: 12px 0 0;
+  font-size: 0.85rem;
+  color: #b45309;
+  background: rgba(234, 179, 8, 0.12);
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(234, 179, 8, 0.3);
+}
+.download-warning.hidden { display: none !important; }
+
+.history-download-hint {
+  margin: -8px 0 16px;
+  font-size: 0.84rem;
+  color: var(--text-muted);
+  padding: 8px 12px;
+  background: rgba(234, 179, 8, 0.08);
+  border-radius: 8px;
+  border-left: 3px solid #ca8a04;
+}
 
 /* Creations - Seus vídeos */
 .section-creations { padding: 0; }

@@ -4,6 +4,7 @@ const STORAGE_KEY = 'varvos_api_key';
 const HISTORY_STORAGE_KEY = 'varvos_history';
 const CREDITS_STORAGE_KEY = 'varvos_credits';
 const AUTH_STORAGE = 'varvos_user';
+const ACTIVE_TASK_STORAGE = 'varvos_active_task';
 
 let selectedModel = 'sora-2';
 let currentMode = 'video';
@@ -22,11 +23,12 @@ const outputResult = document.getElementById('outputResult');
 const videoPlayer = document.getElementById('videoPlayer');
 const imageGallery = document.getElementById('imageGallery');
 const downloadBtn = document.getElementById('downloadBtn');
+const downloadWarning = document.getElementById('downloadWarning');
 const statusMessage = document.getElementById('statusMessage');
 const taskStatusEl = document.getElementById('taskStatus');
 const taskProgressEl = document.getElementById('taskProgress');
 const progressFill = document.getElementById('progressFill');
-const btnVerify = document.getElementById('btnVerify');
+const btnVerify = document.getElementById('btnVerify'); // Removido da UI, mantido para compatibilidade
 const historyList = document.getElementById('historyList');
 const historyEmpty = document.getElementById('historyEmpty');
 const btnClearHistory = document.getElementById('btnClearHistory');
@@ -148,7 +150,7 @@ const mediaContainer = document.querySelector('.media-container');
 if (mediaContainer && videoPlayer) {
   mediaContainer.style.cursor = 'pointer';
   mediaContainer.addEventListener('click', (e) => {
-    if (e.target.closest('.btn-download') || e.target.closest('#btnVerify')) return;
+    if (e.target.closest('.btn-download')) return;
     const src = videoPlayer.src || videoPlayer.getAttribute('src');
     if (src) {
       const prompt = document.getElementById('prompt')?.value || '';
@@ -410,23 +412,71 @@ function getApiKey() {
 }
 
 
-// History
+// History — Supabase quando logado, localStorage como fallback
+let historyCache = [];
+
 function getHistory() {
-  try {
-    const raw = localStorage.getItem(HISTORY_STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch {
-    return [];
-  }
+  return historyCache;
 }
 
 function saveHistory(items) {
-  localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(items));
+  historyCache = items.slice(0, 50);
+  try {
+    localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(items));
+  } catch (e) {}
 }
 
-function addToHistory(data, prompt) {
+async function loadHistoryFromSupabase() {
+  const userId = getCurrentUserId();
+  const sb = window.varvosSupabase;
+  if (!userId || !sb) return;
+  try {
+    const { data } = await sb.from('user_creations').select('task_id, prompt, mode, files, created_at').eq('user_id', userId).order('created_at', { ascending: false }).limit(50);
+    if (data && data.length) {
+      historyCache = data.map(row => ({
+        id: row.task_id + '-' + (row.created_at ? new Date(row.created_at).getTime() : Date.now()),
+        task_id: row.task_id,
+        created_time: row.created_at,
+        prompt: row.prompt || '',
+        mode: row.mode || 'video',
+        files: row.files || []
+      }));
+      renderHistory();
+    }
+  } catch (e) { console.warn('loadHistoryFromSupabase:', e); }
+}
+
+async function loadHistory() {
+  const userId = getCurrentUserId();
+  const sb = window.varvosSupabase;
+  if (userId && sb) {
+    await loadHistoryFromSupabase();
+    return;
+  }
+  try {
+    const raw = localStorage.getItem(HISTORY_STORAGE_KEY);
+    historyCache = raw ? JSON.parse(raw) : [];
+  } catch { historyCache = []; }
+  renderHistory();
+}
+
+async function addToHistorySupabase(entry) {
+  const userId = getCurrentUserId();
+  const sb = window.varvosSupabase;
+  if (!userId || !sb) return;
+  try {
+    await sb.from('user_creations').insert({
+      user_id: userId,
+      task_id: entry.task_id,
+      prompt: entry.prompt || '',
+      mode: entry.mode || 'video',
+      files: entry.files || []
+    });
+  } catch (e) { console.warn('addToHistorySupabase:', e); }
+}
+
+async function addToHistory(data, prompt) {
   if (data.status !== 'finished' || !data.files?.length) return;
-  const items = getHistory();
   const entry = {
     id: data.task_id + '-' + Date.now(),
     task_id: data.task_id,
@@ -435,8 +485,9 @@ function addToHistory(data, prompt) {
     mode: data.files[0].file_type === 'video' ? 'video' : 'image',
     files: data.files
   };
-  items.unshift(entry);
-  saveHistory(items.slice(0, 50)); // Keep last 50
+  historyCache.unshift(entry);
+  saveHistory(historyCache);
+  await addToHistorySupabase(entry);
   renderHistory();
 }
 
@@ -445,6 +496,7 @@ function renderHistory() {
   historyList.classList.toggle('hidden', !items.length);
   historyEmpty.classList.toggle('hidden', !!items.length);
   btnClearHistory.classList.toggle('hidden', !items.length);
+  document.querySelector('.history-download-hint')?.classList.toggle('hidden', !items.length);
 
   if (!items.length) return;
 
@@ -477,11 +529,18 @@ function escapeHtml(str) {
   return div.innerHTML;
 }
 
-function clearHistory() {
-  if (confirm('Limpar todo o histórico?')) {
-    saveHistory([]);
-    renderHistory();
+async function clearHistory() {
+  if (!confirm('Limpar todo o histórico?')) return;
+  historyCache = [];
+  saveHistory([]);
+  const userId = getCurrentUserId();
+  const sb = window.varvosSupabase;
+  if (userId && sb) {
+    try {
+      await sb.from('user_creations').delete().eq('user_id', userId);
+    } catch (e) { console.warn('clearHistory Supabase:', e); }
   }
+  renderHistory();
 }
 
 // File upload - Vidgo Base64 API
@@ -804,7 +863,11 @@ function updateOutputUI(data) {
       downloadBtn.href = videoFile.file_url;
       downloadBtn.download = `varvos-video-${data.task_id}.mp4`;
       downloadBtn.classList.remove('hidden');
-      statusMessage.textContent = 'Vídeo pronto!';
+      if (downloadWarning) downloadWarning.classList.remove('hidden');
+      const elapsed = generationStartTime ? Date.now() - generationStartTime : EXPECTED_DURATION_MS;
+      statusMessage.textContent = elapsed < EXPECTED_DURATION_MS
+        ? 'Boas notícias! Seu vídeo ficou pronto antes do tempo estimado. Você já pode baixar.'
+        : 'Vídeo pronto!';
     } else if (imageFiles.length) {
       imageGallery.classList.remove('hidden');
       imageFiles.forEach((file, i) => {
@@ -817,6 +880,7 @@ function updateOutputUI(data) {
         downloadBtn.href = imageFiles[0].file_url;
         downloadBtn.download = `varvos-image-${data.task_id}.png`;
         downloadBtn.classList.remove('hidden');
+        if (downloadWarning) downloadWarning.classList.remove('hidden');
       }
       statusMessage.textContent = imageFiles.length === 1 ? 'Imagem pronta!' : `${imageFiles.length} imagens prontas!`;
     }
@@ -831,6 +895,7 @@ function updateOutputUI(data) {
     statusMessage.textContent = errMsg;
     statusMessage.className = 'status-message error';
   } else {
+    if (downloadWarning) downloadWarning.classList.add('hidden');
     const msg = currentMode === 'motion' ? 'Imitando movimento...' : (currentMode === 'video' ? 'Gerando seu vídeo...' : 'Gerando sua imagem...');
     statusMessage.textContent = msg;
     statusMessage.className = 'status-message';
@@ -838,6 +903,85 @@ function updateOutputUI(data) {
 }
 
 let pollTimeoutId = null;
+const EXPECTED_DURATION_MS = 10 * 60 * 1000; // 10 minutos
+let generationStartTime = null;
+
+function getCurrentUserId() {
+  try {
+    const raw = localStorage.getItem(AUTH_STORAGE);
+    const user = raw ? JSON.parse(raw) : null;
+    return (user && user.id) ? String(user.id) : null;
+  } catch { return null; }
+}
+
+async function saveActiveTask(taskId) {
+  const payload = {
+    taskId,
+    startTime: generationStartTime || Date.now(),
+    mode: currentMode
+  };
+  try {
+    sessionStorage.setItem(ACTIVE_TASK_STORAGE, JSON.stringify(payload));
+  } catch (e) {}
+  const userId = getCurrentUserId();
+  const sb = window.varvosSupabase;
+  if (userId && sb) {
+    try {
+      await sb.from('user_active_tasks').upsert({
+        user_id: userId,
+        task_id: taskId,
+        mode: currentMode,
+        started_at: new Date(payload.startTime).toISOString(),
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'user_id' });
+    } catch (e) { console.warn('saveActiveTask Supabase:', e); }
+  }
+}
+
+async function clearActiveTask(onlyIfTaskId = null) {
+  try {
+    if (onlyIfTaskId) {
+      const stored = sessionStorage.getItem(ACTIVE_TASK_STORAGE);
+      if (stored) {
+        const d = JSON.parse(stored);
+        if (d.taskId === onlyIfTaskId) sessionStorage.removeItem(ACTIVE_TASK_STORAGE);
+      }
+    } else {
+      sessionStorage.removeItem(ACTIVE_TASK_STORAGE);
+    }
+  } catch (e) {}
+  const userId = getCurrentUserId();
+  const sb = window.varvosSupabase;
+  if (userId && sb) {
+    try {
+      let q = sb.from('user_active_tasks').delete().eq('user_id', userId);
+      if (onlyIfTaskId) q = q.eq('task_id', onlyIfTaskId);
+      await q;
+    } catch (e) { console.warn('clearActiveTask Supabase:', e); }
+  }
+}
+
+async function getStoredActiveTask() {
+  const userId = getCurrentUserId();
+  const sb = window.varvosSupabase;
+  if (userId && sb) {
+    try {
+      const { data } = await sb.from('user_active_tasks').select('task_id, started_at, mode').eq('user_id', userId).maybeSingle();
+      if (data) {
+        const startTime = data.started_at ? new Date(data.started_at).getTime() : Date.now();
+        return { taskId: data.task_id, startTime, mode: data.mode || 'video' };
+      }
+    } catch (e) { console.warn('getStoredActiveTask Supabase:', e); }
+  }
+  try {
+    const stored = sessionStorage.getItem(ACTIVE_TASK_STORAGE);
+    if (stored) {
+      const d = JSON.parse(stored);
+      return { taskId: d.taskId, startTime: d.startTime || Date.now(), mode: d.mode || 'video' };
+    }
+  } catch (e) {}
+  return null;
+}
 
 async function pollUntilComplete(taskId) {
   return new Promise((resolve, reject) => {
@@ -848,13 +992,15 @@ async function pollUntilComplete(taskId) {
 
         if (data.status === 'finished') {
           currentTaskId = null;
-          btnVerify.classList.add('hidden');
+          await clearActiveTask(taskId);
+          if (btnVerify) btnVerify.classList.add('hidden');
           resolve(data);
           return;
         }
         if (data.status === 'failed') {
           currentTaskId = null;
-          btnVerify.classList.add('hidden');
+          await clearActiveTask(taskId);
+          if (btnVerify) btnVerify.classList.add('hidden');
           const errMsg = data.error_message || 'Geração falhou';
           const err = new Error(errMsg);
           err.isCredits = isCreditsError(errMsg);
@@ -865,7 +1011,8 @@ async function pollUntilComplete(taskId) {
         pollTimeoutId = setTimeout(check, POLL_INTERVAL);
       } catch (err) {
         currentTaskId = null;
-        btnVerify.classList.add('hidden');
+        clearActiveTask(taskId).catch(() => {});
+        if (btnVerify) btnVerify.classList.add('hidden');
         reject(err);
       }
     };
@@ -873,39 +1020,15 @@ async function pollUntilComplete(taskId) {
   });
 }
 
-async function verifyStatus() {
-  if (!currentTaskId) return;
-  btnVerify.disabled = true;
-  try {
-    const data = await getTaskStatus(currentTaskId);
-    updateOutputUI(data);
-    if (data.status === 'finished') {
-      if (data.files?.length) addToHistory(data, lastPrompt);
-      currentTaskId = null;
-      btnVerify.classList.add('hidden');
-      if (pollTimeoutId) clearTimeout(pollTimeoutId);
-    } else if (data.status === 'failed') {
-      currentTaskId = null;
-      btnVerify.classList.add('hidden');
-      if (pollTimeoutId) clearTimeout(pollTimeoutId);
-    }
-  } catch (err) {
-    statusMessage.textContent = 'Erro ao verificar: ' + err.message;
-    statusMessage.className = 'status-message error';
-  } finally {
-    btnVerify.disabled = false;
-  }
-}
-
 async function generateMedia(body) {
   btnGenerate.disabled = true;
+  generationStartTime = Date.now();
   videoPlayer.src = '';
   videoPlayer.style.display = 'none';
   imageGallery.classList.add('hidden');
   imageGallery.innerHTML = '';
   downloadBtn.classList.add('hidden');
-  btnVerify.classList.remove('hidden');
-  btnVerify.disabled = false;
+  if (downloadWarning) downloadWarning.classList.add('hidden');
 
   try {
     const taskId = await submitTask(body);
@@ -925,6 +1048,7 @@ async function generateMedia(body) {
     document.getElementById('currentResultSection')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
     currentTaskId = taskId;
+    saveActiveTask(taskId);
     updateOutputUI({ status: 'not_started', progress: 0 });
 
     const result = await pollUntilComplete(taskId);
@@ -940,7 +1064,6 @@ async function generateMedia(body) {
       statusMessage.textContent = err.message || 'Erro na geração';
       statusMessage.className = 'status-message error';
     }
-    btnVerify.classList.add('hidden');
     if (pollTimeoutId) clearTimeout(pollTimeoutId);
   } finally {
     btnGenerate.disabled = false;
@@ -968,7 +1091,6 @@ generateForm.addEventListener('submit', async (e) => {
 });
 
 // JSON tab submit
-btnVerify.addEventListener('click', verifyStatus);
 btnClearHistory?.addEventListener('click', clearHistory);
 
 // Carousel Inspire-se (como na landing)
@@ -982,8 +1104,8 @@ if (samplesNext && samplesCarousel) {
   samplesNext.addEventListener('click', () => samplesCarousel.scrollBy({ left: 216, behavior: 'smooth' }));
 }
 
-// Load history on init
-renderHistory();
+// Load history on init (Supabase se logado, senão localStorage)
+loadHistory();
 
 // Detectar modo por path (/video, /imagem, /imitar-movimento) ou ?mode=
 const pathname = (window.location.pathname || '').toLowerCase();
@@ -997,4 +1119,49 @@ else if (urlParams.get('mode') === 'image') initMode = 'image';
 else if (urlParams.get('mode') === 'video') initMode = 'video';
 if (!initMode) initMode = 'video';
 applyMode(initMode);
+
+// Restaurar tarefa em andamento após recarregar (Supabase se logado, senão sessionStorage)
+async function restoreActiveTask() {
+  if (!outputPlaceholder || !outputResult) return;
+  const data = await getStoredActiveTask();
+  if (!data || !data.taskId) return;
+
+  currentTaskId = data.taskId;
+  generationStartTime = data.startTime || Date.now();
+  if (data.mode) {
+    currentMode = data.mode;
+    const modeEl = document.getElementById('mode');
+    if (modeEl) modeEl.value = data.mode;
+    applyMode(data.mode);
+  }
+
+  outputPlaceholder.classList.add('hidden');
+  outputResult.classList.remove('hidden');
+  startLoadingMessages();
+  if (loadingPlaceholder) loadingPlaceholder.classList.remove('hidden');
+  document.getElementById('currentResultSection')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  pollUntilComplete(data.taskId)
+    .then((result) => {
+      if (pollTimeoutId) clearTimeout(pollTimeoutId);
+      if (result?.status === 'finished' && result?.files?.length) {
+        addToHistory(result, lastPrompt || '');
+      }
+    })
+    .catch((err) => {
+      if (pollTimeoutId) clearTimeout(pollTimeoutId);
+      stopLoadingMessages();
+      if (err.isCredits) {
+        openCreditsModal();
+      } else {
+        statusMessage.textContent = err.message || 'Erro ao verificar o progresso';
+        statusMessage.className = 'status-message error';
+      }
+    })
+    .finally(() => {
+      btnGenerate.disabled = false;
+    });
+}
+
+restoreActiveTask();
 
