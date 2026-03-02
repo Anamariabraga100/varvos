@@ -1116,6 +1116,7 @@ select:focus {
 .loading-placeholder {
   position: absolute;
   inset: 0;
+  z-index: 2;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1124,8 +1125,8 @@ select:focus {
   background: rgba(11,15,20,0.97);
   border-radius: var(--radius);
   animation: loadFadeIn 0.35s ease;
+  cursor: wait;
 }
-
 .loading-placeholder.hidden { display: none !important; }
 
 @keyframes loadFadeIn {
@@ -1141,6 +1142,7 @@ select:focus {
   border-top-color: #fff;
   border-right-color: rgba(255,255,255,0.5);
   animation: spin 0.85s linear infinite;
+  will-change: transform;
 }
 
 @keyframes spin {
