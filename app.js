@@ -782,48 +782,15 @@ async function getTaskStatus(taskId) {
 
 const STATUS_PT = { not_started: 'Na fila', running: 'Gerando', finished: 'Pronto', failed: 'Falhou' };
 
-const LOADING_MESSAGES = {
-  video: [
-    'Enviando seu prompt para a IA...',
-    'A IA está criando seu vídeo...',
-    'Gerando frames e movimentos...',
-    'Renderizando o vídeo...',
-    'Quase pronto! Finalizando...'
-  ],
-  image: [
-    'Enviando seu prompt para o Grok Imagine...',
-    'Gerando seu vídeo curto...',
-    'Aplicando estilo e movimento...',
-    'Quase pronto!'
-  ],
-  motion: [
-    'Analisando o movimento de referência...',
-    'A IA está imitando o movimento...',
-    'Aplicando ao seu personagem...',
-    'Quase pronto!'
-  ]
-};
-
-let loadingMsgIndex = 0;
-let loadingMsgInterval = null;
-
 function startLoadingMessages() {
-  const msgs = LOADING_MESSAGES[currentMode] || LOADING_MESSAGES.video;
-  loadingMsgIndex = 0;
-  if (loadingMessage) loadingMessage.textContent = msgs[0];
   if (loadingPlaceholder) loadingPlaceholder.classList.remove('hidden');
-  loadingMsgInterval = setInterval(() => {
-    loadingMsgIndex = (loadingMsgIndex + 1) % msgs.length;
-    if (loadingMessage) loadingMessage.textContent = msgs[loadingMsgIndex];
-  }, 4000);
 }
 
 function stopLoadingMessages() {
-  if (loadingMsgInterval) {
-    clearInterval(loadingMsgInterval);
-    loadingMsgInterval = null;
+  if (progressBarInterval) {
+    clearInterval(progressBarInterval);
+    progressBarInterval = null;
   }
-  if (loadingMessage) loadingMessage.textContent = '';
   if (loadingPlaceholder) loadingPlaceholder.classList.add('hidden');
 }
 
@@ -848,12 +815,35 @@ function isCreditsError(msg) {
   return msg && /credit|insufficient|saldo|quota|balance|crédito/i.test(msg.toString());
 }
 
+let progressBarInterval = null;
+function updateProgressBarFromElapsed() {
+  if (!generationStartTime || !progressFill || !taskProgressEl) return;
+  const elapsed = Date.now() - generationStartTime;
+  const pct = Math.min(100, Math.round((elapsed / EXPECTED_DURATION_MS) * 100));
+  progressFill.style.width = pct + '%';
+  taskProgressEl.textContent = pct + '%';
+}
+
 function updateOutputUI(data) {
   const status = data.status || '';
   taskStatusEl.textContent = STATUS_PT[status] || status;
   taskStatusEl.className = 'status-badge ' + status;
-  taskProgressEl.textContent = (data.progress || 0) + '%';
-  progressFill.style.width = (data.progress || 0) + '%';
+  const apiProgress = data.progress || 0;
+  if (generationStartTime && (status === 'processing' || status === 'not_started' || status === 'pending' || !status)) {
+    const elapsedPct = Math.min(100, Math.round(((Date.now() - generationStartTime) / EXPECTED_DURATION_MS) * 100));
+    taskProgressEl.textContent = elapsedPct + '%';
+    progressFill.style.width = elapsedPct + '%';
+    if (!progressBarInterval) {
+      progressBarInterval = setInterval(updateProgressBarFromElapsed, 1000);
+    }
+  } else {
+    if (progressBarInterval) {
+      clearInterval(progressBarInterval);
+      progressBarInterval = null;
+    }
+    taskProgressEl.textContent = (apiProgress || 0) + '%';
+    progressFill.style.width = (apiProgress || 0) + '%';
+  }
 
   if (data.status === 'finished' && data.files?.length) {
     stopLoadingMessages();
@@ -894,18 +884,17 @@ function updateOutputUI(data) {
     }
     statusMessage.className = 'status-message success';
   } else if (data.status === 'failed') {
-    const errMsg = (data.error_message || 'Algo deu errado. Tente novamente.').toString();
+    const errMsg = (data.error_message || '').toString();
     if (isCreditsError(errMsg)) {
       openCreditsModal();
       return;
     }
     stopLoadingMessages();
-    statusMessage.textContent = errMsg;
+    statusMessage.textContent = 'Há muitos vídeos na fila, por isso está ocorrendo este erro. Tente novamente em alguns minutos.';
     statusMessage.className = 'status-message error';
   } else {
     if (downloadWarning) downloadWarning.classList.add('hidden');
-    const msg = currentMode === 'motion' ? 'Imitando movimento...' : (currentMode === 'video' ? 'Gerando seu vídeo...' : 'Gerando sua imagem...');
-    statusMessage.textContent = msg;
+    statusMessage.textContent = '';
     statusMessage.className = 'status-message';
   }
 }
@@ -1050,7 +1039,7 @@ async function generateMedia(body) {
     taskStatusEl.className = 'status-badge';
     taskProgressEl.textContent = '0%';
     progressFill.style.width = '0%';
-    statusMessage.textContent = 'Enviando requisição...';
+    statusMessage.textContent = '';
     statusMessage.className = 'status-message';
     startLoadingMessages();
     document.getElementById('currentResultSection')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -1069,7 +1058,7 @@ async function generateMedia(body) {
     if (err.isCredits) {
       openCreditsModal();
     } else {
-      statusMessage.textContent = err.message || 'Erro na geração';
+      statusMessage.textContent = 'Há muitos vídeos na fila, por isso está ocorrendo este erro. Tente novamente em alguns minutos.';
       statusMessage.className = 'status-message error';
     }
     if (pollTimeoutId) clearTimeout(pollTimeoutId);
@@ -1171,7 +1160,7 @@ async function restoreActiveTask() {
       if (err.isCredits) {
         openCreditsModal();
       } else {
-        statusMessage.textContent = err.message || 'Erro ao verificar o progresso';
+        statusMessage.textContent = 'Há muitos vídeos na fila, por isso está ocorrendo este erro. Tente novamente em alguns minutos.';
         statusMessage.className = 'status-message error';
       }
     })
