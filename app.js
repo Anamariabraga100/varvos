@@ -118,6 +118,70 @@ if (videoModalClose) videoModalClose.addEventListener('click', closeVideoModal);
 videoModal?.querySelector('.video-modal-backdrop')?.addEventListener('click', closeVideoModal);
 if (btnClonarPrompt) btnClonarPrompt.addEventListener('click', clonarPromptDoModal);
 
+// Download forçado (evita abrir em nova aba em URLs cross-origin)
+async function triggerDownload(url, filename) {
+  try {
+    const res = await fetch(url, { mode: 'cors' });
+    if (!res.ok) throw new Error(res.status);
+    const blob = await res.blob();
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename || 'download';
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 100);
+  } catch (e) {
+    window.open(url, '_blank');
+  }
+}
+
+downloadBtn?.addEventListener('click', (e) => {
+  const href = downloadBtn.getAttribute('href');
+  if (href && href !== '#') {
+    e.preventDefault();
+    const name = downloadBtn.getAttribute('download') || 'varvos-video.mp4';
+    triggerDownload(href, name);
+  }
+});
+
+// Clique no vídeo gerado para abrir modal
+const mediaContainer = document.querySelector('.media-container');
+if (mediaContainer && videoPlayer) {
+  mediaContainer.style.cursor = 'pointer';
+  mediaContainer.addEventListener('click', (e) => {
+    if (e.target.closest('.btn-download') || e.target.closest('#btnVerify')) return;
+    const src = videoPlayer.src || videoPlayer.getAttribute('src');
+    if (src) {
+      const prompt = document.getElementById('prompt')?.value || '';
+      openVideoModal(src, prompt);
+    }
+  });
+}
+
+// Event delegation: histórico — download e clique para abrir vídeo
+historyList?.addEventListener('click', (e) => {
+  const downloadLink = e.target.closest('.creation-actions a');
+  if (downloadLink) {
+    e.preventDefault();
+    const href = downloadLink.getAttribute('href');
+    const filename = downloadLink.getAttribute('download') || 'varvos.mp4';
+    if (href) triggerDownload(href, filename);
+    return;
+  }
+  const thumb = e.target.closest('.creation-thumb');
+  if (thumb) {
+    const video = thumb.querySelector('video');
+    if (video) {
+      const src = video.src || video.getAttribute('src');
+      const itemEl = thumb.closest('.creation-item');
+      const prompt = itemEl?.querySelector('.prompt')?.textContent || '';
+      if (src) openVideoModal(src, prompt);
+    } else {
+      const img = thumb.querySelector('img');
+      if (img?.src) window.open(img.src, '_blank');
+    }
+  }
+});
+
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
     const hamburger = document.getElementById('hamburgerOverlay');
@@ -597,11 +661,11 @@ function buildRequestBody() {
     return { model: selectedModel, input };
   } else {
     const prompt = document.getElementById('prompt').value.trim();
-    const size = document.getElementById('imgSize').value;
-    const n = parseInt(document.getElementById('imgCount').value, 10);
-    const input = { prompt, size, n };
+    const aspectRatio = document.getElementById('imgSize').value;
+    const mode = document.getElementById('imgMode')?.value || 'normal';
+    const input = { prompt, aspect_ratio: aspectRatio, mode };
     if (imgRefUrl) input.image_urls = [imgRefUrl];
-    return { model: 'gpt-image-1.5', input };
+    return { model: 'grok-imagine', input };
   }
 }
 
@@ -660,9 +724,9 @@ const LOADING_MESSAGES = {
     'Quase pronto! Finalizando...'
   ],
   image: [
-    'Enviando seu prompt...',
-    'A IA está desenhando sua imagem...',
-    'Aplicando estilo e detalhes...',
+    'Enviando seu prompt para o Grok Imagine...',
+    'Gerando seu vídeo curto...',
+    'Aplicando estilo e movimento...',
     'Quase pronto!'
   ],
   motion: [

@@ -133,19 +133,18 @@
                   <option value="3:2">3:2</option>
                 </select>
               </div>
-              <div class="field" id="imgCountField">
-                <label for="imgCount">Quantidade</label>
-                <select id="imgCount" name="img_count">
-                  <option value="1" selected>1 imagem</option>
-                  <option value="2">2 imagens</option>
-                  <option value="3">3 imagens</option>
-                  <option value="4">4 imagens</option>
+              <div class="field" id="imgModeField">
+                <label for="imgMode">Estilo</label>
+                <select id="imgMode" name="img_mode">
+                  <option value="normal" selected>Normal</option>
+                  <option value="fun">Fun</option>
+                  <option value="spicy">Spicy</option>
                 </select>
               </div>
             </div>
 
             <div class="field" id="imgRefField">
-              <label>Imagem de referência (opcional)</label>
+              <label>Imagem de referência (opcional, para image-to-video)</label>
               <div class="file-upload" id="imgRefUpload">
                 <input type="file" id="imgRefFile" accept="image/jpeg,image/png,image/webp" hidden>
                 <div class="file-upload-area" id="imgRefArea">
