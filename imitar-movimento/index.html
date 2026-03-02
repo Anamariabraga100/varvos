@@ -289,35 +289,20 @@
         <div class="carousel-wrapper samples-wrap">
           <div class="carousel samples-carousel" id="samplesCarousel">
             <div class="carousel-track samples-track">
-              <button type="button" class="video-card sample-video-slot" data-prompt="Criador segurando placa com novidade, estilo anúncio viral para redes sociais">
-                <video src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" muted loop playsinline></video>
+              <button type="button" class="video-card sample-video-slot" data-prompt="Vídeo criado com IA — use como referência para imitar movimento">
+                <video src="https://juauagypsrgnmwsavrto.supabase.co/storage/v1/object/public/videos/w_cJFbV9JA91BnW5NsSoF_output%20(1).mp4" muted loop playsinline></video>
               </button>
-              <button type="button" class="video-card sample-video-slot" data-prompt="Mulher mostrando app no celular sorrindo para câmera, estilo UGC autêntico">
-                <video src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4" muted loop playsinline></video>
+              <button type="button" class="video-card sample-video-slot" data-prompt="Persona em destaque, movimento fluido para imitar">
+                <video src="https://magai.b-cdn.net/persona-banner/2.mp4" muted loop playsinline></video>
               </button>
-              <button type="button" class="video-card sample-video-slot" data-prompt="Mulher trabalhando no laptop, lifestyle moderno para anúncio de produto">
-                <video src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4" muted loop playsinline></video>
+              <button type="button" class="video-card sample-video-slot" data-prompt="Controle de movimento estilo Kling — referência para imitação">
+                <video src="https://cdn.higgsfield.ai/kling_motion_control_preset/062dcd0d-2b81-4e82-8757-8bb1cd491581.mp4" muted loop playsinline></video>
               </button>
-              <button type="button" class="video-card sample-video-slot" data-prompt="Homem animado segurando celular com app, energia alta para TikTok Ads">
-                <video src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4" muted loop playsinline></video>
+              <button type="button" class="video-card sample-video-slot" data-prompt="Movimento dinâmico com IA — inspire-se para seu vídeo">
+                <video src="https://cdn.higgsfield.ai/kling_motion_control_preset/1ad056fe-79aa-4347-afdc-2b4e360fbed1.mp4" muted loop playsinline></video>
               </button>
-              <button type="button" class="video-card sample-video-slot" data-prompt="Modelo apresentando protetor solar SPF 50, close-up produto">
-                <video src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4" muted loop playsinline></video>
-              </button>
-              <button type="button" class="video-card sample-video-slot" data-prompt="Modelo com produto skincare em destaque, fundo clean profissional">
-                <video src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4" muted loop playsinline></video>
-              </button>
-              <button type="button" class="video-card sample-video-slot" data-prompt="Promoção Sale com desconto, urgência e FOMO para conversão">
-                <video src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" muted loop playsinline></video>
-              </button>
-              <button type="button" class="video-card sample-video-slot" data-prompt="Depoimento UGC autêntico falando direto à câmera sobre produto">
-                <video src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" muted loop playsinline></video>
-              </button>
-              <button type="button" class="video-card sample-video-slot" data-prompt="Unboxing com reação de surpresa, estilo orgânico para ads">
-                <video src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4" muted loop playsinline></video>
-              </button>
-              <button type="button" class="video-card sample-video-slot" data-prompt="Produto em rotação 360° em fundo branco minimalista">
-                <video src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4" muted loop playsinline></video>
+              <button type="button" class="video-card sample-video-slot" data-prompt="Preset de movimento para transferência de pose">
+                <video src="https://cdn.higgsfield.ai/kling_motion_control_preset/fc0bb74c-2a62-4113-99cb-f0ee05aaacf3.mp4" muted loop playsinline></video>
               </button>
               <div class="video-card video-placeholder-slot">
                 <div class="video-placeholder"><span>▶</span><small>Seu próximo vídeo</small></div>
@@ -540,7 +525,7 @@
     </div>
   </div>
 
-  <!-- Modal vídeo ampliado - Social & UGC Ads -->
+  <!-- Modal vídeo ampliado - Biblioteca de IA -->
   <div id="videoModal" class="video-modal hidden">
     <div class="video-modal-backdrop"></div>
     <div class="video-modal-content">
@@ -548,10 +533,8 @@
       <div class="video-modal-player">
         <video id="videoModalVideo" controls loop playsinline></video>
       </div>
-      <div class="video-modal-info">
-        <label>Prompt usado:</label>
-        <p id="videoModalPrompt" class="video-modal-prompt"></p>
-        <button type="button" class="btn-clonar-prompt" id="btnClonarPrompt">Clonar prompt</button>
+      <div class="video-modal-actions">
+        <button type="button" class="btn-imitar-movimento" id="btnImitarMovimentoModal">Imitar movimento</button>
       </div>
     </div>
   </div>

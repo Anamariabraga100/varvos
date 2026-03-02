@@ -1497,43 +1497,19 @@ select:focus {
   display: block;
 }
 
-.video-modal-info {
+.video-modal-actions {
   padding: 20px;
   background: var(--bg);
   border-top: 1px solid var(--border);
 }
 
-.video-modal-info label {
-  display: block;
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--text-muted);
-  margin-bottom: 8px;
-  text-transform: uppercase;
-}
-
-.video-modal-prompt {
-  font-size: 0.82rem;
-  color: var(--text);
-  line-height: 1.45;
-  margin: 0 0 16px;
-  padding: 10px 12px;
-  background: var(--bg-soft);
-  border-radius: 8px;
-  max-height: 96px;
-  overflow-y: auto;
-  overflow-x: hidden;
-  white-space: normal;
-  word-break: break-word;
-  -webkit-line-clamp: unset;
-  display: block;
-}
-
-.btn-clonar-prompt {
+.btn-imitar-movimento {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   padding: 14px 28px;
+  width: 100%;
   background: var(--btn-bg);
   border: none;
   border-radius: 10px;
@@ -1542,11 +1518,13 @@ select:focus {
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
+  text-decoration: none;
   transition: all 0.2s;
 }
 
-.btn-clonar-prompt:hover {
+.btn-imitar-movimento:hover {
   background: var(--btn-hover);
+  color: white;
 }
 
 @media (min-width: 768px) {

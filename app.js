@@ -64,20 +64,18 @@ document.getElementById('prompt')?.addEventListener('change', updateClearPromptV
 // Init clear button visibility
 updateClearPromptVisibility();
 
-// Modal vídeo ampliado - Social & UGC Ads
+// Modal vídeo ampliado - Biblioteca de IA
 const videoModal = document.getElementById('videoModal');
 const videoModalVideo = document.getElementById('videoModalVideo');
-const videoModalPrompt = document.getElementById('videoModalPrompt');
 const videoModalClose = document.getElementById('videoModalClose');
-const btnClonarPrompt = document.getElementById('btnClonarPrompt');
+const btnImitarMovimentoModal = document.getElementById('btnImitarMovimentoModal');
 
 function openVideoModal(src, promptText) {
-  if (!videoModal || !videoModalVideo || !videoModalPrompt) return;
+  if (!videoModal || !videoModalVideo) return;
   videoModalVideo.src = src || '';
-  videoModalPrompt.textContent = promptText || '';
+  videoModal.dataset.videoSrc = src || '';
   videoModal.classList.remove('hidden');
   videoModalVideo.play().catch(() => {});
-  videoModal.dataset.prompt = promptText || '';
 }
 
 function closeVideoModal() {
@@ -90,20 +88,30 @@ function closeVideoModal() {
   }
 }
 
-function clonarPromptDoModal() {
-  const p = videoModal?.dataset?.prompt || '';
-  const prompt = document.getElementById('prompt');
-  if (prompt) prompt.value = p;
-  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-  document.querySelectorAll('.mode-btn[data-mode="video"]').forEach(b => b && b.classList.add('active'));
-  currentMode = 'video';
-  document.getElementById('mode').value = 'video';
-  document.getElementById('videoFields').classList.remove('hidden');
-  document.getElementById('imageFields').classList.add('hidden');
-  document.getElementById('btnGenerateText').textContent = 'Gerar vídeo';
+function setMotionRefVideoFromUrl(url) {
+  if (!url) return;
+  const area = document.getElementById('motionRefVideoArea');
+  const preview = document.getElementById('motionRefVideoPreview');
+  const previewVid = document.getElementById('motionRefVideoPreviewVid');
+  if (!area || !preview || !previewVid) return;
+  motionRefVideoUrl = url;
+  area.classList.add('hidden');
+  preview.classList.remove('hidden');
+  previewVid.src = url;
+  updateMotionReadyState();
+}
+
+function handleImitarMovimentoFromModal() {
+  const src = videoModal?.dataset?.videoSrc || videoModalVideo?.src || '';
+  if (!src) return;
+  const isMotionPage = /imitar-movimento/.test(window.location.pathname);
   closeVideoModal();
-  document.getElementById('criar')?.scrollIntoView({ behavior: 'smooth' });
-  prompt?.focus();
+  if (isMotionPage) {
+    setMotionRefVideoFromUrl(src);
+    document.getElementById('motionRefVideoUpload')?.closest('.field')?.scrollIntoView({ behavior: 'smooth' });
+  } else {
+    window.location.href = '../imitar-movimento/?refVideo=' + encodeURIComponent(src);
+  }
 }
 
 // Sample video slots - abre modal ampliado
@@ -118,7 +126,7 @@ document.querySelectorAll('.sample-video-slot').forEach(card => {
 
 if (videoModalClose) videoModalClose.addEventListener('click', closeVideoModal);
 videoModal?.querySelector('.video-modal-backdrop')?.addEventListener('click', closeVideoModal);
-if (btnClonarPrompt) btnClonarPrompt.addEventListener('click', clonarPromptDoModal);
+if (btnImitarMovimentoModal) btnImitarMovimentoModal.addEventListener('click', handleImitarMovimentoFromModal);
 
 // Download forçado (evita abrir em nova aba em URLs cross-origin)
 async function triggerDownload(url, filename) {
@@ -1119,6 +1127,15 @@ else if (urlParams.get('mode') === 'image') initMode = 'image';
 else if (urlParams.get('mode') === 'video') initMode = 'video';
 if (!initMode) initMode = 'video';
 applyMode(initMode);
+
+// Preencher vídeo de referência vindo da biblioteca (?refVideo=url)
+const refVideoParam = urlParams.get('refVideo');
+if (refVideoParam && pathname.includes('imitar-movimento')) {
+  try {
+    const url = decodeURIComponent(refVideoParam);
+    if (url) setMotionRefVideoFromUrl(url);
+  } catch (_) {}
+}
 
 // Restaurar tarefa em andamento após recarregar (Supabase se logado, senão sessionStorage)
 async function restoreActiveTask() {
