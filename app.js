@@ -43,6 +43,43 @@ const LOADING_PHRASES = {
 
 const loadingIntervals = new WeakMap();
 
+/** Captura o primeiro frame de um vídeo e define como poster. Funciona com cross-origin se o servidor enviar CORS. */
+function captureVideoThumbnail(videoEl, onDone) {
+  if (!videoEl || !videoEl.src) return;
+  const draw = () => {
+    try {
+      if (videoEl.videoWidth === 0 || videoEl.videoHeight === 0) return;
+      const canvas = document.createElement('canvas');
+      canvas.width = videoEl.videoWidth;
+      canvas.height = videoEl.videoHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(videoEl, 0, 0);
+      videoEl.poster = canvas.toDataURL('image/jpeg', 0.7);
+    } catch (_) {}
+    cleanup();
+    if (typeof onDone === 'function') onDone();
+  };
+  const cleanup = () => {
+    videoEl.removeEventListener('loadeddata', onLoaded);
+    videoEl.removeEventListener('seeked', draw);
+    videoEl.removeEventListener('error', cleanup);
+    if (typeof onDone === 'function') onDone();
+  };
+  const onLoaded = () => {
+    videoEl.currentTime = 0.1;
+    videoEl.addEventListener('seeked', draw, { once: true });
+  };
+  videoEl.crossOrigin = 'anonymous';
+  videoEl.preload = 'auto';
+  videoEl.addEventListener('error', cleanup);
+  if (videoEl.readyState >= 2) {
+    onLoaded();
+  } else {
+    videoEl.addEventListener('loadeddata', onLoaded);
+    videoEl.load();
+  }
+}
+
 function getCardRefs(cardEl) {
   if (!cardEl) return null;
   return {
@@ -56,7 +93,8 @@ function getCardRefs(cardEl) {
     imageGallery: cardEl.querySelector('.image-gallery'),
     statusMessage: cardEl.querySelector('.status-message'),
     downloadWarning: cardEl.querySelector('.download-warning'),
-    downloadBtn: cardEl.querySelector('.btn-download')
+    downloadBtn: cardEl.querySelector('.btn-download'),
+    resultPromptEl: cardEl.querySelector('.result-prompt')
   };
 }
 function getCardByIndex(i) {
@@ -111,6 +149,10 @@ function openVideoModal(src, promptText) {
   videoModalVideo.src = src || '';
   videoModal.dataset.videoSrc = src || '';
   videoModal.dataset.context = 'library';
+  const playerWrap = videoModal?.querySelector('.video-modal-player');
+  if (playerWrap) playerWrap.style.aspectRatio = '9/16';
+  document.getElementById('videoModalPrompt')?.classList.add('hidden');
+  document.getElementById('videoModalRecriar')?.classList.add('hidden');
   const btnImitar = document.getElementById('btnImitarMovimentoModal');
   const btnDownloadWrap = videoModal?.querySelector('.video-modal-download-wrap');
   if (btnImitar) btnImitar.classList.remove('hidden');
@@ -119,11 +161,28 @@ function openVideoModal(src, promptText) {
   videoModalVideo.play().catch(() => {});
 }
 
-function openVideoModalForResult(src, downloadBtnOrHref, downloadName) {
+function openVideoModalForResult(src, downloadBtnOrHref, downloadName, aspectRatio, prompt) {
   if (!videoModal || !videoModalVideo) return;
   videoModalVideo.src = src || '';
   videoModal.dataset.videoSrc = src || '';
   videoModal.dataset.context = 'result';
+  const playerWrap = videoModal?.querySelector('.video-modal-player');
+  if (playerWrap) {
+    const ratio = aspectRatio === '16:9' ? '16/9' : aspectRatio === '1:1' ? '1/1' : '9/16';
+    playerWrap.style.aspectRatio = ratio;
+  }
+  const promptEl = document.getElementById('videoModalPrompt');
+  const recriarEl = document.getElementById('videoModalRecriar');
+  if (promptEl) {
+    promptEl.textContent = prompt ? `Prompt: ${prompt}` : '';
+    promptEl.classList.toggle('hidden', !prompt);
+  }
+  const basePath = window.location.pathname.includes('imitar-movimento') ? '../video/' : '';
+  if (recriarEl) {
+    recriarEl.href = prompt ? `${basePath}?prompt=${encodeURIComponent(prompt)}` : (basePath || 'video/');
+    recriarEl.classList.remove('hidden');
+    recriarEl.onclick = (e) => { closeVideoModal(); };
+  }
   const btnImitar = document.getElementById('btnImitarMovimentoModal');
   const btnDownloadWrap = videoModal?.querySelector('.video-modal-download-wrap');
   const modalDownloadBtn = videoModal?.querySelector('.video-modal-download-btn');
@@ -227,7 +286,10 @@ outputResultsList?.addEventListener('click', (e) => {
   const video = mediaContainer.querySelector('.media-output');
   const src = video?.src || video?.getAttribute('src');
   if (!src || src === 'about:blank' || src.length < 10) return;
-  openVideoModalForResult(src, mediaContainer.querySelector('.btn-download'));
+  const card = mediaContainer.closest('.output-result-card');
+  const aspectRatio = card?.dataset?.aspectRatio || '9:16';
+  const prompt = card?.dataset?.prompt || '';
+  openVideoModalForResult(src, mediaContainer.querySelector('.btn-download'), null, aspectRatio, prompt);
 });
 
 // Event delegation: histórico — download e clique para abrir vídeo
@@ -249,7 +311,9 @@ historyList?.addEventListener('click', (e) => {
       const downloadLink = itemEl?.querySelector('.creation-actions a[href]');
       const href = downloadLink?.getAttribute('href');
       const download = downloadLink?.getAttribute('download');
-      if (src) openVideoModalForResult(src, href, download);
+      const aspectRatio = itemEl?.dataset?.aspectRatio || '9:16';
+      const prompt = itemEl?.dataset?.prompt || '';
+      if (src) openVideoModalForResult(src, href, download, aspectRatio, prompt);
     } else {
       const img = thumb.querySelector('img');
       if (img?.src) window.open(img.src, '_blank');
@@ -504,7 +568,7 @@ async function loadHistoryFromSupabase() {
   const sb = window.varvosSupabase;
   if (!userId || !sb) return;
   try {
-    const { data } = await sb.from('user_creations').select('task_id, prompt, mode, files, created_at').eq('user_id', userId).order('created_at', { ascending: false }).limit(50);
+    const { data } = await sb.from('user_creations').select('task_id, prompt, mode, files, created_at, aspect_ratio').eq('user_id', userId).order('created_at', { ascending: false }).limit(50);
     if (data && data.length) {
       historyCache = data.map(row => ({
         id: row.task_id + '-' + (row.created_at ? new Date(row.created_at).getTime() : Date.now()),
@@ -512,7 +576,8 @@ async function loadHistoryFromSupabase() {
         created_time: row.created_at,
         prompt: row.prompt || '',
         mode: row.mode || 'video',
-        files: row.files || []
+        files: row.files || [],
+        aspect_ratio: row.aspect_ratio || '9:16'
       }));
       renderHistory();
     }
@@ -538,25 +603,29 @@ async function addToHistorySupabase(entry) {
   const sb = window.varvosSupabase;
   if (!userId || !sb) return;
   try {
-    await sb.from('user_creations').insert({
+    const row = {
       user_id: userId,
       task_id: entry.task_id,
       prompt: entry.prompt || '',
       mode: entry.mode || 'video',
       files: entry.files || []
-    });
+    };
+    if (entry.aspect_ratio) row.aspect_ratio = entry.aspect_ratio;
+    await sb.from('user_creations').insert(row);
   } catch (e) { console.warn('addToHistorySupabase:', e); }
 }
 
-async function addToHistory(data, prompt) {
+async function addToHistory(data, prompt, aspectRatio) {
   if (data.status !== 'finished' || !data.files?.length) return;
+  const ar = aspectRatio || document.getElementById('aspectRatio')?.value || '9:16';
   const entry = {
     id: data.task_id + '-' + Date.now(),
     task_id: data.task_id,
     created_time: data.created_time || new Date().toISOString(),
     prompt: prompt || '',
     mode: data.files[0].file_type === 'video' ? 'video' : 'image',
-    files: data.files
+    files: data.files,
+    aspect_ratio: ar
   };
   historyCache.unshift(entry);
   saveHistory(historyCache);
@@ -568,7 +637,6 @@ function renderHistory() {
   const items = getHistory();
   historyList.classList.toggle('hidden', !items.length);
   historyEmpty.classList.toggle('hidden', !!items.length);
-  btnClearHistory.classList.toggle('hidden', !items.length);
   document.querySelector('.history-download-hint')?.classList.toggle('hidden', !items.length);
 
   if (!items.length) return;
@@ -578,14 +646,17 @@ function renderHistory() {
     const thumb = mainFile.file_type === 'image'
       ? `<img src="${mainFile.file_url}" alt="">`
       : `<video src="${mainFile.file_url}" muted preload="metadata"></video>`;
-    const promptShort = (item.prompt || 'Sem prompt').slice(0, 50) + (item.prompt?.length > 50 ? '…' : '');
+    const promptText = item.prompt || 'Sem prompt';
+    const promptShort = promptText.length > 80 ? promptText.slice(0, 80) + '…' : promptText;
     const date = item.created_time ? new Date(item.created_time).toLocaleDateString('pt-BR') : '';
+    const aspectRatio = item.aspect_ratio || '9:16';
+    const thumbRatio = aspectRatio === '16:9' ? '16/9' : aspectRatio === '1:1' ? '1/1' : '9/16';
     const downloads = item.files.map((f, i) =>
       `<a href="${f.file_url}" download="varvos-${item.task_id}-${i + 1}.${f.file_type === 'video' ? 'mp4' : 'png'}">Baixar${item.files.length > 1 ? ' ' + (i + 1) : ''}</a>`
     ).join('');
     return `
-      <div class="creation-item">
-        <div class="creation-thumb">${thumb}</div>
+      <div class="creation-item" data-aspect-ratio="${escapeHtml(aspectRatio)}" data-prompt="${escapeHtml(item.prompt || '')}">
+        <div class="creation-thumb" style="aspect-ratio:${thumbRatio}">${thumb}</div>
         <div class="creation-info">
           <div class="prompt">${escapeHtml(promptShort)}</div>
           <div class="meta">${item.mode === 'video' ? '🎬 Vídeo' : '🖼️ Imagem'}${date ? ' · ' + date : ''}</div>
@@ -594,6 +665,7 @@ function renderHistory() {
       </div>
     `;
   }).join('');
+  historyList.querySelectorAll('.creation-thumb video').forEach((v) => captureVideoThumbnail(v));
 }
 
 function escapeHtml(str) {
@@ -708,7 +780,7 @@ function updateMotionReadyState() {
   const el = document.getElementById('motionReadyState');
   if (!el) return;
   const ok = !!(motionCharImageUrl && motionRefVideoUrl);
-  el.textContent = ok ? '✓ Imagem e vídeo enviados à Vidgo — prontos para gerar' : '';
+  el.textContent = ok ? '✓ Imagem e vídeo enviados — prontos para gerar' : '';
   el.className = 'motion-ready-state' + (ok ? ' ready' : '');
 }
 setupFileUpload({ inputId: 'motionCharImageFile', areaId: 'motionCharImageArea', previewId: 'motionCharImagePreview', imgId: 'motionCharImagePreviewImg', removeId: 'motionCharImageRemove', setUrl: (v) => motionCharImageUrl = v, onReady: updateMotionReadyState });
@@ -892,7 +964,7 @@ function isCreditsError(msg) {
 
 function updateOutputUI(data, cardRefs, startTime) {
   if (!cardRefs) return;
-  const { taskStatusEl, taskProgressEl, progressFill, loadingPlaceholder, videoPlayer, imageGallery, statusMessage, downloadWarning, downloadBtn } = cardRefs;
+  const { taskStatusEl, taskProgressEl, progressFill, loadingPlaceholder, videoPlayer, imageGallery, statusMessage, downloadWarning, downloadBtn, resultPromptEl } = cardRefs;
   const status = data.status || '';
   if (taskStatusEl) {
     taskStatusEl.textContent = STATUS_PT[status] || status;
@@ -903,7 +975,10 @@ function updateOutputUI(data, cardRefs, startTime) {
   if (progressFill) progressFill.style.width = apiProgress + '%';
 
   if (data.status === 'finished' && data.files?.length) {
+    const taskMeta = activeTasks.get(data.task_id);
     activeTasks.delete(data.task_id);
+    const prompt = taskMeta?.prompt || '';
+    const aspectRatio = taskMeta?.aspectRatio || '9:16';
     stopLoadingForCard(cardRefs);
     if (videoPlayer) {
       videoPlayer.src = '';
@@ -913,6 +988,14 @@ function updateOutputUI(data, cardRefs, startTime) {
       imageGallery.classList.add('hidden');
       imageGallery.innerHTML = '';
     }
+    if (resultPromptEl) {
+      resultPromptEl.textContent = prompt ? `Prompt: ${prompt}` : '';
+      resultPromptEl.classList.toggle('hidden', !prompt);
+    }
+    if (cardRefs.card) {
+      cardRefs.card.dataset.aspectRatio = aspectRatio;
+      cardRefs.card.dataset.prompt = prompt;
+    }
 
     const videoFile = data.files.find(f => f.file_type === 'video');
     const imageFiles = data.files.filter(f => f.file_type === 'image');
@@ -921,6 +1004,7 @@ function updateOutputUI(data, cardRefs, startTime) {
       if (videoPlayer) {
         videoPlayer.src = videoFile.file_url;
         videoPlayer.style.display = 'block';
+        captureVideoThumbnail(videoPlayer);
       }
       if (downloadBtn) {
         downloadBtn.href = videoFile.file_url;
@@ -977,11 +1061,12 @@ function getCurrentUserId() {
   } catch { return null; }
 }
 
-async function saveActiveTask(taskId, startTime) {
+async function saveActiveTask(taskId, startTime, prompt) {
   const payload = {
     taskId,
     startTime: startTime || Date.now(),
-    mode: currentMode
+    mode: currentMode,
+    prompt: prompt || ''
   };
   try {
     const stored = sessionStorage.getItem(ACTIVE_TASK_STORAGE);
@@ -1055,8 +1140,8 @@ async function getStoredActiveTasks() {
     const stored = sessionStorage.getItem(ACTIVE_TASK_STORAGE);
     if (stored) {
       const d = JSON.parse(stored);
-      const tasks = Array.isArray(d.tasks) ? d.tasks : (d.taskId ? [{ taskId: d.taskId, startTime: d.startTime || Date.now(), mode: d.mode || 'video' }] : []);
-      return tasks.slice(0, 2);
+      const tasks = Array.isArray(d.tasks) ? d.tasks : (d.taskId ? [{ taskId: d.taskId, startTime: d.startTime || Date.now(), mode: d.mode || 'video', prompt: d.prompt || '' }] : []);
+      return tasks.map(t => ({ ...t, prompt: t.prompt || '' })).slice(0, 2);
     }
   } catch (e) {}
   return [];
@@ -1149,12 +1234,13 @@ async function generateMedia(body) {
     if (cardRefs.progressFill) cardRefs.progressFill.style.width = '0%';
     if (cardRefs.statusMessage) cardRefs.statusMessage.textContent = '';
 
-    activeTasks.set(taskId, { cardRefs, startTime });
+    const aspectRatio = document.getElementById('aspectRatio')?.value || '9:16';
+    activeTasks.set(taskId, { cardRefs, startTime, prompt: lastPrompt, aspectRatio });
     startLoadingForCard(cardRefs, currentMode);
     document.getElementById('currentResultSection')?.scrollIntoView({ behavior: 'smooth', block: 'end' });
 
     currentTaskId = taskId;
-    saveActiveTask(taskId, startTime);
+    saveActiveTask(taskId, startTime, lastPrompt);
     updateOutputUI({ status: 'not_started', progress: 0 }, cardRefs, startTime);
 
     btnGenerate.disabled = false;
@@ -1163,7 +1249,10 @@ async function generateMedia(body) {
     const tid = pollTimeouts.get(taskId);
     if (tid) { clearTimeout(tid); pollTimeouts.delete(taskId); }
     if (result?.status === 'finished' && result?.files?.length) {
-      addToHistory(result, lastPrompt);
+      const ar = result.files[0]?.file_type === 'video'
+        ? (document.getElementById('aspectRatio')?.value || '9:16')
+        : (document.getElementById('imgSize')?.value || '1:1');
+      addToHistory(result, lastPrompt, ar);
     }
   } catch (err) {
     if (taskId) activeTasks.delete(taskId);
@@ -1201,7 +1290,7 @@ generateForm.addEventListener('submit', async (e) => {
 });
 
 // JSON tab submit
-btnClearHistory?.addEventListener('click', clearHistory);
+document.getElementById('btnClearHistory')?.addEventListener('click', clearHistory);
 
 // Carousel Inspire-se (como na landing)
 const samplesCarousel = document.getElementById('samplesCarousel');
@@ -1236,6 +1325,19 @@ if (refVideoParam && pathname.includes('imitar-movimento')) {
   try {
     const url = decodeURIComponent(refVideoParam);
     if (url) setMotionRefVideoFromUrl(url);
+  } catch (_) {}
+}
+
+// Preencher prompt vindo do Recriar vídeo (?prompt=texto)
+const promptParam = urlParams.get('prompt');
+if (promptParam && pathname.includes('video')) {
+  try {
+    const prompt = decodeURIComponent(promptParam);
+    const promptEl = document.getElementById('prompt');
+    if (prompt && promptEl) {
+      promptEl.value = prompt;
+      updateClearPromptVisibility();
+    }
   } catch (_) {}
 }
 
@@ -1277,7 +1379,11 @@ async function restoreActiveTask() {
         const tid = pollTimeouts.get(data.taskId);
         if (tid) { clearTimeout(tid); pollTimeouts.delete(data.taskId); }
         if (result?.status === 'finished' && result?.files?.length) {
-          addToHistory(result, lastPrompt || '');
+          const ar = result.files[0]?.file_type === 'video'
+            ? (document.getElementById('aspectRatio')?.value || '9:16')
+            : (document.getElementById('imgSize')?.value || '1:1');
+          const promptToSave = data.prompt || lastPrompt || '';
+          addToHistory(result, promptToSave, ar);
         }
       })
       .catch((err) => {

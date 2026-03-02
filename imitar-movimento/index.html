@@ -300,7 +300,6 @@
           <p>Ainda não há criações</p>
           <span class="history-hint">Tudo que você gerar aparecerá aqui</span>
         </div>
-        <button type="button" class="btn-clear-history hidden" id="btnClearHistory">Limpar</button>
       </section>
 
       <!-- Biblioteca de vídeos com IA -->
@@ -355,7 +354,6 @@
       <div class="credits-row">
         💳 <span id="hamburgerCredits">—</span> créditos disponíveis
       </div>
-      <p class="powered">Powered by Vidgo</p>
     </div>
   </div>
 
@@ -552,10 +550,12 @@
         <video id="videoModalVideo" controls loop playsinline></video>
       </div>
       <div class="video-modal-actions">
+        <p class="video-modal-prompt hidden" id="videoModalPrompt"></p>
         <div class="video-modal-buttons">
           <div class="video-modal-download-wrap hidden">
             <a href="#" class="video-modal-download-btn btn-imitar-movimento" download>Baixar vídeo</a>
           </div>
+          <a href="#" class="video-modal-recreate hidden" id="videoModalRecriar">Recriar vídeo</a>
           <button type="button" class="btn-imitar-movimento" id="btnImitarMovimentoModal">Imitar movimento</button>
         </div>
       </div>

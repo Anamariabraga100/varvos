@@ -181,6 +181,25 @@ function initLanding() {
   document.querySelectorAll('.feature-card-media').forEach(block => {
     featureObserver.observe(block);
   });
+
+  // Spotlight section: play videos when in view
+  const spotlightSection = document.querySelector('.spotlight-section');
+  if (spotlightSection) {
+    const spotlightObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        const video = entry.target.querySelector('video');
+        if (video) {
+          if (entry.isIntersecting) {
+            video.muted = true;
+            video.play().catch(() => {});
+          } else {
+            video.pause();
+          }
+        }
+      });
+    }, { threshold: 0.2 });
+    spotlightSection.querySelectorAll('.spotlight-media').forEach(block => spotlightObserver.observe(block));
+  }
 }
 
 function runInit() {

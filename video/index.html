@@ -60,8 +60,6 @@
                 <button type="button" class="chip" data-prompt="Unboxing estilo UGC: mulher brasileira, 25-35 anos, cabelos castanhos, mãos abrindo caixa elegante do produto com reação de surpresa e alegria autêntica, falando em português 'olha o que chegou!', iluminação quente interior, estética de filmagem smartphone, fundo suave, formato vertical 9:16, trending para anúncios em redes sociais. Vídeo de 15 segundos em português do Brasil. Todo o áudio e fala em português brasileiro.">Unboxing UGC</button>
                 <button type="button" class="chip" data-prompt="Antes e depois split screen: lado esquerdo pele com imperfeições e oleosidade, lado direito pele radiante após 7 dias usando o Sérum Antiacne, iluminação natural, mulher brasileira real, estilo depoimento autêntico, overlay de texto '7 dias depois' em português, profissional mas próximo, formato vertical Reels e TikTok. Vídeo de 15 segundos em português do Brasil. Todo o áudio e texto em português brasileiro.">Transformação</button>
                 <button type="button" class="chip" data-prompt="Depoimento UGC autêntico: mulher brasileira, 30 anos, cabelos longos, falando diretamente à câmera com sorriso genuíno segurando o Creme Antiidade, dizendo em português 'uso há 2 semanas e minha pele nunca esteve melhor', luz natural suave da janela, fundo acolhedor em casa, estética smartphone crua, alta conversão para ads. Vídeo de 15 segundos em português do Brasil. Todo o áudio em português brasileiro.">Depoimento real</button>
-                <button type="button" class="chip" data-prompt="Cenário cinematográfico de praia ao pôr do sol, ondas suaves, céu alaranjado e reflexos dourados na água, câmera lenta contemplativa, sem pessoas, atmosfera serena e premium, ideal para marcas de lifestyle e viagem. Vídeo de 15 segundos.">Praia pôr do sol</button>
-                <button type="button" class="chip" data-prompt="Modelo fashion walk em passarela urbana, roupas streetwear, movimento fluido e confiante, iluminação dramatica de golden hour, arquitetura moderna ao fundo, estética editorial e comercial. Vídeo de 15 segundos.">Modelo fashion</button>
               </div>
             </div>
             <div id="promptSuggestionsImage" class="prompt-suggestions prompt-suggestions-above hidden">
@@ -260,6 +258,7 @@
               <div class="image-gallery hidden"></div>
             </div>
             <p class="creation-disclaimer">Você pode fechar esta página e voltar depois — seu progresso será mantido. Também pode <a href="../imitar-movimento/">ir para Imitar Movimento</a> ou abrir outra aba e gerar outro vídeo ao mesmo tempo.</p>
+            <p class="result-prompt"></p>
             <p class="status-message"></p>
             <p class="download-warning hidden">⚠️ Os arquivos ficam disponíveis por até 24 horas no servidor. Baixe agora para não perder.</p>
             <a class="btn-download hidden" href="#" download>
@@ -281,6 +280,7 @@
               <div class="image-gallery hidden"></div>
             </div>
             <p class="creation-disclaimer">Você pode fechar esta página e voltar depois — seu progresso será mantido. Também pode <a href="../imitar-movimento/">ir para Imitar Movimento</a> ou abrir outra aba e gerar outro vídeo ao mesmo tempo.</p>
+            <p class="result-prompt"></p>
             <p class="status-message"></p>
             <p class="download-warning hidden">⚠️ Os arquivos ficam disponíveis por até 24 horas no servidor. Baixe agora para não perder.</p>
             <a class="btn-download hidden" href="#" download>
@@ -316,7 +316,6 @@
           <p>Ainda não há criações</p>
           <span class="history-hint">Tudo que você gerar aparecerá aqui</span>
         </div>
-        <button type="button" class="btn-clear-history hidden" id="btnClearHistory">Limpar</button>
       </section>
 
       <!-- Biblioteca de vídeos com IA -->
@@ -405,7 +404,6 @@
       <div class="credits-row">
         💳 <span id="hamburgerCredits">—</span> créditos disponíveis
       </div>
-      <p class="powered">Powered by Vidgo</p>
     </div>
   </div>
 
@@ -583,10 +581,12 @@
         <video id="videoModalVideo" controls loop playsinline></video>
       </div>
       <div class="video-modal-actions">
+        <p class="video-modal-prompt hidden" id="videoModalPrompt"></p>
         <div class="video-modal-buttons">
           <div class="video-modal-download-wrap hidden">
             <a href="#" class="video-modal-download-btn btn-imitar-movimento" download>Baixar vídeo</a>
           </div>
+          <a href="#" class="video-modal-recreate hidden" id="videoModalRecriar">Recriar vídeo</a>
           <button type="button" class="btn-imitar-movimento" id="btnImitarMovimentoModal">Imitar movimento</button>
         </div>
       </div>
