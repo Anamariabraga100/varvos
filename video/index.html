@@ -47,14 +47,29 @@
             <span class="create-label">O que você quer criar?</span>
             <div class="mode-switcher">
               <a href="." class="mode-btn active" data-mode="video"><span class="mode-btn-icon">🎬</span> Vídeo</a>
-              <a href="../imagem/" class="mode-btn" data-mode="image"><span class="mode-btn-icon">🖼️</span> Imagem</a>
               <a href="../imitar-movimento/" class="mode-btn" data-mode="motion"><span class="mode-btn-icon">✨</span> Imitar Movimento</a>
             </div>
           </div>
 
-          <!-- Fluxo: Prompt → Sugestões → Opções → Botão -->
+          <!-- Fluxo: Sugestões (4, acima) → Caixa → Opções → Botão -->
           <div class="create-flow">
             <div id="createPromptBlock">
+            <div id="promptSuggestionsVideo" class="prompt-suggestions prompt-suggestions-above">
+              <div class="suggestion-chips">
+                <button type="button" class="chip" data-prompt="Close-up cinematográfico do produto Creme Hidratante Vitamina C girando lentamente 360° em superfície branca minimalista, iluminação de estúdio suave e difusa, estilo fotografia de produto profissional, baixa profundidade de campo, reflexos sutis, qualidade 4K, ideal para e-commerce e anúncios TikTok e Instagram Reels. Vídeo de 15 segundos em português do Brasil. Todo o áudio e texto em português brasileiro.">360° Produto</button>
+                <button type="button" class="chip" data-prompt="Unboxing estilo UGC: mulher brasileira, 25-35 anos, cabelos castanhos, mãos abrindo caixa elegante do produto com reação de surpresa e alegria autêntica, falando em português 'olha o que chegou!', iluminação quente interior, estética de filmagem smartphone, fundo suave, formato vertical 9:16, trending para anúncios em redes sociais. Vídeo de 15 segundos em português do Brasil. Todo o áudio e fala em português brasileiro.">Unboxing UGC</button>
+                <button type="button" class="chip" data-prompt="Antes e depois split screen: lado esquerdo pele com imperfeições e oleosidade, lado direito pele radiante após 7 dias usando o Sérum Antiacne, iluminação natural, mulher brasileira real, estilo depoimento autêntico, overlay de texto '7 dias depois' em português, profissional mas próximo, formato vertical Reels e TikTok. Vídeo de 15 segundos em português do Brasil. Todo o áudio e texto em português brasileiro.">Transformação</button>
+                <button type="button" class="chip" data-prompt="Depoimento UGC autêntico: mulher brasileira, 30 anos, cabelos longos, falando diretamente à câmera com sorriso genuíno segurando o Creme Antiidade, dizendo em português 'uso há 2 semanas e minha pele nunca esteve melhor', luz natural suave da janela, fundo acolhedor em casa, estética smartphone crua, alta conversão para ads. Vídeo de 15 segundos em português do Brasil. Todo o áudio em português brasileiro.">Depoimento real</button>
+              </div>
+            </div>
+            <div id="promptSuggestionsImage" class="prompt-suggestions prompt-suggestions-above hidden">
+              <div class="suggestion-chips">
+                <button type="button" class="chip" data-prompt="Produto ultra realista em cima de mesa molhada com reflexos espelhados, gotas de água escorrendo, superfície de mármore negro, iluminação dramática lateral, fotografia comercial high-end, 8K.">Produto em mesa molhada</button>
+                <button type="button" class="chip" data-prompt="Produto em banheiro de luxo com vapor suave, neblina translúcida, espelhos ao fundo refletindo luz dourada, atmosfera premium de spa, ultra realista, ideal para skincare e cosméticos.">Produto no vapor</button>
+                <button type="button" class="chip" data-prompt="Produto flutuando em ambiente minimalista com gotas de água congeladas no ar, fundo gradiente suave, iluminação de estúdio, fotografia surrealista comercial, ultra realista.">Produto flutuante</button>
+                <button type="button" class="chip" data-prompt="Produto com gelo e condensação na superfície, fundo de espelhos refletindo luz fria, atmosfera refrescante, fotografia de bebidas ou cosméticos, ultra realista.">Produto com gelo</button>
+              </div>
+            </div>
             <div id="promptInputWrap" class="prompt-hero">
               <div class="prompt-field-wrap">
                 <textarea id="prompt" name="prompt" rows="5" placeholder="Descreva o vídeo que você quer criar… cena, atmosfera, estilo e formato desejado" required></textarea>
@@ -64,37 +79,10 @@
                 </div>
               </div>
             </div>
-
-            <div id="promptSuggestionsVideo" class="prompt-suggestions">
-              <div class="suggestion-chips">
-                <button type="button" class="chip" data-prompt="Close-up cinematográfico do produto Creme Hidratante Vitamina C girando lentamente 360° em superfície branca minimalista, iluminação de estúdio suave e difusa, estilo fotografia de produto profissional, baixa profundidade de campo, reflexos sutis, qualidade 4K, ideal para e-commerce e anúncios TikTok e Instagram Reels. Vídeo de 15 segundos em português do Brasil. Todo o áudio e texto em português brasileiro.">360° Produto</button>
-                <button type="button" class="chip" data-prompt="Unboxing estilo UGC: mulher brasileira, 25-35 anos, cabelos castanhos, mãos abrindo caixa elegante do produto com reação de surpresa e alegria autêntica, falando em português 'olha o que chegou!', iluminação quente interior, estética de filmagem smartphone, fundo suave, formato vertical 9:16, trending para anúncios em redes sociais. Vídeo de 15 segundos em português do Brasil. Todo o áudio e fala em português brasileiro.">Unboxing UGC</button>
-                <button type="button" class="chip" data-prompt="Antes e depois split screen: lado esquerdo pele com imperfeições e oleosidade, lado direito pele radiante após 7 dias usando o Sérum Antiacne, iluminação natural, mulher brasileira real, estilo depoimento autêntico, overlay de texto '7 dias depois' em português, profissional mas próximo, formato vertical Reels e TikTok. Vídeo de 15 segundos em português do Brasil. Todo o áudio e texto em português brasileiro.">Transformação</button>
-                <button type="button" class="chip" data-prompt="Depoimento UGC autêntico: mulher brasileira, 30 anos, cabelos longos, falando diretamente à câmera com sorriso genuíno segurando o Creme Antiidade, dizendo em português 'uso há 2 semanas e minha pele nunca esteve melhor', luz natural suave da janela, fundo acolhedor em casa, estética smartphone crua, alta conversão para ads. Vídeo de 15 segundos em português do Brasil. Todo o áudio em português brasileiro.">Depoimento real</button>
-                <button type="button" class="chip" data-prompt="Oferta limitada urgente: produto Kit Skincare centralizado com countdown, preço original riscado (R$ 199), desconto em destaque (R$ 99), esquema vermelho e branco, textos 'Últimas unidades!' e 'Frete grátis' em português, animações dinâmicas, estilo FOMO, formato vertical TikTok e Instagram. Vídeo de 15 segundos em português do Brasil. Todo o texto e áudio em português brasileiro.">Promo relâmpago</button>
-                <button type="button" class="chip" data-prompt="Demo de app: mulher brasileira, 28 anos, sorrindo à câmera segurando smartphone mostrando interface do app MeuNegócio, polegar rolando funcionalidades, falando 'é muito fácil usar', ambiente moderno iluminado, expressão animada, formato vertical, estilo UGC, ideal para lançamento e anúncios TikTok. Vídeo de 15 segundos em português do Brasil. Todo o áudio em português brasileiro.">Demo do app</button>
-                <button type="button" class="chip" data-prompt="Produto com modelo: mulher brasileira, 32 anos, segurando frasco do Protetor Solar FPS 50, fundo branco clean, iluminação de estúdio suave, pose confiante, produto em destaque, falando 'proteção que hidrata', estética fashion e beleza, qualidade comercial high-end, vertical 9:16 para ads sociais. Vídeo de 15 segundos em português do Brasil. Todo o áudio em português brasileiro.">Modelo + produto</button>
-                <button type="button" class="chip" data-prompt="Anúncio UGC estilo TikTok viral: criador homem brasileiro, 25 anos, falando direto à câmera com alta energia segurando o produto, roupa casual, fundo quarto ou sala, vibe autêntica falando 'você precisa disso na sua vida', cortes rápidos, texto overlay 'Link na bio' em português, formato vertical, estilo ad viral. Vídeo de 15 segundos em português do Brasil. Todo o áudio em português brasileiro.">UGC viral</button>
-              </div>
-            </div>
-            <div id="promptSuggestionsImage" class="prompt-suggestions hidden">
-              <div class="suggestion-chips">
-                <button type="button" class="chip" data-prompt="Produto ultra realista em cima de mesa molhada com reflexos espelhados, gotas de água escorrendo, superfície de mármore negro, iluminação dramática lateral, fotografia comercial high-end, 8K.">Produto em mesa molhada</button>
-                <button type="button" class="chip" data-prompt="Produto em banheiro de luxo com vapor suave, neblina translúcida, espelhos ao fundo refletindo luz dourada, atmosfera premium de spa, ultra realista, ideal para skincare e cosméticos.">Produto no vapor</button>
-                <button type="button" class="chip" data-prompt="Produto flutuando em ambiente minimalista com gotas de água congeladas no ar, fundo gradiente suave, iluminação de estúdio, fotografia surrealista comercial, ultra realista.">Produto flutuante</button>
-                <button type="button" class="chip" data-prompt="Produto com gelo e condensação na superfície, fundo de espelhos refletindo luz fria, atmosfera refrescante, fotografia de bebidas ou cosméticos, ultra realista.">Produto com gelo</button>
-                <button type="button" class="chip" data-prompt="Produto em cenário tropical: folhas verdes ao fundo, luz natural filtrada, superfície de madeira rústica, atmosfera fresca e orgânica, fotografia lifestyle premium.">Produto tropical</button>
-                <button type="button" class="chip" data-prompt="Produto em estúdio minimalista com sombras dramáticas, fundo branco puro, um único feixe de luz lateral criando profundidade, fotografia de produto high-end, ultra realista.">Produto sombra dramática</button>
-                <button type="button" class="chip" data-prompt="Produto em flat lay sobre tecidos luxuosos, seda e veludo, acessórios dourados ao redor, composição editorial de marca, iluminação quente, fotografia comercial.">Produto em tecidos luxo</button>
-                <button type="button" class="chip" data-prompt="Retrato ou produto em cenário urbano ao pôr do sol: vista de cidade brasileira ao fundo, luz dourada, varanda ou rooftop, atmosfera aspiracional, fotografia editorial premium.">Cenário urbano golden</button>
-              </div>
             </div>
 
-            <div class="create-divider"></div>
-            </div>
-
-            <!-- Config avançada — colapsável (video/image) -->
-            <div id="configAdvancedWrap">
+            <!-- Opções (acima do botão) → Botão Criar -->
+            <div id="configAdvancedWrap" class="config-above-btn">
               <details class="config-advanced">
                 <summary>Opções</summary>
                 <div class="config-inner">
@@ -239,7 +227,7 @@
             <div id="motionReadyState" class="motion-ready-state" aria-live="polite"></div>
           </div>
 
-            <div class="prompt-actions">
+            <div class="prompt-actions prompt-actions-close">
               <button type="submit" class="btn-generate btn-generate-inline" id="btnGenerate">
                 <span id="btnGenerateText">Gerar vídeo</span>
                 <span class="btn-credits">✨</span>
@@ -287,12 +275,6 @@
             <p><strong>1. Escreva o prompt</strong> — Descreva o vídeo em detalhes. <strong>2. Configure duração e formato</strong> — YouTube, Stories ou Destaque. <strong>3. Imagem de referência (opcional)</strong> — Envie uma foto para guiar o estilo.</p>
           </div>
         </details>
-        <details class="mode-howto mode-howto-standalone hidden" id="comoFazerImage">
-          <summary><strong>Como fazer? (Imagem)</strong></summary>
-          <div class="mode-howto-content">
-            <p><strong>1. Escreva o prompt</strong> — Descreva a imagem em detalhes. <strong>2. Escolha tamanho e quantidade</strong> — 1:1, 2:3 ou 3:2. <strong>3. Imagem de referência (opcional)</strong> — Para inspirar o estilo.</p>
-          </div>
-        </details>
         <details class="mode-howto mode-howto-standalone hidden" id="comoFazerMotion">
           <summary><strong>Como fazer? (Imitar Movimento)</strong></summary>
           <div class="mode-howto-content">
@@ -303,7 +285,7 @@
 
       <!-- Seus vídeos criados -->
       <section class="section-creations" id="seus-videos">
-        <h3 class="section-title">Seus vídeos e imagens</h3>
+        <h3 class="section-title">Seus vídeos</h3>
         <div id="historyList" class="creations-grid"></div>
         <div id="historyEmpty" class="creations-empty">
           <p>Ainda não há criações</p>
@@ -312,10 +294,10 @@
         <button type="button" class="btn-clear-history hidden" id="btnClearHistory">Limpar</button>
       </section>
 
-      <!-- Social & UGC Ads -->
+      <!-- Biblioteca de vídeos com IA -->
       <section class="section-samples" id="inspire-se">
-        <h3 class="section-title">Social &amp; UGC Ads</h3>
-        <p class="section-subtitle">Descubra anúncios pensados para redes sociais e estilo UGC, feitos para parecer nativos e autênticos.</p>
+        <h3 class="section-title">Biblioteca de vídeos com IA</h3>
+        <p class="section-subtitle">Descubra vídeos criados com inteligência artificial para inspirar suas próximas produções.</p>
         <div class="carousel-wrapper samples-wrap">
           <div class="carousel samples-carousel" id="samplesCarousel">
             <div class="carousel-track samples-track">
@@ -395,7 +377,6 @@
         <button type="button" class="hamburger-logout" id="hamburgerLogout" title="Sair da conta">Sair</button>
       </div>
       <a href=".">🎬 Criar vídeo</a>
-      <a href="../imagem/">🖼️ Criar imagem</a>
       <a href="../imitar-movimento/">✨ Imitar movimento</a>
       <a href="#seus-videos" class="hamburger-close">📁 Seus vídeos</a>
       <button type="button" class="hamburger-item" id="hamburgerPlans">💰 Planos e créditos</button>

@@ -379,11 +379,11 @@ function applyMode(mode) {
     if (currentMode === 'motion') promptInputWrap.classList.add('hidden');
     else promptInputWrap.classList.remove('hidden');
   }
-  document.querySelectorAll('#comoFazerVideo, #comoFazerImage, #comoFazerMotion').forEach(h => {
+  document.querySelectorAll('#comoFazerVideo, #comoFazerMotion').forEach(h => {
     h.classList.add('hidden');
     h.open = false;
   });
-  const howtoId = { video: 'comoFazerVideo', image: 'comoFazerImage', motion: 'comoFazerMotion' }[currentMode];
+  const howtoId = { video: 'comoFazerVideo', motion: 'comoFazerMotion' }[currentMode];
   const howto = document.getElementById(howtoId);
   if (howto) { howto.classList.remove('hidden'); howto.open = true; }
   if (currentMode === 'motion') setTimeout(updateMotionReadyState, 0);
