@@ -91,6 +91,32 @@ document.addEventListener('DOMContentLoaded', () => {
   updateStatus();
 });
 
+async function loadAppSettings() {
+  const sb = window.varvosSupabase;
+  const checkbox = document.getElementById('hideModelSelection');
+  if (!sb || !checkbox) return;
+  try {
+    const { data } = await sb.from('app_settings').select('value').eq('key', 'hide_model_selection').maybeSingle();
+    checkbox.checked = !!(data?.value === true || data?.value === 'true');
+  } catch (e) {
+    console.error('loadAppSettings:', e);
+  }
+}
+
+async function saveAppSettings() {
+  const sb = window.varvosSupabase;
+  const checkbox = document.getElementById('hideModelSelection');
+  if (!sb || !checkbox) return;
+  try {
+    await sb.from('app_settings').upsert(
+      { key: 'hide_model_selection', value: checkbox.checked, updated_at: new Date().toISOString() },
+      { onConflict: 'key' }
+    );
+  } catch (e) {
+    console.error('saveAppSettings:', e);
+  }
+}
+
 async function loadDashboard() {
   const sb = window.varvosSupabase;
   if (!sb) {
@@ -172,7 +198,10 @@ async function loadDashboard() {
     document.getElementById('usersTableBody').innerHTML = `<tr><td colspan="4">Erro: ${escapeHtml(msg)}</td></tr>`;
     document.getElementById('paymentsTableBody').innerHTML = `<tr><td colspan="5">Erro: ${escapeHtml(msg)}</td></tr>`;
   }
+  await loadAppSettings();
 }
+
+document.getElementById('hideModelSelection')?.addEventListener('change', saveAppSettings);
 
 function escapeHtml(s) {
   if (s == null) return '';

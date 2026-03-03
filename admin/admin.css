@@ -329,6 +329,30 @@ body {
   background: var(--admin-accent-hover);
 }
 
+.admin-settings {
+  padding: 16px 0;
+}
+
+.admin-setting-toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  color: var(--admin-text);
+}
+
+.admin-setting-toggle input {
+  margin-top: 3px;
+  width: 18px;
+  height: 18px;
+  accent-color: var(--admin-accent);
+}
+
+.admin-setting-toggle span {
+  line-height: 1.5;
+}
+
 .admin-search-result {
   padding: 20px;
   background: var(--admin-bg);

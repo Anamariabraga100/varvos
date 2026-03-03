@@ -7,6 +7,7 @@ const AUTH_STORAGE = 'varvos_user';
 const ACTIVE_TASK_STORAGE = 'varvos_active_task';
 
 let selectedModel = 'veo3.1-fast';
+let hideModelSelection = false;
 let currentMode = 'video';
 let currentTaskId = null;
 let lastPrompt = '';
@@ -147,7 +148,31 @@ function updateVideoModelUI() {
   if (noticeSora) noticeSora.classList.toggle('hidden', isVEO);
 }
 document.getElementById('videoModel')?.addEventListener('change', updateVideoModelUI);
-updateVideoModelUI();
+
+async function applyHideModelSetting() {
+  const fieldModel = document.querySelector('.field-model');
+  if (!fieldModel) return;
+  const sb = window.varvosSupabase;
+  if (!sb) return;
+  try {
+    const { data } = await sb.from('app_settings').select('value').eq('key', 'hide_model_selection').maybeSingle();
+    hideModelSelection = !!(data?.value === true || data?.value === 'true');
+    if (hideModelSelection) {
+      fieldModel.classList.add('hidden');
+      selectedModel = 'veo3.1-fast';
+      updateVideoModelUI();
+    }
+  } catch (e) {
+    console.warn('app_settings:', e);
+  }
+}
+
+(async function initVideoModelSettings() {
+  if (document.getElementById('videoModel')) {
+    await applyHideModelSetting();
+    if (!hideModelSelection) updateVideoModelUI();
+  }
+})();
 
 document.getElementById('btnClearPrompt')?.addEventListener('click', () => {
   const prompt = document.getElementById('prompt');
@@ -865,7 +890,7 @@ function buildRequestBody() {
     return { model: 'kling-2.6-motion-control', input };
   }
   if (currentMode === 'video') {
-    const model = selectedModel;
+    const model = hideModelSelection ? 'veo3.1-fast' : selectedModel;
     const prompt = document.getElementById('prompt').value.trim();
 
     if (model === 'veo3.1-fast') {
