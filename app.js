@@ -152,7 +152,6 @@ function openVideoModal(src, promptText) {
   const playerWrap = videoModal?.querySelector('.video-modal-player');
   if (playerWrap) playerWrap.style.aspectRatio = '9/16';
   document.getElementById('videoModalPrompt')?.classList.add('hidden');
-  document.getElementById('videoModalRecriar')?.classList.add('hidden');
   const btnImitar = document.getElementById('btnImitarMovimentoModal');
   const btnDownloadWrap = videoModal?.querySelector('.video-modal-download-wrap');
   if (btnImitar) btnImitar.classList.remove('hidden');
@@ -172,16 +171,9 @@ function openVideoModalForResult(src, downloadBtnOrHref, downloadName, aspectRat
     playerWrap.style.aspectRatio = ratio;
   }
   const promptEl = document.getElementById('videoModalPrompt');
-  const recriarEl = document.getElementById('videoModalRecriar');
   if (promptEl) {
     promptEl.textContent = prompt ? `Prompt: ${prompt}` : '';
     promptEl.classList.toggle('hidden', !prompt);
-  }
-  const basePath = window.location.pathname.includes('imitar-movimento') ? '../video/' : '';
-  if (recriarEl) {
-    recriarEl.href = prompt ? `${basePath}?prompt=${encodeURIComponent(prompt)}` : (basePath || 'video/');
-    recriarEl.classList.remove('hidden');
-    recriarEl.onclick = (e) => { closeVideoModal(); };
   }
   const btnImitar = document.getElementById('btnImitarMovimentoModal');
   const btnDownloadWrap = videoModal?.querySelector('.video-modal-download-wrap');
@@ -645,20 +637,16 @@ function renderHistory() {
     const mainFile = item.files[0];
     const thumb = mainFile.file_type === 'image'
       ? `<img src="${mainFile.file_url}" alt="">`
-      : `<video src="${mainFile.file_url}" muted preload="metadata"></video>`;
-    const promptText = item.prompt || 'Sem prompt';
-    const promptShort = promptText.length > 80 ? promptText.slice(0, 80) + '…' : promptText;
+      : `<video src="${mainFile.file_url}" muted loop playsinline autoplay preload="auto" crossorigin="anonymous"></video>`;
     const date = item.created_time ? new Date(item.created_time).toLocaleDateString('pt-BR') : '';
     const aspectRatio = item.aspect_ratio || '9:16';
-    const thumbRatio = aspectRatio === '16:9' ? '16/9' : aspectRatio === '1:1' ? '1/1' : '9/16';
     const downloads = item.files.map((f, i) =>
       `<a href="${f.file_url}" download="varvos-${item.task_id}-${i + 1}.${f.file_type === 'video' ? 'mp4' : 'png'}">Baixar${item.files.length > 1 ? ' ' + (i + 1) : ''}</a>`
     ).join('');
     return `
       <div class="creation-item" data-aspect-ratio="${escapeHtml(aspectRatio)}" data-prompt="${escapeHtml(item.prompt || '')}">
-        <div class="creation-thumb" style="aspect-ratio:${thumbRatio}">${thumb}</div>
+        <div class="creation-thumb">${thumb}</div>
         <div class="creation-info">
-          <div class="prompt">${escapeHtml(promptShort)}</div>
           <div class="meta">${item.mode === 'video' ? '🎬 Vídeo' : '🖼️ Imagem'}${date ? ' · ' + date : ''}</div>
         </div>
         <div class="creation-actions">${downloads}</div>
