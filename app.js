@@ -13,6 +13,7 @@ let currentMode = 'video';
 let currentTaskId = null;
 let lastPrompt = '';
 let refImageUrl = '';  // Video reference (uploaded)
+let refImageUploading = false;  // Upload em andamento
 let imgRefUrl = '';   // Image reference (uploaded)
 let motionCharImageUrl = '';  // Kling: character image
 let motionRefVideoUrl = '';   // Kling: reference video
@@ -583,7 +584,7 @@ function applyMode(mode) {
   if (btnCredits) btnCredits.textContent = '✨';
   document.getElementById('prompt').required = currentMode !== 'motion';
   if (currentMode === 'motion') setTimeout(updateMotionReadyState, 0);
-  else if (btnGenerate) btnGenerate.disabled = false;
+  else if (btnGenerate) { if (currentMode === 'video') updateRefImageReadyState(); else btnGenerate.disabled = false; }
 }
 
 // Mode switcher — links navegam; só botões (root index) precisam de handler
@@ -821,10 +822,10 @@ async function uploadFileToVidgo(file) {
           body: JSON.stringify({ base64_data: base64Data })
         });
         const data = await res.json();
-        if (!res.ok) throw new Error(data?.detail || `Erro ${res.status}`);
-        const url = data?.data?.file_url || data?.data?.download_url;
+        if (!res.ok) throw new Error(data?.detail || data?.error?.message || `Erro ${res.status}`);
+        const url = data?.data?.file_url || data?.data?.download_url || data?.file_url;
         if (url) resolve(url);
-        else reject(new Error('URL não retornada'));
+        else reject(new Error('URL não retornada pela API. Resposta: ' + JSON.stringify(data).slice(0, 150)));
       } catch (e) {
         reject(e);
       }
@@ -856,7 +857,7 @@ function runSimulatedProgress(progressEl) {
 }
 
 function setupFileUpload(config) {
-  const { inputId, areaId, previewId, imgId, removeId, setUrl, maxMb = 10, onReady, uploadFn, onRemove, uploadStatusLabel, setUploadStatus, progressElId, hideProgressUI } = config;
+  const { inputId, areaId, previewId, imgId, removeId, setUrl, maxMb = 10, onReady, uploadFn, onRemove, uploadStatusLabel, setUploadStatus, progressElId, hideProgressUI, onUploadStart, onUploadEnd } = config;
   const input = document.getElementById(inputId);
   const area = document.getElementById(areaId);
   const preview = document.getElementById(previewId);
@@ -901,6 +902,7 @@ function setupFileUpload(config) {
     setProgress(true);
     if (!hideProgressUI) cancelProgress = runSimulatedProgress(progressEl);
     if (uploadStatusLabel && setUploadStatus) setUploadStatus({ uploading: uploadStatusLabel });
+    onUploadStart?.();
     try {
       const url = await (uploadFn || uploadFileToVidgo)(file);
       setUrl(url);
@@ -912,11 +914,12 @@ function setupFileUpload(config) {
         if (fill) fill.style.width = '100%';
         if (pct) pct.textContent = '100%';
         media?.classList.remove('loading');
-        setTimeout(() => { setProgress(false); setUploadStatus?.(); onReady?.(); }, 400);
+        setTimeout(() => { setProgress(false); setUploadStatus?.(); onReady?.(); onUploadEnd?.(); }, 400);
       } else {
         setProgress(false);
         setUploadStatus?.();
         onReady?.();
+        onUploadEnd?.();
       }
     } catch (err) {
       if (!hideProgressUI) {
@@ -925,6 +928,7 @@ function setupFileUpload(config) {
         media?.classList.remove('loading');
       }
       setProgress(false);
+      onUploadEnd?.();
       if (setUploadStatus) setUploadStatus({ error: err.message });
       else alert('Erro no upload: ' + err.message);
       reset();
@@ -934,6 +938,7 @@ function setupFileUpload(config) {
   const reset = () => {
     if (onRemove) onRemove().catch(() => {});
     setUrl('');
+    onUploadEnd?.();
     if (!hideProgressUI) {
       cancelProgress();
       const media = progressEl?.closest('.motion-preview-wrap')?.querySelector('.motion-preview-media');
@@ -962,7 +967,21 @@ function setupFileUpload(config) {
 }
 
 // Initialize file uploads
-setupFileUpload({ inputId: 'imageRefFile', areaId: 'imageRefArea', previewId: 'imageRefPreview', imgId: 'imageRefPreviewImg', removeId: 'imageRefRemove', setUrl: (v) => refImageUrl = v });
+function updateRefImageReadyState() {
+  const btn = document.getElementById('btnGenerate');
+  if (btn && currentMode === 'video') btn.disabled = refImageUploading;
+}
+setupFileUpload({
+  inputId: 'imageRefFile',
+  areaId: 'imageRefArea',
+  previewId: 'imageRefPreview',
+  imgId: 'imageRefPreviewImg',
+  removeId: 'imageRefRemove',
+  setUrl: (v) => { refImageUrl = v; updateRefImageReadyState(); },
+  onUploadStart: () => { refImageUploading = true; updateRefImageReadyState(); },
+  onUploadEnd: () => { refImageUploading = false; updateRefImageReadyState(); },
+  progressElId: 'imageRefProgress'
+});
 setupFileUpload({ inputId: 'imgRefFile', areaId: 'imgRefArea', previewId: 'imgRefPreview', imgId: 'imgRefPreviewImg', removeId: 'imgRefRemove', setUrl: (v) => imgRefUrl = v });
 function updateMotionReadyState(forceState) {
   const el = document.getElementById('motionReadyState');
@@ -1102,13 +1121,19 @@ function buildRequestBody() {
     if (model === 'veo3.1-fast') {
       const aspectRatio = document.getElementById('aspectRatio').value;
       const resolution = document.getElementById('veoResolution')?.value || '720p';
+      // Regra: vídeo sempre em português, independente do prompt
+      const promptPt = prompt + ' [IMPORTANTE: Todo o vídeo, áudio, diálogos e texto devem ser em português brasileiro.]';
       const input = {
-        prompt,
+        prompt: promptPt,
         duration: 8,
         aspect_ratio: aspectRatio === '1:1' ? '9:16' : aspectRatio,
         resolution
       };
-      if (refImageUrl) input.image_urls = [refImageUrl];
+      if (refImageUrl) {
+        input.image_urls = [refImageUrl];
+        // Modo reference: imagem guia personagem/objeto/estilo (não frame)
+        input.generation_type = 'reference';
+      }
       return { model: 'veo3.1-fast', input };
     }
 
@@ -1512,7 +1537,7 @@ async function generateMedia(body) {
   const cardRefs = getCardByIndex(cardIndex);
 
   if (!cardRefs) {
-    btnGenerate.disabled = false;
+    if (currentMode === 'video') updateRefImageReadyState(); else btnGenerate.disabled = false;
     return;
   }
 
@@ -1558,7 +1583,7 @@ async function generateMedia(body) {
     saveActiveTask(taskId, startTime, lastPrompt);
     updateOutputUI({ status: 'not_started', progress: 0 }, cardRefs, startTime);
 
-    btnGenerate.disabled = false;
+    if (currentMode === 'video') updateRefImageReadyState(); else btnGenerate.disabled = false;
 
     const isMotion = body?.model === 'kling-2.6/motion-control';
     const result = await pollUntilComplete(taskId, cardRefs, startTime, isMotion);
@@ -1585,7 +1610,7 @@ async function generateMedia(body) {
     }
     const tid = pollTimeouts.get(taskId);
     if (tid) { clearTimeout(tid); pollTimeouts.delete(taskId); }
-    btnGenerate.disabled = false;
+    if (currentMode === 'video') updateRefImageReadyState(); else btnGenerate.disabled = false;
   }
 }
 
@@ -1601,6 +1626,12 @@ generateForm.addEventListener('submit', async (e) => {
     const prompt = document.getElementById('prompt').value.trim();
     if (!prompt) {
       alert('Preencha o prompt.');
+      return;
+    }
+    // Imagem de ref selecionada mas upload ainda em andamento?
+    const preview = document.getElementById('imageRefPreview');
+    if (preview && !preview.classList.contains('hidden') && !refImageUrl) {
+      alert('Aguarde o upload da imagem terminar antes de gerar.');
       return;
     }
     lastPrompt = prompt;
@@ -1721,7 +1752,7 @@ async function restoreActiveTask() {
         }
       })
       .finally(() => {
-        btnGenerate.disabled = false;
+        if (currentMode === 'video') updateRefImageReadyState(); else btnGenerate.disabled = false;
       });
   };
 

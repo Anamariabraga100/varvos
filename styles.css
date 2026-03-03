@@ -722,6 +722,13 @@ body {
   line-height: 1.35;
 }
 
+.field-model .model-notice-veo-tip {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin: 0;
+  line-height: 1.4;
+}
+
 .duration-fixed.hidden { display: none !important; }
 
 .model-notice.hidden { display: none !important; }
