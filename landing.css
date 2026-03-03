@@ -303,6 +303,31 @@ header {
   margin-bottom: 24px;
 }
 
+.hero-badge-small {
+  padding: 3px 8px;
+  font-size: 0.65rem;
+  margin-bottom: 12px;
+}
+
+.hero-compact {
+  padding: 20px 24px 20px;
+}
+
+.hero-compact h1 {
+  font-size: clamp(1.6rem, 4.5vw, 2.4rem);
+  margin-bottom: 12px;
+}
+
+.hero-compact p {
+  font-size: 0.95rem;
+  margin-bottom: 20px;
+}
+
+.hero-compact .cta {
+  padding: 12px 24px;
+  font-size: 0.95rem;
+}
+
 .hero h1 {
   font-size: clamp(2rem, 5.5vw, 3.2rem);
   font-weight: 700;
@@ -325,6 +350,38 @@ header {
   max-width: 540px;
   margin: 0 auto 32px;
   line-height: 1.6;
+}
+
+.hero .hero-perfeito {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.hero .hero-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 auto 20px;
+  max-width: 380px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px 24px;
+}
+
+.hero .hero-list li {
+  font-size: 1rem;
+  color: var(--text-muted);
+  position: relative;
+  padding-left: 0;
+}
+
+.hero .hero-fast {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 24px;
 }
 
 .hero .cta {
@@ -356,6 +413,11 @@ header {
   overflow: hidden;
   position: relative;
   z-index: 1;
+}
+
+.carousel-section-compact {
+  padding-top: 0;
+  padding-bottom: 32px;
 }
 
 .carousel-wrapper {
