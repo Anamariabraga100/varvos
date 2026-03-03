@@ -383,6 +383,16 @@ header {
   width: max-content;
 }
 
+@media (min-width: 769px) {
+  .carousel {
+    display: flex;
+    justify-content: center;
+  }
+  .carousel-track {
+    padding: 0 24px;
+  }
+}
+
 .video-card {
   flex-shrink: 0;
   width: 160px;
@@ -400,6 +410,14 @@ header {
   -webkit-user-select: none;
   touch-action: manipulation;
   pointer-events: auto;
+}
+
+/* Mobile: 2.5 cards visíveis para indicar continuidade (landing padding 24px*2 + 2 gaps 12px*2) */
+@media (max-width: 639px) {
+  .carousel-section .video-card {
+    width: calc((100vw - 48px - 24px) / 2.5);
+    min-width: 110px;
+  }
 }
 
 @media (min-width: 640px) {
