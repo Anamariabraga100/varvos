@@ -100,7 +100,6 @@ function getCardRefs(cardEl) {
     downloadBtn: cardEl.querySelector('.btn-download'),
     shareSection: cardEl.querySelector('.share-video-buttons'),
     whatsappBtn: cardEl.querySelector('.btn-share-whatsapp'),
-    facebookBtn: cardEl.querySelector('.btn-share-facebook'),
     resultPromptEl: cardEl.querySelector('.result-prompt')
   };
 }
@@ -231,7 +230,6 @@ function openVideoModalForResult(src, downloadBtnOrHref, downloadName, aspectRat
   const btnDownloadWrap = videoModal?.querySelector('.video-modal-download-wrap');
   const modalDownloadBtn = videoModal?.querySelector('.video-modal-download-btn');
   const modalWhatsappBtn = videoModal?.querySelector('.btn-share-whatsapp');
-  const modalFacebookBtn = videoModal?.querySelector('.btn-share-facebook');
   if (btnImitar) btnImitar.classList.add('hidden');
   if (btnDownloadWrap) btnDownloadWrap.classList.remove('hidden');
   const href = typeof downloadBtnOrHref === 'string' ? downloadBtnOrHref : downloadBtnOrHref?.getAttribute('href');
@@ -244,7 +242,6 @@ function openVideoModalForResult(src, downloadBtnOrHref, downloadName, aspectRat
     modalDownloadBtn.onclick = (e) => { e.preventDefault(); triggerDownload(videoUrl, download || 'varvos-video.mp4'); closeVideoModal(); };
   }
   if (modalWhatsappBtn) modalWhatsappBtn.href = `https://api.whatsapp.com/send?text=${shareUrl}`;
-  if (modalFacebookBtn) modalFacebookBtn.href = `https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`;
   videoModal.classList.remove('hidden');
   videoModalVideo.play().catch(() => {});
 }
@@ -713,7 +710,7 @@ function renderHistory() {
     const firstVideo = item.files.find(f => f.file_type === 'video');
     const shareUrl = firstVideo ? encodeURIComponent(firstVideo.file_url) : '';
     const shareLinks = firstVideo
-      ? `<a href="https://api.whatsapp.com/send?text=${shareUrl}" target="_blank" rel="noopener" class="creation-share creation-share-whatsapp" title="Compartilhar no WhatsApp">WhatsApp</a><a href="https://www.facebook.com/sharer/sharer.php?u=${shareUrl}" target="_blank" rel="noopener" class="creation-share creation-share-facebook" title="Compartilhar no Facebook">Facebook</a>`
+      ? `<a href="https://api.whatsapp.com/send?text=${shareUrl}" target="_blank" rel="noopener" class="creation-share creation-share-whatsapp" title="Enviar por WhatsApp">WhatsApp</a>`
       : '';
     return `
       <div class="creation-item" data-aspect-ratio="${escapeHtml(aspectRatio)}" data-prompt="${escapeHtml(item.prompt || '')}">
@@ -1344,10 +1341,6 @@ function updateOutputUI(data, cardRefs, startTime) {
         if (cardRefs.whatsappBtn) {
           cardRefs.whatsappBtn.href = `https://api.whatsapp.com/send?text=${shareUrl}`;
           cardRefs.whatsappBtn.classList.remove('hidden');
-        }
-        if (cardRefs.facebookBtn) {
-          cardRefs.facebookBtn.href = `https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`;
-          cardRefs.facebookBtn.classList.remove('hidden');
         }
       }
       if (downloadWarning) downloadWarning.classList.remove('hidden');
