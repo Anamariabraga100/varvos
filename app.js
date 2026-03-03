@@ -6,7 +6,7 @@ const CREDITS_STORAGE_KEY = 'varvos_credits';
 const AUTH_STORAGE = 'varvos_user';
 const ACTIVE_TASK_STORAGE = 'varvos_active_task';
 
-let selectedModel = 'sora-2';
+let selectedModel = 'veo3.1-fast';
 let currentMode = 'video';
 let currentTaskId = null;
 let lastPrompt = '';
@@ -91,6 +91,7 @@ function getCardRefs(cardEl) {
     loadingTextEl: cardEl.querySelector('.loading-placeholder-text'),
     videoPlayer: cardEl.querySelector('.media-output'),
     imageGallery: cardEl.querySelector('.image-gallery'),
+    creationDisclaimer: cardEl.querySelector('.creation-disclaimer'),
     statusMessage: cardEl.querySelector('.status-message'),
     downloadWarning: cardEl.querySelector('.download-warning'),
     downloadBtn: cardEl.querySelector('.btn-download'),
@@ -126,6 +127,27 @@ function updateClearPromptVisibility() {
   if (!prompt || !btn) return;
   btn.classList.toggle('empty', !prompt.value.trim());
 }
+
+function updateVideoModelUI() {
+  const modelSelect = document.getElementById('videoModel');
+  const durationSelect = document.getElementById('duration');
+  const durationFixed = document.getElementById('durationFixed');
+  const veoResolutionWrap = document.getElementById('veoResolutionWrap');
+  const styleField = document.getElementById('styleField');
+  const noticeVeo = document.getElementById('modelNoticeVeo');
+  const noticeSora = document.getElementById('modelNoticeSora');
+  if (!modelSelect) return;
+  selectedModel = modelSelect.value;
+  const isVEO = selectedModel === 'veo3.1-fast';
+  if (durationSelect) durationSelect.classList.toggle('hidden', isVEO);
+  if (durationFixed) durationFixed.classList.toggle('hidden', !isVEO);
+  if (veoResolutionWrap) veoResolutionWrap.classList.toggle('hidden', !isVEO);
+  if (styleField) styleField.classList.toggle('hidden', isVEO);
+  if (noticeVeo) noticeVeo.classList.toggle('hidden', !isVEO);
+  if (noticeSora) noticeSora.classList.toggle('hidden', isVEO);
+}
+document.getElementById('videoModel')?.addEventListener('change', updateVideoModelUI);
+updateVideoModelUI();
 
 document.getElementById('btnClearPrompt')?.addEventListener('click', () => {
   const prompt = document.getElementById('prompt');
@@ -843,7 +865,22 @@ function buildRequestBody() {
     return { model: 'kling-2.6-motion-control', input };
   }
   if (currentMode === 'video') {
+    const model = selectedModel;
     const prompt = document.getElementById('prompt').value.trim();
+
+    if (model === 'veo3.1-fast') {
+      const aspectRatio = document.getElementById('aspectRatio').value;
+      const resolution = document.getElementById('veoResolution')?.value || '720p';
+      const input = {
+        prompt,
+        duration: 8,
+        aspect_ratio: aspectRatio === '1:1' ? '9:16' : aspectRatio,
+        resolution
+      };
+      if (refImageUrl) input.image_urls = [refImageUrl];
+      return { model: 'veo3.1-fast', input };
+    }
+
     const duration = parseInt(document.getElementById('duration').value, 10);
     const aspectRatio = document.getElementById('aspectRatio').value;
     const style = document.getElementById('style').value;
@@ -852,7 +889,7 @@ function buildRequestBody() {
     if (refImageUrl) input.image_urls = [refImageUrl];
     if (style) input.style = style;
 
-    return { model: selectedModel, input };
+    return { model, input };
   } else {
     const prompt = document.getElementById('prompt').value.trim();
     const aspectRatio = document.getElementById('imgSize').value;
@@ -954,7 +991,7 @@ function isCreditsError(msg) {
 
 function updateOutputUI(data, cardRefs, startTime) {
   if (!cardRefs) return;
-  const { taskStatusEl, taskProgressEl, progressFill, loadingPlaceholder, videoPlayer, imageGallery, statusMessage, downloadWarning, downloadBtn, resultPromptEl } = cardRefs;
+  const { taskStatusEl, taskProgressEl, progressFill, loadingPlaceholder, videoPlayer, imageGallery, creationDisclaimer, statusMessage, downloadWarning, downloadBtn, resultPromptEl } = cardRefs;
   const status = data.status || '';
   if (taskStatusEl) {
     taskStatusEl.textContent = STATUS_PT[status] || status;
@@ -978,10 +1015,9 @@ function updateOutputUI(data, cardRefs, startTime) {
       imageGallery.classList.add('hidden');
       imageGallery.innerHTML = '';
     }
-    if (resultPromptEl) {
-      resultPromptEl.textContent = prompt ? `Prompt: ${prompt}` : '';
-      resultPromptEl.classList.toggle('hidden', !prompt);
-    }
+    if (resultPromptEl) resultPromptEl.classList.add('hidden');
+    if (creationDisclaimer) creationDisclaimer.classList.add('hidden');
+    if (statusMessage) statusMessage.classList.add('hidden');
     if (cardRefs.card) {
       cardRefs.card.dataset.aspectRatio = aspectRatio;
       cardRefs.card.dataset.prompt = prompt;
@@ -1002,8 +1038,6 @@ function updateOutputUI(data, cardRefs, startTime) {
         downloadBtn.classList.remove('hidden');
       }
       if (downloadWarning) downloadWarning.classList.remove('hidden');
-      const elapsed = startTime ? Date.now() - startTime : EXPECTED_DURATION_MS;
-      if (statusMessage) statusMessage.textContent = elapsed < EXPECTED_DURATION_MS ? 'Boas notícias! Seu vídeo ficou pronto antes do tempo estimado. Você já pode baixar.' : 'Vídeo pronto!';
     } else if (imageFiles?.length) {
       if (imageGallery) {
         imageGallery.classList.remove('hidden');
@@ -1020,9 +1054,7 @@ function updateOutputUI(data, cardRefs, startTime) {
         downloadBtn.classList.remove('hidden');
       }
       if (downloadWarning) downloadWarning.classList.remove('hidden');
-      if (statusMessage) statusMessage.textContent = imageFiles.length === 1 ? 'Imagem pronta!' : `${imageFiles.length} imagens prontas!`;
     }
-    if (statusMessage) statusMessage.className = 'status-message success';
   } else if (data.status === 'failed') {
     activeTasks.delete(data.task_id);
     const errMsg = (data.error_message || '').toString();
@@ -1209,6 +1241,9 @@ async function generateMedia(body) {
   }
   if (cardRefs.downloadBtn) cardRefs.downloadBtn.classList.add('hidden');
   if (cardRefs.downloadWarning) cardRefs.downloadWarning.classList.add('hidden');
+  if (cardRefs.creationDisclaimer) cardRefs.creationDisclaimer.classList.remove('hidden');
+  if (cardRefs.statusMessage) { cardRefs.statusMessage.classList.remove('hidden'); cardRefs.statusMessage.textContent = ''; }
+  if (cardRefs.resultPromptEl) cardRefs.resultPromptEl.classList.add('hidden');
 
   let taskId = null;
   try {
@@ -1225,6 +1260,7 @@ async function generateMedia(body) {
     if (cardRefs.statusMessage) cardRefs.statusMessage.textContent = '';
 
     const aspectRatio = document.getElementById('aspectRatio')?.value || '9:16';
+    if (cardRefs.card) cardRefs.card.dataset.aspectRatio = aspectRatio;
     activeTasks.set(taskId, { cardRefs, startTime, prompt: lastPrompt, aspectRatio });
     startLoadingForCard(cardRefs, currentMode);
     document.getElementById('currentResultSection')?.scrollIntoView({ behavior: 'smooth', block: 'end' });

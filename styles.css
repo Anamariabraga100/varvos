@@ -704,18 +704,49 @@ body {
   gap: 12px 20px;
 }
 
+.field-model .model-notice {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin: 6px 0 0;
+  line-height: 1.35;
+}
+
+.model-notice-veo-wrap {
+  margin-top: 6px;
+}
+
+.field-model .model-notice-veo-desc {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin: 0 0 8px;
+  line-height: 1.35;
+}
+
+.duration-fixed.hidden { display: none !important; }
+
+.model-notice.hidden { display: none !important; }
+
 .form-options-compact .field-compact label {
   font-size: 0.72rem;
   color: var(--text-muted);
   font-weight: 500;
 }
 
-.form-options-compact .field-compact select {
+.form-options-compact .field-compact select,
+.form-options-compact .duration-fixed {
   padding: 6px 10px;
   font-size: 0.82rem;
   border-radius: 6px;
   border: 1px solid var(--border);
+  min-width: 70px;
+}
+.form-options-compact .field-compact select {
   background: var(--bg-card);
+}
+.form-options-compact .duration-fixed {
+  background: var(--bg-soft);
+  color: var(--text-muted);
+  cursor: not-allowed;
 }
 
 .form-options-compact .checkbox-compact {
@@ -1195,10 +1226,15 @@ select:focus {
   border-radius: 10px;
   overflow: hidden;
   min-height: 180px;
-  max-width: 320px;
+  max-width: 360px;
+  width: 100%;
   cursor: pointer;
 }
-.media-output { width: 100%; max-height: 240px; display: block; object-fit: contain; }
+.output-result-card[data-aspect-ratio="9:16"] .media-container { aspect-ratio: 9/16; }
+.output-result-card[data-aspect-ratio="16:9"] .media-container { aspect-ratio: 16/9; }
+.output-result-card[data-aspect-ratio="1:1"] .media-container { aspect-ratio: 1/1; }
+.output-result-card:not([data-aspect-ratio]) .media-container { aspect-ratio: 9/16; }
+.media-output { width: 100%; height: 100%; display: block; object-fit: cover; }
 .media-output[src=""] { display: none !important; }
 
 .image-gallery {
@@ -1241,14 +1277,23 @@ select:focus {
 .btn-download:hover { background: var(--btn-hover); color: white; }
 .btn-download.hidden { display: none !important; }
 
+.creation-download-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+}
+
 .download-warning {
-  margin: 12px 0 0;
+  margin: 0;
   font-size: 0.85rem;
   color: #b45309;
   background: rgba(234, 179, 8, 0.12);
   padding: 10px 14px;
   border-radius: 8px;
   border: 1px solid rgba(234, 179, 8, 0.3);
+  text-align: center;
 }
 .download-warning.hidden { display: none !important; }
 

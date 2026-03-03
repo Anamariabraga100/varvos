@@ -56,12 +56,12 @@
             <div id="createPromptBlock">
             <div id="promptSuggestionsVideo" class="prompt-suggestions prompt-suggestions-above">
               <div class="suggestion-chips">
-                <button type="button" class="chip" data-prompt="Vendedor animado apresentando produto à câmera com energia alta, gestos expressivos e tom de pitch de vendas, falando em português sobre benefícios e oferta especial, iluminação quente de estúdio, fundo clean profissional, estilo UGC viral para TikTok e Reels. Vídeo de 15 segundos em português do Brasil. Todo o áudio e texto em português brasileiro.">Vendedor pitch</button>
-                <button type="button" class="chip" data-prompt="Unboxing estilo UGC: mulher brasileira, 25-35 anos, cabelos castanhos, mãos abrindo caixa elegante do produto com reação de surpresa e alegria autêntica, falando em português 'olha o que chegou!', iluminação quente interior, estética de filmagem smartphone, fundo suave, formato vertical 9:16, trending para anúncios em redes sociais. Vídeo de 15 segundos em português do Brasil. Todo o áudio e fala em português brasileiro.">Unboxing UGC</button>
-                <button type="button" class="chip" data-prompt="Antes e depois split screen: lado esquerdo pele com imperfeições e oleosidade, lado direito pele radiante após 7 dias usando o Sérum Antiacne, iluminação natural, mulher brasileira real, estilo depoimento autêntico, overlay de texto '7 dias depois' em português, profissional mas próximo, formato vertical Reels e TikTok. Vídeo de 15 segundos em português do Brasil. Todo o áudio e texto em português brasileiro.">Transformação</button>
-                <button type="button" class="chip" data-prompt="Depoimento UGC autêntico: mulher brasileira, 30 anos, cabelos longos, falando diretamente à câmera com sorriso genuíno segurando o Creme Antiidade, dizendo em português 'uso há 2 semanas e minha pele nunca esteve melhor', luz natural suave da janela, fundo acolhedor em casa, estética smartphone crua, alta conversão para ads. Vídeo de 15 segundos em português do Brasil. Todo o áudio em português brasileiro.">Depoimento real</button>
-                <button type="button" class="chip" data-prompt="Tutorial passo a passo: influenciadora brasileira demonstrando aplicação de produto de beleza, mãos em close-up, falando em português explicando benefícios e modo de uso, iluminação de ring light, fundo neutro, estilo educativo e confiável, ideal para skincare e maquiagem. Vídeo de 15 segundos em português do Brasil. Todo o áudio em português brasileiro.">Tutorial produto</button>
-                <button type="button" class="chip" data-prompt="Comparativo de marcas: pessoa segurando dois produtos lado a lado, comparando características em tom informal e honesto, falando em português sobre preço, qualidade e qual vale mais a pena, cenário casual em casa, formato vertical para Reels. Vídeo de 15 segundos em português do Brasil. Todo o áudio em português brasileiro.">Comparativo honesto</button>
+                <button type="button" class="chip" data-prompt="Vendedor animado apresentando produto à câmera com energia alta, gestos expressivos e tom de pitch de vendas, falando em português sobre benefícios e oferta especial, iluminação quente de estúdio, fundo clean profissional, estilo UGC viral para TikTok e Reels. Todo o áudio e texto em português brasileiro.">Vendedor pitch</button>
+                <button type="button" class="chip" data-prompt="Unboxing estilo UGC: mulher brasileira, 25-35 anos, cabelos castanhos, mãos abrindo caixa elegante do produto com reação de surpresa e alegria autêntica, falando em português 'olha o que chegou!', iluminação quente interior, estética de filmagem smartphone, fundo suave, formato vertical 9:16, trending para anúncios em redes sociais. Todo o áudio e fala em português brasileiro.">Unboxing UGC</button>
+                <button type="button" class="chip" data-prompt="Antes e depois split screen: lado esquerdo pele com imperfeições e oleosidade, lado direito pele radiante após 7 dias usando o Sérum Antiacne, iluminação natural, mulher brasileira real, estilo depoimento autêntico, overlay de texto '7 dias depois' em português, profissional mas próximo, formato vertical Reels e TikTok. Todo o áudio e texto em português brasileiro.">Transformação</button>
+                <button type="button" class="chip" data-prompt="Depoimento UGC autêntico: mulher brasileira, 30 anos, cabelos longos, falando diretamente à câmera com sorriso genuíno segurando o Creme Antiidade, dizendo em português 'uso há 2 semanas e minha pele nunca esteve melhor', luz natural suave da janela, fundo acolhedor em casa, estética smartphone crua, alta conversão para ads. Todo o áudio em português brasileiro.">Depoimento real</button>
+                <button type="button" class="chip" data-prompt="Tutorial passo a passo: influenciadora brasileira demonstrando aplicação de produto de beleza, mãos em close-up, falando em português explicando benefícios e modo de uso, iluminação de ring light, fundo neutro, estilo educativo e confiável, ideal para skincare e maquiagem. Todo o áudio em português brasileiro.">Tutorial produto</button>
+                <button type="button" class="chip" data-prompt="Comparativo de marcas: pessoa segurando dois produtos lado a lado, comparando características em tom informal e honesto, falando em português sobre preço, qualidade e qual vale mais a pena, cenário casual em casa, formato vertical para Reels. Todo o áudio em português brasileiro.">Comparativo honesto</button>
               </div>
             </div>
             <div id="promptSuggestionsImage" class="prompt-suggestions prompt-suggestions-above hidden">
@@ -90,22 +90,43 @@
                 <div class="config-inner">
             <div id="videoFields" class="mode-fields form-options form-options-compact">
             <div class="config-row">
-              <div class="field field-compact">
+              <div class="field field-compact field-model">
+                <label for="videoModel">Modelo</label>
+                <select id="videoModel" name="video_model">
+                  <option value="veo3.1-fast" selected>VEO 3.1 Fast</option>
+                  <option value="sora-2">Sora 2</option>
+                </select>
+                <div class="model-notice-veo-wrap" id="modelNoticeVeo">
+                  <p class="model-notice model-notice-veo-desc">⚡ Geração rápida e estável. Ideal para anúncios e testes.</p>
+                </div>
+                <p class="model-notice model-notice-sora hidden" id="modelNoticeSora">Modo Cinematográfico (15s) — qualidade estendida para vídeos mais imersivos. Disponibilidade pode variar conforme a demanda.</p>
+              </div>
+              <div class="field field-compact" id="durationField">
                 <label for="duration">Duração</label>
                 <select id="duration" name="duration">
+                  <option value="8">8s</option>
                   <option value="10">10s</option>
                   <option value="15" selected>15s</option>
                 </select>
+                <input type="text" class="duration-fixed hidden" id="durationFixed" value="8s" readonly tabindex="-1">
               </div>
               <div class="field field-compact">
                 <label for="aspectRatio">Formato</label>
                 <select id="aspectRatio" name="aspect_ratio">
-                  <option value="16:9" selected>YouTube (16:9)</option>
-                  <option value="9:16">Stories (Reels, TikTok)</option>
+                  <option value="9:16" selected>Reels (TikTok, Stories)</option>
+                  <option value="16:9">YouTube (16:9)</option>
                   <option value="1:1">Destaque (1:1)</option>
                 </select>
               </div>
-              <div class="field field-compact">
+              <div class="field field-compact hidden" id="veoResolutionWrap">
+                <label for="veoResolution">Resolução</label>
+                <select id="veoResolution" name="veo_resolution">
+                  <option value="720p" selected>720p</option>
+                  <option value="1080p">1080p</option>
+                  <option value="4k">4K</option>
+                </select>
+              </div>
+              <div class="field field-compact" id="styleField">
                 <label for="style">Estilo</label>
                 <select id="style" name="style">
                   <option value="">Nenhum</option>
@@ -259,14 +280,16 @@
               <video controls preload="metadata" class="media-output"></video>
               <div class="image-gallery hidden"></div>
             </div>
-            <p class="creation-disclaimer">Você pode fechar esta página e voltar depois — seu progresso será mantido. Também pode <a href="../imitar-movimento/">ir para Imitar Movimento</a> ou abrir outra aba e gerar outro vídeo ao mesmo tempo.</p>
+            <p class="creation-disclaimer">Pode sair se quiser — o vídeo ficará salvo. Você também pode gerar mais de um vídeo ao mesmo tempo.</p>
             <p class="result-prompt"></p>
             <p class="status-message"></p>
-            <p class="download-warning hidden">⚠️ Os arquivos ficam disponíveis por até 24 horas no servidor. Baixe agora para não perder.</p>
-            <a class="btn-download hidden" href="#" download>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-              Baixar
-            </a>
+            <div class="creation-download-section">
+              <p class="download-warning hidden">⚠️ Os arquivos ficam disponíveis por até 24 horas no servidor. Baixe agora para não perder.</p>
+              <a class="btn-download hidden" href="#" download>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Baixar
+              </a>
+            </div>
           </div>
           <div class="output-result-card hidden" data-card="1">
             <div class="task-status-bar">
@@ -281,14 +304,16 @@
               <video controls preload="metadata" class="media-output"></video>
               <div class="image-gallery hidden"></div>
             </div>
-            <p class="creation-disclaimer">Você pode fechar esta página e voltar depois — seu progresso será mantido. Também pode <a href="../imitar-movimento/">ir para Imitar Movimento</a> ou abrir outra aba e gerar outro vídeo ao mesmo tempo.</p>
+            <p class="creation-disclaimer">Pode sair se quiser — o vídeo ficará salvo. Você também pode gerar mais de um vídeo ao mesmo tempo.</p>
             <p class="result-prompt"></p>
             <p class="status-message"></p>
-            <p class="download-warning hidden">⚠️ Os arquivos ficam disponíveis por até 24 horas no servidor. Baixe agora para não perder.</p>
-            <a class="btn-download hidden" href="#" download>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-              Baixar
-            </a>
+            <div class="creation-download-section">
+              <p class="download-warning hidden">⚠️ Os arquivos ficam disponíveis por até 24 horas no servidor. Baixe agora para não perder.</p>
+              <a class="btn-download hidden" href="#" download>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Baixar
+              </a>
+            </div>
           </div>
         </div>
       </section>

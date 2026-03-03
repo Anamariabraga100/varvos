@@ -916,6 +916,7 @@ header {
   gap: 8px;
 }
 
+.spotlight-media-images video,
 .spotlight-media-images img {
   flex: 1;
   min-width: 0;
