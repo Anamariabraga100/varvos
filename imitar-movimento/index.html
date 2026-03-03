@@ -165,7 +165,7 @@
           <div id="motionFields" class="mode-fields hidden form-options form-options-compact motion-fields">
             <div class="field">
               <label>1. Vídeo de referência (a dança / movimento) <span class="required">*</span></label>
-              <p class="field-hint">O movimento que será imitado. 3–30 seg, MP4 ou MOV (máx 100MB). Mostre cabeça, ombros e torso.</p>
+              <p class="field-hint">Escolha o vídeo com o movimento que você quer imitar.</p>
               <div class="file-upload" id="motionRefVideoUpload">
                 <input type="file" id="motionRefVideoFile" accept="video/mp4,video/quicktime,.mp4,.mov,.m4v" hidden>
                 <div class="file-upload-area" id="motionRefVideoArea">
@@ -173,14 +173,20 @@
                   <span class="file-upload-text">Clique ou arraste o vídeo de referência</span>
                 </div>
                 <div class="file-preview file-preview-motion hidden" id="motionRefVideoPreview">
-                  <video id="motionRefVideoPreviewVid" class="motion-preview-media" controls muted></video>
+                  <div class="motion-preview-wrap">
+                    <video id="motionRefVideoPreviewVid" class="motion-preview-media" controls muted></video>
+                    <div class="upload-overlay hidden" id="motionRefVideoProgress" aria-hidden="true">
+                      <div class="upload-progress-bar-wrap"><div class="upload-progress-fill" id="motionRefVideoProgressFill"></div></div>
+                      <span class="upload-progress-pct" id="motionRefVideoProgressPct">0%</span>
+                    </div>
+                  </div>
                   <button type="button" class="file-remove" id="motionRefVideoRemove">✕ Remover</button>
                 </div>
               </div>
             </div>
             <div class="field">
               <label>2. Foto do personagem (quem vai aparecer) <span class="required">*</span></label>
-              <p class="field-hint">A pessoa/personagem que fará o movimento. JPEG ou PNG (máx 10MB). Mostre cabeça, ombros e torso.</p>
+              <p class="field-hint">Escolha a foto da pessoa que vai reproduzir o movimento.</p>
               <div class="file-upload" id="motionCharImageUpload">
                 <input type="file" id="motionCharImageFile" accept="image/jpeg,image/png,.jpg,.jpeg,.png" hidden>
                 <div class="file-upload-area" id="motionCharImageArea">
@@ -188,7 +194,13 @@
                   <span class="file-upload-text">Clique ou arraste a foto do personagem</span>
                 </div>
                 <div class="file-preview file-preview-motion hidden" id="motionCharImagePreview">
-                  <img id="motionCharImagePreviewImg" class="motion-preview-media" alt="Personagem">
+                  <div class="motion-preview-wrap">
+                    <img id="motionCharImagePreviewImg" class="motion-preview-media" alt="Personagem">
+                    <div class="upload-overlay hidden" id="motionCharImageProgress" aria-hidden="true">
+                      <div class="upload-progress-bar-wrap"><div class="upload-progress-fill" id="motionCharImageProgressFill"></div></div>
+                      <span class="upload-progress-pct" id="motionCharImageProgressPct">0%</span>
+                    </div>
+                  </div>
                   <button type="button" class="file-remove" id="motionCharImageRemove">✕ Remover</button>
                 </div>
               </div>
@@ -197,10 +209,10 @@
               <div class="field">
                 <label for="motionOrientation">Orientação do personagem</label>
                 <select id="motionOrientation" name="motion_orientation">
-                  <option value="image">Imagem (máx 10s)</option>
-                  <option value="video">Vídeo (máx 30s)</option>
+                  <option value="image">Imagem</option>
+                  <option value="video">Vídeo</option>
                 </select>
-                <p class="field-hint-small">Imagem = segue pose da foto. Vídeo = segue pose do vídeo ref.</p>
+                <p class="field-hint-small">Imagem: usa a pose da foto. Vídeo: usa a pose do vídeo de referência.</p>
               </div>
               <div class="field">
                 <label for="motionResolution">Resolução</label>
@@ -247,10 +259,14 @@
             <p class="status-message"></p>
             <div class="creation-download-section">
               <p class="download-warning hidden">⚠️ Os arquivos ficam disponíveis por até 24 horas no servidor. Baixe agora para não perder.</p>
-              <a class="btn-download hidden" href="#" download>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                Baixar
-              </a>
+              <div class="share-video-buttons hidden">
+                <a class="btn-download btn-share" href="#" download>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                  Baixar
+                </a>
+                <a class="btn-share btn-share-whatsapp hidden" href="#" target="_blank" rel="noopener" title="Compartilhar no WhatsApp">WhatsApp</a>
+                <a class="btn-share btn-share-facebook hidden" href="#" target="_blank" rel="noopener" title="Compartilhar no Facebook">Facebook</a>
+              </div>
             </div>
           </div>
           <div class="output-result-card hidden" data-card="1">
@@ -270,10 +286,14 @@
             <p class="status-message"></p>
             <div class="creation-download-section">
               <p class="download-warning hidden">⚠️ Os arquivos ficam disponíveis por até 24 horas no servidor. Baixe agora para não perder.</p>
-              <a class="btn-download hidden" href="#" download>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                Baixar
-              </a>
+              <div class="share-video-buttons hidden">
+                <a class="btn-download btn-share" href="#" download>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                  Baixar
+                </a>
+                <a class="btn-share btn-share-whatsapp hidden" href="#" target="_blank" rel="noopener" title="Compartilhar no WhatsApp">WhatsApp</a>
+                <a class="btn-share btn-share-facebook hidden" href="#" target="_blank" rel="noopener" title="Compartilhar no Facebook">Facebook</a>
+              </div>
             </div>
           </div>
         </div>
@@ -554,6 +574,8 @@
         <div class="video-modal-buttons">
           <div class="video-modal-download-wrap hidden">
             <a href="#" class="video-modal-download-btn btn-imitar-movimento" download>Baixar vídeo</a>
+            <a class="btn-share btn-share-whatsapp" href="#" target="_blank" rel="noopener" title="Compartilhar no WhatsApp">WhatsApp</a>
+            <a class="btn-share btn-share-facebook" href="#" target="_blank" rel="noopener" title="Compartilhar no Facebook">Facebook</a>
           </div>
           <button type="button" class="btn-imitar-movimento" id="btnImitarMovimentoModal">Imitar movimento</button>
         </div>

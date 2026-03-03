@@ -870,7 +870,7 @@ header {
 
 .spotlight-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 24px;
   max-width: 1100px;
   margin: 0 auto;
@@ -918,6 +918,17 @@ header {
 
 .spotlight-media-images video,
 .spotlight-media-images img {
+  flex: 1;
+  min-width: 0;
+}
+
+.spotlight-media-three {
+  display: flex;
+  gap: 6px;
+}
+
+.spotlight-media-three video,
+.spotlight-media-three img {
   flex: 1;
   min-width: 0;
 }
@@ -997,7 +1008,7 @@ header {
   color: white;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 600px) {
   .spotlight-grid {
     grid-template-columns: 1fr;
   }

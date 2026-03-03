@@ -97,6 +97,9 @@ function getCardRefs(cardEl) {
     statusMessage: cardEl.querySelector('.status-message'),
     downloadWarning: cardEl.querySelector('.download-warning'),
     downloadBtn: cardEl.querySelector('.btn-download'),
+    shareSection: cardEl.querySelector('.share-video-buttons'),
+    whatsappBtn: cardEl.querySelector('.btn-share-whatsapp'),
+    facebookBtn: cardEl.querySelector('.btn-share-facebook'),
     resultPromptEl: cardEl.querySelector('.result-prompt')
   };
 }
@@ -226,15 +229,21 @@ function openVideoModalForResult(src, downloadBtnOrHref, downloadName, aspectRat
   const btnImitar = document.getElementById('btnImitarMovimentoModal');
   const btnDownloadWrap = videoModal?.querySelector('.video-modal-download-wrap');
   const modalDownloadBtn = videoModal?.querySelector('.video-modal-download-btn');
+  const modalWhatsappBtn = videoModal?.querySelector('.btn-share-whatsapp');
+  const modalFacebookBtn = videoModal?.querySelector('.btn-share-facebook');
   if (btnImitar) btnImitar.classList.add('hidden');
   if (btnDownloadWrap) btnDownloadWrap.classList.remove('hidden');
   const href = typeof downloadBtnOrHref === 'string' ? downloadBtnOrHref : downloadBtnOrHref?.getAttribute('href');
   const download = downloadName || (downloadBtnOrHref?.getAttribute?.('download'));
+  const videoUrl = href || src || '';
+  const shareUrl = encodeURIComponent(videoUrl);
   if (modalDownloadBtn) {
-    modalDownloadBtn.href = href || src;
+    modalDownloadBtn.href = videoUrl;
     modalDownloadBtn.download = download || 'varvos-video.mp4';
-    modalDownloadBtn.onclick = (e) => { e.preventDefault(); triggerDownload(href || src, download || 'varvos-video.mp4'); closeVideoModal(); };
+    modalDownloadBtn.onclick = (e) => { e.preventDefault(); triggerDownload(videoUrl, download || 'varvos-video.mp4'); closeVideoModal(); };
   }
+  if (modalWhatsappBtn) modalWhatsappBtn.href = `https://api.whatsapp.com/send?text=${shareUrl}`;
+  if (modalFacebookBtn) modalFacebookBtn.href = `https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`;
   videoModal.classList.remove('hidden');
   videoModalVideo.play().catch(() => {});
 }
@@ -335,7 +344,7 @@ outputResultsList?.addEventListener('click', (e) => {
 // Event delegation: histórico — download e clique para abrir vídeo
 historyList?.addEventListener('click', (e) => {
   const downloadLink = e.target.closest('.creation-actions a');
-  if (downloadLink) {
+  if (downloadLink && !downloadLink.classList.contains('creation-share')) {
     e.preventDefault();
     const href = downloadLink.getAttribute('href');
     const filename = downloadLink.getAttribute('download') || 'varvos.mp4';
@@ -700,13 +709,18 @@ function renderHistory() {
     const downloads = item.files.map((f, i) =>
       `<a href="${f.file_url}" download="varvos-${item.task_id}-${i + 1}.${f.file_type === 'video' ? 'mp4' : 'png'}">Baixar${item.files.length > 1 ? ' ' + (i + 1) : ''}</a>`
     ).join('');
+    const firstVideo = item.files.find(f => f.file_type === 'video');
+    const shareUrl = firstVideo ? encodeURIComponent(firstVideo.file_url) : '';
+    const shareLinks = firstVideo
+      ? `<a href="https://api.whatsapp.com/send?text=${shareUrl}" target="_blank" rel="noopener" class="creation-share creation-share-whatsapp" title="Compartilhar no WhatsApp">WhatsApp</a><a href="https://www.facebook.com/sharer/sharer.php?u=${shareUrl}" target="_blank" rel="noopener" class="creation-share creation-share-facebook" title="Compartilhar no Facebook">Facebook</a>`
+      : '';
     return `
       <div class="creation-item" data-aspect-ratio="${escapeHtml(aspectRatio)}" data-prompt="${escapeHtml(item.prompt || '')}">
         <div class="creation-thumb">${thumb}</div>
         <div class="creation-info">
           <div class="meta">${item.mode === 'video' ? '🎬 Vídeo' : '🖼️ Imagem'}${date ? ' · ' + date : ''}</div>
         </div>
-        <div class="creation-actions">${downloads}</div>
+        <div class="creation-actions">${downloads}${shareLinks}</div>
       </div>
     `;
   }).join('');
@@ -820,15 +834,59 @@ async function uploadFileToVidgo(file) {
   });
 }
 
+function runSimulatedProgress(progressEl) {
+  const fill = progressEl?.querySelector('.upload-progress-fill');
+  const pct = progressEl?.querySelector('.upload-progress-pct');
+  const media = progressEl?.closest('.motion-preview-wrap')?.querySelector('.motion-preview-media');
+  if (!fill || !pct) return () => {};
+  media?.classList.add('loading');
+  let t = 0;
+  const interval = setInterval(() => {
+    t += 5 + Math.random() * 8;
+    const v = Math.min(Math.floor(t), 95);
+    fill.style.width = v + '%';
+    pct.textContent = v + '%';
+  }, 180);
+  return () => {
+    clearInterval(interval);
+    fill.style.width = '100%';
+    pct.textContent = '100%';
+    media?.classList.remove('loading');
+  };
+}
+
 function setupFileUpload(config) {
-  const { inputId, areaId, previewId, imgId, removeId, setUrl, maxMb = 10, onReady, uploadFn, onRemove, uploadStatusLabel, setUploadStatus } = config;
+  const { inputId, areaId, previewId, imgId, removeId, setUrl, maxMb = 10, onReady, uploadFn, onRemove, uploadStatusLabel, setUploadStatus, progressElId, hideProgressUI } = config;
   const input = document.getElementById(inputId);
   const area = document.getElementById(areaId);
   const preview = document.getElementById(previewId);
   const previewImg = document.getElementById(imgId);
   const removeBtn = document.getElementById(removeId);
+  const progressEl = progressElId ? document.getElementById(progressElId) : null;
 
   if (!input || !area) return;
+
+  let cancelProgress = () => {};
+  const setProgress = (show) => {
+    if (!progressEl) return;
+    if (hideProgressUI) {
+      progressEl.classList.toggle('uploading', show);
+      return;
+    }
+    const fill = progressEl.querySelector('.upload-progress-fill');
+    const pct = progressEl.querySelector('.upload-progress-pct');
+    if (show) {
+      cancelProgress();
+      if (fill) fill.style.width = '0%';
+      if (pct) pct.textContent = '0%';
+      progressEl.classList.remove('hidden');
+      progressEl.setAttribute('aria-hidden', 'false');
+    } else {
+      cancelProgress();
+      progressEl.classList.add('hidden');
+      progressEl.setAttribute('aria-hidden', 'true');
+    }
+  };
 
   const handleFile = async (file) => {
     if (!file) return;
@@ -840,13 +898,33 @@ function setupFileUpload(config) {
     area.classList.add('hidden');
     preview.classList.remove('hidden');
     previewImg.src = URL.createObjectURL(file);
+    setProgress(true);
+    if (!hideProgressUI) cancelProgress = runSimulatedProgress(progressEl);
     if (uploadStatusLabel && setUploadStatus) setUploadStatus({ uploading: uploadStatusLabel });
     try {
       const url = await (uploadFn || uploadFileToVidgo)(file);
       setUrl(url);
-      setUploadStatus?.();
-      onReady?.();
+      if (!hideProgressUI) {
+        cancelProgress();
+        const fill = progressEl?.querySelector('.upload-progress-fill');
+        const pct = progressEl?.querySelector('.upload-progress-pct');
+        const media = progressEl?.closest('.motion-preview-wrap')?.querySelector('.motion-preview-media');
+        if (fill) fill.style.width = '100%';
+        if (pct) pct.textContent = '100%';
+        media?.classList.remove('loading');
+        setTimeout(() => { setProgress(false); setUploadStatus?.(); onReady?.(); }, 400);
+      } else {
+        setProgress(false);
+        setUploadStatus?.();
+        onReady?.();
+      }
     } catch (err) {
+      if (!hideProgressUI) {
+        cancelProgress();
+        const media = progressEl?.closest('.motion-preview-wrap')?.querySelector('.motion-preview-media');
+        media?.classList.remove('loading');
+      }
+      setProgress(false);
       if (setUploadStatus) setUploadStatus({ error: err.message });
       else alert('Erro no upload: ' + err.message);
       reset();
@@ -856,6 +934,12 @@ function setupFileUpload(config) {
   const reset = () => {
     if (onRemove) onRemove().catch(() => {});
     setUrl('');
+    if (!hideProgressUI) {
+      cancelProgress();
+      const media = progressEl?.closest('.motion-preview-wrap')?.querySelector('.motion-preview-media');
+      if (media) media.classList.remove('loading');
+    }
+    setProgress(false);
     preview.classList.add('hidden');
     area.classList.remove('hidden');
     if (previewImg.src) URL.revokeObjectURL(previewImg.src);
@@ -885,8 +969,8 @@ function updateMotionReadyState(forceState) {
   const btn = document.getElementById('btnGenerate');
   if (!el) return;
   if (forceState?.uploading) {
-    el.textContent = forceState.uploading === 'video' ? '⏳ Enviando vídeo...' : '⏳ Enviando imagem...';
-    el.className = 'motion-ready-state uploading';
+    el.textContent = '';
+    el.className = 'motion-ready-state';
   } else if (forceState?.error) {
     el.textContent = '⚠ ' + forceState.error;
     el.className = 'motion-ready-state error';
@@ -895,19 +979,41 @@ function updateMotionReadyState(forceState) {
     el.textContent = ok ? '✓ Imagem e vídeo enviados — prontos para gerar' : '';
     el.className = 'motion-ready-state' + (ok ? ' ready' : '');
   }
-  if (btn && currentMode === 'motion') btn.disabled = !!(motionCharImageUrl && motionRefVideoUrl);
+  const p1 = document.getElementById('motionRefVideoProgress');
+  const p2 = document.getElementById('motionCharImageProgress');
+  const hasUploading = (p1 && !p1.classList.contains('hidden')) || (p2 && p2.classList.contains('uploading'));
+  if (btn && currentMode === 'motion') btn.disabled = hasUploading || !(motionCharImageUrl && motionRefVideoUrl);
 }
-setupFileUpload({ inputId: 'motionCharImageFile', areaId: 'motionCharImageArea', previewId: 'motionCharImagePreview', imgId: 'motionCharImagePreviewImg', removeId: 'motionCharImageRemove', setUrl: (v) => motionCharImageUrl = v, onReady: updateMotionReadyState, uploadFn: (f) => uploadToSupabaseStorage(f, 'images'), onRemove: () => deleteMotionRefsFromStorage([motionCharImageUrl]), uploadStatusLabel: 'image', setUploadStatus: updateMotionReadyState });
+setupFileUpload({ inputId: 'motionCharImageFile', areaId: 'motionCharImageArea', previewId: 'motionCharImagePreview', imgId: 'motionCharImagePreviewImg', removeId: 'motionCharImageRemove', setUrl: (v) => motionCharImageUrl = v, onReady: updateMotionReadyState, uploadFn: (f) => uploadToSupabaseStorage(f, 'images'), onRemove: () => deleteMotionRefsFromStorage([motionCharImageUrl]), uploadStatusLabel: 'image', setUploadStatus: updateMotionReadyState, progressElId: 'motionCharImageProgress', hideProgressUI: true });
 
 function setupVideoUpload(config) {
-  const { inputId, areaId, previewId, videoId, removeId, setUrl, maxMb = 50, onReady, uploadFn, onRemove, uploadStatusLabel, setUploadStatus } = config;
+  const { inputId, areaId, previewId, videoId, removeId, setUrl, maxMb = 50, onReady, uploadFn, onRemove, uploadStatusLabel, setUploadStatus, progressElId } = config;
   const input = document.getElementById(inputId);
   const area = document.getElementById(areaId);
   const preview = document.getElementById(previewId);
   const previewVideo = document.getElementById(videoId);
   const removeBtn = document.getElementById(removeId);
+  const progressEl = progressElId ? document.getElementById(progressElId) : null;
 
   if (!input || !area) return;
+
+  let cancelProgress = () => {};
+  const setProgress = (show) => {
+    if (!progressEl) return;
+    const fill = progressEl.querySelector('.upload-progress-fill');
+    const pct = progressEl.querySelector('.upload-progress-pct');
+    if (show) {
+      cancelProgress();
+      if (fill) fill.style.width = '0%';
+      if (pct) pct.textContent = '0%';
+      progressEl.classList.remove('hidden');
+      progressEl.setAttribute('aria-hidden', 'false');
+    } else {
+      cancelProgress();
+      progressEl.classList.add('hidden');
+      progressEl.setAttribute('aria-hidden', 'true');
+    }
+  };
 
   const handleFile = async (file) => {
     if (!file) return;
@@ -919,14 +1025,26 @@ function setupVideoUpload(config) {
     area.classList.add('hidden');
     preview.classList.remove('hidden');
     previewVideo.src = URL.createObjectURL(file);
+    setProgress(true);
+    cancelProgress = runSimulatedProgress(progressEl);
     if (uploadStatusLabel && setUploadStatus) setUploadStatus({ uploading: uploadStatusLabel });
     try {
       const upload = uploadFn || uploadFileToVidgo;
       const url = await upload(file);
       setUrl(url);
-      setUploadStatus?.();
-      onReady?.();
+      cancelProgress();
+      const fill = progressEl?.querySelector('.upload-progress-fill');
+      const pct = progressEl?.querySelector('.upload-progress-pct');
+      const media = progressEl?.closest('.motion-preview-wrap')?.querySelector('.motion-preview-media');
+      if (fill) fill.style.width = '100%';
+      if (pct) pct.textContent = '100%';
+      media?.classList.remove('loading');
+      setTimeout(() => { setProgress(false); setUploadStatus?.(); onReady?.(); }, 400);
     } catch (err) {
+      cancelProgress();
+      const media = progressEl?.closest('.motion-preview-wrap')?.querySelector('.motion-preview-media');
+      media?.classList.remove('loading');
+      setProgress(false);
       if (setUploadStatus) setUploadStatus({ error: err.message });
       else alert('Erro no upload: ' + err.message);
       reset();
@@ -936,6 +1054,10 @@ function setupVideoUpload(config) {
   const reset = () => {
     if (onRemove) onRemove().catch(() => {});
     setUrl('');
+    cancelProgress();
+    const media = progressEl?.closest('.motion-preview-wrap')?.querySelector('.motion-preview-media');
+    if (media) media.classList.remove('loading');
+    setProgress(false);
     preview.classList.add('hidden');
     area.classList.remove('hidden');
     previewVideo.src = '';
@@ -956,7 +1078,7 @@ function setupVideoUpload(config) {
   });
 }
 
-setupVideoUpload({ inputId: 'motionRefVideoFile', areaId: 'motionRefVideoArea', previewId: 'motionRefVideoPreview', videoId: 'motionRefVideoPreviewVid', removeId: 'motionRefVideoRemove', setUrl: (v) => motionRefVideoUrl = v, maxMb: 100, onReady: updateMotionReadyState, uploadFn: (f) => uploadToSupabaseStorage(f, 'videos'), onRemove: () => deleteMotionRefsFromStorage([motionRefVideoUrl]), uploadStatusLabel: 'video', setUploadStatus: updateMotionReadyState });
+setupVideoUpload({ inputId: 'motionRefVideoFile', areaId: 'motionRefVideoArea', previewId: 'motionRefVideoPreview', videoId: 'motionRefVideoPreviewVid', removeId: 'motionRefVideoRemove', setUrl: (v) => motionRefVideoUrl = v, maxMb: 100, onReady: updateMotionReadyState, uploadFn: (f) => uploadToSupabaseStorage(f, 'videos'), onRemove: () => deleteMotionRefsFromStorage([motionRefVideoUrl]), uploadStatusLabel: 'video', setUploadStatus: updateMotionReadyState, progressElId: 'motionRefVideoProgress' });
 
 // Build request body from form
 function buildRequestBody() {
@@ -1187,10 +1309,21 @@ function updateOutputUI(data, cardRefs, startTime) {
         videoPlayer.style.display = 'block';
         captureVideoThumbnail(videoPlayer);
       }
+      const shareUrl = encodeURIComponent(videoFile.file_url);
       if (downloadBtn) {
         downloadBtn.href = videoFile.file_url;
         downloadBtn.download = `varvos-video-${data.task_id}.mp4`;
-        downloadBtn.classList.remove('hidden');
+      }
+      if (cardRefs.shareSection) {
+        cardRefs.shareSection.classList.remove('hidden');
+        if (cardRefs.whatsappBtn) {
+          cardRefs.whatsappBtn.href = `https://api.whatsapp.com/send?text=${shareUrl}`;
+          cardRefs.whatsappBtn.classList.remove('hidden');
+        }
+        if (cardRefs.facebookBtn) {
+          cardRefs.facebookBtn.href = `https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`;
+          cardRefs.facebookBtn.classList.remove('hidden');
+        }
       }
       if (downloadWarning) downloadWarning.classList.remove('hidden');
     } else if (imageFiles?.length) {
@@ -1206,7 +1339,7 @@ function updateOutputUI(data, cardRefs, startTime) {
       if (imageFiles.length === 1 && downloadBtn) {
         downloadBtn.href = imageFiles[0].file_url;
         downloadBtn.download = `varvos-image-${data.task_id}.png`;
-        downloadBtn.classList.remove('hidden');
+        if (cardRefs.shareSection) cardRefs.shareSection.classList.remove('hidden');
       }
       if (downloadWarning) downloadWarning.classList.remove('hidden');
     }
@@ -1395,6 +1528,7 @@ async function generateMedia(body) {
     cardRefs.imageGallery.innerHTML = '';
   }
   if (cardRefs.downloadBtn) cardRefs.downloadBtn.classList.add('hidden');
+  if (cardRefs.shareSection) cardRefs.shareSection.classList.add('hidden');
   if (cardRefs.downloadWarning) cardRefs.downloadWarning.classList.add('hidden');
   if (cardRefs.creationDisclaimer) cardRefs.creationDisclaimer.classList.remove('hidden');
   if (cardRefs.statusMessage) { cardRefs.statusMessage.classList.remove('hidden'); cardRefs.statusMessage.textContent = ''; }
