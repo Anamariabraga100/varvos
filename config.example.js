@@ -2,6 +2,7 @@
 // O config.js não deve ser commitado (adicione ao .gitignore)
 window.VARVOS_CONFIG = {
   apiKey: 'sua-api-key-aqui',
+  kieApiKey: 'sua-kie-api-key-aqui', // Para Imitar Movimento (api.kie.ai). Se vazio, usa apiKey
   googleClientId: 'SEU_CLIENT_ID.apps.googleusercontent.com',
   // Supabase (https://supabase.com/dashboard) — Project Settings > API
   supabaseUrl: 'https://seu-projeto.supabase.co',

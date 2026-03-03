@@ -1,4 +1,5 @@
 const API_BASE = 'https://api.vidgo.ai';
+const KIE_API_BASE = 'https://api.kie.ai';
 const POLL_INTERVAL = 3000;
 const STORAGE_KEY = 'varvos_api_key';
 const HISTORY_STORAGE_KEY = 'varvos_history';
@@ -572,6 +573,8 @@ function applyMode(mode) {
   const btnCredits = document.getElementById('btnCredits');
   if (btnCredits) btnCredits.textContent = '✨';
   document.getElementById('prompt').required = currentMode !== 'motion';
+  if (currentMode === 'motion') setTimeout(updateMotionReadyState, 0);
+  else if (btnGenerate) btnGenerate.disabled = false;
 }
 
 // Mode switcher — links navegam; só botões (root index) precisam de handler
@@ -584,6 +587,13 @@ document.querySelectorAll('.mode-btn').forEach(btn => {
 // Load API key from config or localStorage
 function getApiKey() {
   if (window.VARVOS_CONFIG?.apiKey) return window.VARVOS_CONFIG.apiKey;
+  return localStorage.getItem(STORAGE_KEY);
+}
+
+function getKieApiKey() {
+  const cfg = window.VARVOS_CONFIG;
+  if (cfg?.kieApiKey) return cfg.kieApiKey;
+  if (cfg?.apiKey) return cfg.apiKey;
   return localStorage.getItem(STORAGE_KEY);
 }
 
@@ -725,7 +735,58 @@ async function clearHistory() {
   renderHistory();
 }
 
-// File upload - Vidgo Base64 API
+// Formatos aceitos pela KIE para Imitar Movimento (KIE exige JPEG/PNG para imagem, MP4/MOV para vídeo)
+const MOTION_IMAGE_TYPES = ['image/jpeg', 'image/png'];
+const MOTION_VIDEO_TYPES = ['video/mp4', 'video/quicktime'];
+
+function validateMotionFileType(file, bucket) {
+  const type = (file.type || '').toLowerCase();
+  const ext = (file.name || '').split('.').pop()?.toLowerCase() || '';
+  if (bucket === 'images') {
+    const ok = MOTION_IMAGE_TYPES.includes(type) || ['jpg', 'jpeg', 'png'].includes(ext);
+    if (!ok) throw new Error('Formato não suportado. Use JPEG ou PNG (a KIE não aceita WebP).');
+  } else if (bucket === 'videos') {
+    const ok = MOTION_VIDEO_TYPES.includes(type) || ['mp4', 'mov', 'm4v'].includes(ext);
+    if (!ok) throw new Error('Formato não suportado. Use MP4 ou MOV.');
+  }
+}
+
+// Extrai bucket e path da URL pública do Supabase Storage
+function parseSupabaseStorageUrl(url) {
+  if (!url || typeof url !== 'string') return null;
+  const m = url.match(/\/object\/public\/([^/]+)\/(.+)$/);
+  return m ? { bucket: m[1], path: m[2] } : null;
+}
+
+// Apaga um ou mais arquivos de motion-refs do Storage (libera espaço)
+async function deleteMotionRefsFromStorage(urlsToDelete) {
+  const urls = urlsToDelete || [motionCharImageUrl, motionRefVideoUrl].filter(Boolean);
+  if (urls.length === 0) return;
+  const sb = window.varvosSupabase;
+  if (!sb) return;
+  for (const url of urls) {
+    const parsed = parseSupabaseStorageUrl(url);
+    if (!parsed || parsed.path.indexOf('motion-refs/') !== 0) continue;
+    try {
+      await sb.storage.from(parsed.bucket).remove([parsed.path]);
+    } catch (_) {}
+  }
+}
+
+// File upload - Supabase Storage (para Imitar Movimento: suporta imagem e vídeo)
+async function uploadToSupabaseStorage(file, bucket) {
+  const sb = window.varvosSupabase;
+  if (!sb) throw new Error('Supabase não configurado');
+  validateMotionFileType(file, bucket);
+  const ext = (file.name || '').split('.').pop() || 'bin';
+  const path = `motion-refs/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+  const { data, error } = await sb.storage.from(bucket).upload(path, file, { upsert: false });
+  if (error) throw new Error(error.message || 'Falha no upload');
+  const { data: urlData } = sb.storage.from(bucket).getPublicUrl(data.path);
+  return urlData?.publicUrl || '';
+}
+
+// File upload - Vidgo Base64 API (apenas imagens; vídeo não suportado)
 async function uploadFileToVidgo(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -760,7 +821,7 @@ async function uploadFileToVidgo(file) {
 }
 
 function setupFileUpload(config) {
-  const { inputId, areaId, previewId, imgId, removeId, setUrl, maxMb = 10, onReady } = config;
+  const { inputId, areaId, previewId, imgId, removeId, setUrl, maxMb = 10, onReady, uploadFn, onRemove, uploadStatusLabel, setUploadStatus } = config;
   const input = document.getElementById(inputId);
   const area = document.getElementById(areaId);
   const preview = document.getElementById(previewId);
@@ -772,27 +833,33 @@ function setupFileUpload(config) {
   const handleFile = async (file) => {
     if (!file) return;
     if (file.size > maxMb * 1024 * 1024) {
-      alert(`Arquivo muito grande. Máximo ${maxMb}MB.`);
+      if (setUploadStatus) setUploadStatus({ error: `Arquivo muito grande. Máximo ${maxMb}MB.` });
+      else alert(`Arquivo muito grande. Máximo ${maxMb}MB.`);
       return;
     }
     area.classList.add('hidden');
     preview.classList.remove('hidden');
     previewImg.src = URL.createObjectURL(file);
+    if (uploadStatusLabel && setUploadStatus) setUploadStatus({ uploading: uploadStatusLabel });
     try {
-      const url = await uploadFileToVidgo(file);
+      const url = await (uploadFn || uploadFileToVidgo)(file);
       setUrl(url);
+      setUploadStatus?.();
       onReady?.();
     } catch (err) {
-      alert('Erro no upload: ' + err.message);
+      if (setUploadStatus) setUploadStatus({ error: err.message });
+      else alert('Erro no upload: ' + err.message);
       reset();
     }
   };
 
   const reset = () => {
+    if (onRemove) onRemove().catch(() => {});
     setUrl('');
     preview.classList.add('hidden');
     area.classList.remove('hidden');
     if (previewImg.src) URL.revokeObjectURL(previewImg.src);
+    setUploadStatus?.();
     onReady?.();
   };
 
@@ -813,17 +880,27 @@ function setupFileUpload(config) {
 // Initialize file uploads
 setupFileUpload({ inputId: 'imageRefFile', areaId: 'imageRefArea', previewId: 'imageRefPreview', imgId: 'imageRefPreviewImg', removeId: 'imageRefRemove', setUrl: (v) => refImageUrl = v });
 setupFileUpload({ inputId: 'imgRefFile', areaId: 'imgRefArea', previewId: 'imgRefPreview', imgId: 'imgRefPreviewImg', removeId: 'imgRefRemove', setUrl: (v) => imgRefUrl = v });
-function updateMotionReadyState() {
+function updateMotionReadyState(forceState) {
   const el = document.getElementById('motionReadyState');
+  const btn = document.getElementById('btnGenerate');
   if (!el) return;
-  const ok = !!(motionCharImageUrl && motionRefVideoUrl);
-  el.textContent = ok ? '✓ Imagem e vídeo enviados — prontos para gerar' : '';
-  el.className = 'motion-ready-state' + (ok ? ' ready' : '');
+  if (forceState?.uploading) {
+    el.textContent = forceState.uploading === 'video' ? '⏳ Enviando vídeo...' : '⏳ Enviando imagem...';
+    el.className = 'motion-ready-state uploading';
+  } else if (forceState?.error) {
+    el.textContent = '⚠ ' + forceState.error;
+    el.className = 'motion-ready-state error';
+  } else {
+    const ok = !!(motionCharImageUrl && motionRefVideoUrl);
+    el.textContent = ok ? '✓ Imagem e vídeo enviados — prontos para gerar' : '';
+    el.className = 'motion-ready-state' + (ok ? ' ready' : '');
+  }
+  if (btn && currentMode === 'motion') btn.disabled = !!(motionCharImageUrl && motionRefVideoUrl);
 }
-setupFileUpload({ inputId: 'motionCharImageFile', areaId: 'motionCharImageArea', previewId: 'motionCharImagePreview', imgId: 'motionCharImagePreviewImg', removeId: 'motionCharImageRemove', setUrl: (v) => motionCharImageUrl = v, onReady: updateMotionReadyState });
+setupFileUpload({ inputId: 'motionCharImageFile', areaId: 'motionCharImageArea', previewId: 'motionCharImagePreview', imgId: 'motionCharImagePreviewImg', removeId: 'motionCharImageRemove', setUrl: (v) => motionCharImageUrl = v, onReady: updateMotionReadyState, uploadFn: (f) => uploadToSupabaseStorage(f, 'images'), onRemove: () => deleteMotionRefsFromStorage([motionCharImageUrl]), uploadStatusLabel: 'image', setUploadStatus: updateMotionReadyState });
 
 function setupVideoUpload(config) {
-  const { inputId, areaId, previewId, videoId, removeId, setUrl, maxMb = 50, onReady } = config;
+  const { inputId, areaId, previewId, videoId, removeId, setUrl, maxMb = 50, onReady, uploadFn, onRemove, uploadStatusLabel, setUploadStatus } = config;
   const input = document.getElementById(inputId);
   const area = document.getElementById(areaId);
   const preview = document.getElementById(previewId);
@@ -835,27 +912,34 @@ function setupVideoUpload(config) {
   const handleFile = async (file) => {
     if (!file) return;
     if (file.size > maxMb * 1024 * 1024) {
-      alert(`Vídeo muito grande. Máximo ${maxMb}MB.`);
+      if (setUploadStatus) setUploadStatus({ error: `Vídeo muito grande. Máximo ${maxMb}MB.` });
+      else alert(`Vídeo muito grande. Máximo ${maxMb}MB.`);
       return;
     }
     area.classList.add('hidden');
     preview.classList.remove('hidden');
     previewVideo.src = URL.createObjectURL(file);
+    if (uploadStatusLabel && setUploadStatus) setUploadStatus({ uploading: uploadStatusLabel });
     try {
-      const url = await uploadFileToVidgo(file);
+      const upload = uploadFn || uploadFileToVidgo;
+      const url = await upload(file);
       setUrl(url);
+      setUploadStatus?.();
       onReady?.();
     } catch (err) {
-      alert('Erro no upload: ' + err.message);
+      if (setUploadStatus) setUploadStatus({ error: err.message });
+      else alert('Erro no upload: ' + err.message);
       reset();
     }
   };
 
   const reset = () => {
+    if (onRemove) onRemove().catch(() => {});
     setUrl('');
     preview.classList.add('hidden');
     area.classList.remove('hidden');
     previewVideo.src = '';
+    setUploadStatus?.();
     onReady?.();
   };
 
@@ -872,7 +956,7 @@ function setupVideoUpload(config) {
   });
 }
 
-setupVideoUpload({ inputId: 'motionRefVideoFile', areaId: 'motionRefVideoArea', previewId: 'motionRefVideoPreview', videoId: 'motionRefVideoPreviewVid', removeId: 'motionRefVideoRemove', setUrl: (v) => motionRefVideoUrl = v, maxMb: 50, onReady: updateMotionReadyState });
+setupVideoUpload({ inputId: 'motionRefVideoFile', areaId: 'motionRefVideoArea', previewId: 'motionRefVideoPreview', videoId: 'motionRefVideoPreviewVid', removeId: 'motionRefVideoRemove', setUrl: (v) => motionRefVideoUrl = v, maxMb: 100, onReady: updateMotionReadyState, uploadFn: (f) => uploadToSupabaseStorage(f, 'videos'), onRemove: () => deleteMotionRefsFromStorage([motionRefVideoUrl]), uploadStatusLabel: 'video', setUploadStatus: updateMotionReadyState });
 
 // Build request body from form
 function buildRequestBody() {
@@ -880,14 +964,14 @@ function buildRequestBody() {
     const orientation = document.getElementById('motionOrientation').value;
     const mode = document.getElementById('motionResolution').value;
     const input = {
-      image_urls: [motionCharImageUrl],
+      input_urls: [motionCharImageUrl],
       video_urls: [motionRefVideoUrl],
       character_orientation: orientation,
       mode
     };
     const prompt = document.getElementById('prompt').value.trim();
     if (prompt) input.prompt = prompt;
-    return { model: 'kling-2.6-motion-control', input };
+    return { model: 'kling-2.6/motion-control', input };
   }
   if (currentMode === 'video') {
     const model = hideModelSelection ? 'veo3.1-fast' : selectedModel;
@@ -926,10 +1010,31 @@ function buildRequestBody() {
 }
 
 async function submitTask(body) {
-  const apiKey = getApiKey();
+  const isMotion = body?.model === 'kling-2.6/motion-control';
+  const apiKey = isMotion ? getKieApiKey() : getApiKey();
   if (!apiKey) {
     alert('Configure sua chave API em config.js para começar.');
     return null;
+  }
+
+  if (isMotion) {
+    const res = await fetch(`${KIE_API_BASE}/api/v1/jobs/createTask`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify(body)
+    });
+    let data;
+    try { data = await res.json(); } catch (_) { throw new Error(`Erro ${res.status}`); }
+    if (data?.code !== 200) {
+      const msg = (data?.msg || data?.failMsg || `Erro ${res.status}`).toString();
+      const err = new Error(msg);
+      err.isCredits = /credit|insufficient|saldo|quota|balance|402/i.test(msg);
+      throw err;
+    }
+    return data?.data?.taskId || null;
   }
 
   const res = await fetch(`${API_BASE}/api/generate/submit`, {
@@ -958,7 +1063,32 @@ async function submitTask(body) {
   return data?.data?.task_id || null;
 }
 
-async function getTaskStatus(taskId) {
+async function getTaskStatus(taskId, isMotion = false) {
+  if (isMotion) {
+    const apiKey = getKieApiKey();
+    const res = await fetch(`${KIE_API_BASE}/api/v1/jobs/recordInfo?taskId=${encodeURIComponent(taskId)}`, {
+      headers: { 'Authorization': `Bearer ${apiKey}` }
+    });
+    const data = await res.json();
+    if (data?.code !== 200) throw new Error(data?.msg || `Erro ${res.status}`);
+    const d = data?.data || {};
+    const state = d.state || 'waiting';
+    const mapped = {
+      status: state === 'success' ? 'finished' : state === 'fail' ? 'failed' : 'running',
+      task_id: d.taskId || taskId,
+      progress: state === 'success' ? 100 : state === 'fail' ? 0 : 50,
+      error_message: d.failMsg || null
+    };
+    if (state === 'success' && d.resultJson) {
+      try {
+        const result = JSON.parse(d.resultJson);
+        const urls = result?.resultUrls || [];
+        mapped.files = urls.map(url => ({ file_type: 'video', file_url: url }));
+      } catch (_) {}
+    }
+    return mapped;
+  }
+
   const apiKey = getApiKey();
   const res = await fetch(`${API_BASE}/api/generate/status/${taskId}`, {
     headers: { 'Authorization': `Bearer ${apiKey}` }
@@ -1082,14 +1212,14 @@ function updateOutputUI(data, cardRefs, startTime) {
     }
   } else if (data.status === 'failed') {
     activeTasks.delete(data.task_id);
-    const errMsg = (data.error_message || '').toString();
+    const errMsg = (data.error_message || '').toString().trim();
     if (isCreditsError(errMsg)) {
       openCreditsModal();
       return;
     }
     stopLoadingForCard(cardRefs);
     if (statusMessage) {
-      statusMessage.textContent = 'Há muitos vídeos na fila, por isso está ocorrendo este erro. Tente novamente em alguns minutos.';
+      statusMessage.textContent = errMsg || 'Ocorreu um erro ao gerar. Tente novamente em alguns minutos.';
       statusMessage.className = 'status-message error';
     }
   } else {
@@ -1194,11 +1324,11 @@ async function getStoredActiveTasks() {
   return [];
 }
 
-async function pollUntilComplete(taskId, cardRefs, startTime) {
+async function pollUntilComplete(taskId, cardRefs, startTime, isMotion = false) {
   return new Promise((resolve, reject) => {
     const check = async () => {
       try {
-        const data = await getTaskStatus(taskId);
+        const data = await getTaskStatus(taskId, isMotion);
         updateOutputUI(data, cardRefs, startTime);
 
         if (data.status === 'finished') {
@@ -1286,7 +1416,7 @@ async function generateMedia(body) {
 
     const aspectRatio = document.getElementById('aspectRatio')?.value || '9:16';
     if (cardRefs.card) cardRefs.card.dataset.aspectRatio = aspectRatio;
-    activeTasks.set(taskId, { cardRefs, startTime, prompt: lastPrompt, aspectRatio });
+    activeTasks.set(taskId, { cardRefs, startTime, prompt: lastPrompt, aspectRatio, isMotion: body?.model === 'kling-2.6/motion-control' });
     startLoadingForCard(cardRefs, currentMode);
     document.getElementById('currentResultSection')?.scrollIntoView({ behavior: 'smooth', block: 'end' });
 
@@ -1296,9 +1426,11 @@ async function generateMedia(body) {
 
     btnGenerate.disabled = false;
 
-    const result = await pollUntilComplete(taskId, cardRefs, startTime);
+    const isMotion = body?.model === 'kling-2.6/motion-control';
+    const result = await pollUntilComplete(taskId, cardRefs, startTime, isMotion);
     const tid = pollTimeouts.get(taskId);
     if (tid) { clearTimeout(tid); pollTimeouts.delete(taskId); }
+    if (isMotion) deleteMotionRefsFromStorage();
     if (result?.status === 'finished' && result?.files?.length) {
       const ar = result.files[0]?.file_type === 'video'
         ? (document.getElementById('aspectRatio')?.value || '9:16')
@@ -1307,11 +1439,14 @@ async function generateMedia(body) {
     }
   } catch (err) {
     if (taskId) activeTasks.delete(taskId);
+    if (body?.model === 'kling-2.6/motion-control') deleteMotionRefsFromStorage();
     stopLoadingForCard(cardRefs);
+    console.error('[VARVOS] Erro na geração:', err);
     if (err.isCredits) {
       openCreditsModal();
     } else if (cardRefs.statusMessage) {
-      cardRefs.statusMessage.textContent = 'Há muitos vídeos na fila, por isso está ocorrendo este erro. Tente novamente em alguns minutos.';
+      const msg = (err?.message || '').toString().trim();
+      cardRefs.statusMessage.textContent = msg || 'Ocorreu um erro. Tente novamente em alguns minutos.';
       cardRefs.statusMessage.className = 'status-message error';
     }
     const tid = pollTimeouts.get(taskId);
@@ -1425,7 +1560,8 @@ async function restoreActiveTask() {
     if (cardRefs.taskProgressEl) cardRefs.taskProgressEl.textContent = '0%';
     if (cardRefs.progressFill) cardRefs.progressFill.style.width = '0%';
 
-    pollUntilComplete(data.taskId, cardRefs, startTime)
+    const isMotion = data.mode === 'motion';
+    pollUntilComplete(data.taskId, cardRefs, startTime, isMotion)
       .then((result) => {
         const tid = pollTimeouts.get(data.taskId);
         if (tid) { clearTimeout(tid); pollTimeouts.delete(data.taskId); }
@@ -1445,7 +1581,8 @@ async function restoreActiveTask() {
         if (err.isCredits) {
           openCreditsModal();
         } else if (cardRefs.statusMessage) {
-          cardRefs.statusMessage.textContent = 'Há muitos vídeos na fila, por isso está ocorrendo este erro. Tente novamente em alguns minutos.';
+          const msg = (err?.message || '').toString().trim();
+          cardRefs.statusMessage.textContent = msg || 'Ocorreu um erro. Tente novamente em alguns minutos.';
           cardRefs.statusMessage.className = 'status-message error';
         }
       })
