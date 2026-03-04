@@ -519,6 +519,11 @@ document.querySelector('.plans-modal-backdrop')?.addEventListener('click', close
 // Init créditos
 updateCreditsDisplay();
 
+// Abre modal de planos quando ?planos=1 na URL (ex: vindo de "Planos e preços")
+if (new URLSearchParams(location.search).get('planos') === '1' && document.getElementById('plansModal')) {
+  setTimeout(openPlansModal, 150);
+}
+
 // Vídeos Social & UGC Ads — loop e mudo ao rolar (igual à landing)
 const samplesObserver = new IntersectionObserver((entries) => {
   entries.forEach(entry => {

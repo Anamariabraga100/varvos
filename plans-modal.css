@@ -241,3 +241,230 @@
   color: var(--text-muted, #6b7280);
   text-align: center;
 }
+
+/* Cards avulsos — layout do print (ícone, compacto, preço total em cima) */
+.plan-card-avulso {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 18px 16px;
+}
+
+.plan-card-avulso .plan-badge,
+.plan-card-avulso .plan-badge-popular {
+  position: static;
+  margin-bottom: 2px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.plan-card-avulso .plan-name {
+  margin: 6px 0 0;
+  font-size: 1.1rem;
+}
+
+.plan-card-avulso .plan-desc {
+  margin: 0 0 12px;
+  font-size: 0.85rem;
+  color: var(--text-muted, #6b7280);
+}
+
+.plan-card-avulso .plan-credits-block {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.plan-card-avulso .plan-credits-icon {
+  flex-shrink: 0;
+  color: var(--text, #1a1a1a);
+  opacity: 0.9;
+}
+
+.plan-card-avulso .plan-credits-num {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text, #1a1a1a);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.plan-card-avulso .plan-credits-label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text, #1a1a1a);
+}
+
+.plan-card-avulso .plan-credits-desc {
+  margin: 0 0 12px;
+  font-size: 0.9rem;
+  color: var(--text, #4a4a4a);
+  font-weight: 500;
+}
+
+.plan-card-avulso .plan-price-box {
+  width: 100%;
+  padding: 12px 14px;
+  background: var(--bg-soft, #f5f5f5);
+  border-radius: 10px;
+  margin-bottom: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: center;
+}
+
+.plan-card-avulso .plan-price-box .plan-current {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text, #1a1a1a);
+}
+
+.plan-card-avulso .plan-price-box .plan-per {
+  font-size: 0.8rem;
+  color: var(--text-muted, #6b7280);
+  font-weight: 400;
+}
+
+/* Invertido: valor por vídeo grande em cima, total pequeno embaixo */
+.plan-card-avulso .plan-price-inverted .plan-per-first {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--text, #1a1a1a);
+}
+
+.plan-card-avulso .plan-price-inverted .plan-current-small {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-muted, #6b7280);
+}
+
+.plan-card-avulso .plan-features {
+  width: 100%;
+  margin-bottom: 14px;
+  text-align: left;
+  font-size: 0.85rem;
+}
+
+.plan-card-avulso .plan-features li {
+  padding: 3px 0;
+  padding-left: 24px;
+  position: relative;
+}
+
+.plan-card-avulso .plan-features li::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  top: 2px;
+  color: #22c55e;
+  font-weight: 700;
+  font-size: 0.9em;
+  width: 1em;
+  text-align: center;
+}
+
+.plan-card-avulso .plan-cta {
+  padding: 10px 20px;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.plan-card-avulso .plan-guarantee {
+  margin-top: 8px;
+  font-size: 0.75rem;
+}
+
+/* Esquema unificado dos cards (mensais) */
+.plan-card-schema {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 24px 20px;
+}
+
+.plan-card-schema .plan-badge,
+.plan-card-schema .plan-badge-popular {
+  position: static;
+  margin-bottom: 4px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.plan-card-schema .plan-name {
+  margin: 8px 0 2px;
+}
+
+.plan-card-schema .plan-desc {
+  margin: 0 0 16px;
+  font-size: 0.9rem;
+  color: var(--text-muted, #6b7280);
+}
+
+.plan-card-schema .plan-credits-block {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.plan-card-schema .plan-credits-hero-text {
+  font-size: 2.25rem;
+  font-weight: 800;
+  color: var(--text, #1a1a1a);
+  letter-spacing: 0.03em;
+  line-height: 1.1;
+}
+
+.plan-card-schema .plan-price-box {
+  width: 100%;
+  padding: 16px;
+  background: var(--bg-soft, #f5f5f5);
+  border-radius: 12px;
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.plan-card-schema .plan-price-inverted {
+  align-items: center;
+}
+
+.plan-card-schema .plan-price-inverted .plan-per-first {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text, #1a1a1a);
+}
+
+.plan-card-schema .plan-price-inverted .plan-current-small {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-muted, #6b7280);
+}
+
+.plan-card-schema .plan-features {
+  width: 100%;
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.plan-card-schema .plan-features li::before {
+  color: #22c55e;
+}
+
+.plan-card-schema .plan-cta {
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}

@@ -187,6 +187,20 @@
         catch (e) { if (text.trim().startsWith('<')) throw new Error('A API não está respondendo. Use "npx vercel dev".'); throw e; }
       }); })
       .then(function (order) {
+        var charge = order.charges?.[0];
+        var tx = charge?.last_transaction || {};
+        var gw = tx.gateway_response || {};
+        var payFailed = order.status === 'failed' || charge?.status === 'failed';
+        if (payFailed && gw?.errors?.length) {
+          var errMsg = gw.errors.map(function (e) { return e.message; }).join('. ');
+          showError(errMsg || 'Pagamento recusado. Verifique os dados do cartão.');
+          debugStep('Passo 3: Erro da Pagar.me', gw.errors, true);
+          return;
+        }
+        if (payFailed) {
+          showError('Pagamento não aprovado. Tente outro cartão ou método.');
+          return;
+        }
         document.getElementById('checkoutSuccess')?.classList.remove('hidden');
         document.getElementById('checkoutAvulso')?.classList.add('hidden');
         document.getElementById('successMsg').textContent = 'Pagamento aprovado! Seus créditos foram adicionados à conta.';
@@ -215,13 +229,15 @@
       .finally(function () { if (cardSubmitTimeoutId) { clearTimeout(cardSubmitTimeoutId); cardSubmitTimeoutId = null; } setLoading(btn, false); });
   }
 
-  // Inicialização
+  // Inicialização — plano deve vir do modal; sem plano, redireciona
   const plan = getPlan();
   const user = getUser();
 
   if (!plan) {
-    document.getElementById('noPlan')?.classList.remove('hidden');
-  } else if (AVULSOS.includes(plan.id)) {
+    location.replace('/video/?planos=1');
+    return;
+  }
+  if (AVULSOS.includes(plan.id)) {
     document.getElementById('checkoutAvulso')?.classList.remove('hidden');
     document.getElementById('avulsoPlanId').value = plan.id;
     document.getElementById('avulsoTitle').textContent = 'Checkout — ' + plan.name;
@@ -281,13 +297,14 @@
     debugStep('Início: método de pagamento', { tabAtivo: paymentMethod, cardFieldsOcultos: cardFieldsHidden, usando: effectiveMethod });
 
     const cpf = (document.getElementById('avulsoCpf')?.value || '').replace(/\D/g, '');
+    if (cpf.length !== 11) {
+      e.preventDefault();
+      showError('Informe um CPF válido (11 dígitos).');
+      return;
+    }
     if (effectiveMethod === 'pix') {
       e.preventDefault();
       e.stopImmediatePropagation();
-      if (cpf.length !== 11) {
-        showError('Informe um CPF válido para pagamento com Pix (11 dígitos).');
-        return;
-      }
     }
 
     const payload = {

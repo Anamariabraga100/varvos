@@ -55,11 +55,21 @@ export default async function handler(req, res) {
       },
     });
   } else {
+    const billingAddr = {
+      line_1: customer.address?.line_1 || 'Av. Paulista, 1000',
+      zip_code: (customer.address?.zip_code || '01310100').replace(/\D/g, '').slice(0, 8) || '01310100',
+      city: customer.address?.city || 'São Paulo',
+      state: customer.address?.state || 'SP',
+      country: 'BR',
+    };
     payments.push({
       payment_method: 'credit_card',
       credit_card: {
         card_token: cardToken,
         installments: 1,
+        card: {
+          billing_address: billingAddr,
+        },
       },
     });
   }

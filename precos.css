@@ -96,10 +96,64 @@ header {
 }
 
 .preco-badge-off {
-  background: #1a1a1a;
+  background: #2d2d2d;
   color: white;
-  padding: 4px 10px;
-  border-radius: 6px;
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+}
+
+.preco-badge-desc {
+  margin: 4px 0 16px;
+  font-size: 0.9rem;
+  color: #6b6b6b;
+}
+
+.preco-creditos-block {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 4px;
+}
+
+.preco-creditos-icon {
+  flex-shrink: 0;
+  color: #2d2d2d;
+}
+
+.preco-creditos-num {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.preco-destaque .preco-creditos-num {
+  color: #1a1a1a;
+}
+
+.preco-creditos-label {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #6b6b6b;
+  align-self: center;
+}
+
+.preco-creditos-desc {
+  margin: 0 0 16px;
+  font-size: 0.95rem;
+  color: #4a4a4a;
+  font-weight: 500;
+}
+
+.preco-garantia {
+  display: block;
+  margin-top: 16px;
+  font-size: 0.85rem;
+  color: #6b6b6b;
+  text-align: center;
 }
 
 .preco-card h2 {
@@ -165,6 +219,14 @@ header {
 }
 
 .btn-preco:hover { background: #333; color: white; }
+
+.preco-garantia {
+  display: block;
+  margin-top: 12px;
+  font-size: 0.8rem;
+  color: #6b6b6b;
+  text-align: center;
+}
 
 .btn-preco-destaque {
   background: #1a1a1a;
