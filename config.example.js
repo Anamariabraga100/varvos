@@ -8,6 +8,7 @@ window.VARVOS_CONFIG = {
   supabaseUrl: 'https://seu-projeto.supabase.co',
   supabaseAnonKey: 'sua-anon-key-aqui',
   adminPassword: 'senha-secreta-admin',
-  // Pagar.me (https://dashboard.pagar.me) — Configurações > Chaves > Chave de criptografia (ek_test_ ou ek_live_)
-  pagarMeEncryptionKey: 'ek_test_xxxx' // Obrigatório para pagamento com cartão no checkout
+  // Pagar.me (https://dashboard.pagar.me) — Configurações > Chaves
+  pagarMePublicKey: 'pk_test_xxxx',   // Chave pública (pk_test_ ou pk_live_) — obrigatório para cartão
+  pagarMeEncryptionKey: 'ek_test_xxxx' // Chave de criptografia (legado; tokenizecard usa publicKey)
 };

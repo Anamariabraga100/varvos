@@ -82,20 +82,11 @@
     return window.location.origin + '/api';
   }
 
-  // Tokenizar cartão com Pagar.me (encryption key)
-  function tokenizeCard(cardData) {
-    const encKey = window.VARVOS_CONFIG?.pagarMeEncryptionKey;
-    if (!encKey) {
-      return Promise.reject(new Error('Chave de criptografia Pagar.me não configurada. Adicione pagarMeEncryptionKey no config.'));
-    }
-    if (typeof pagarme === 'undefined') {
-      return Promise.reject(new Error('Biblioteca Pagar.me não carregada.'));
-    }
-    return pagarme.client
-      .connect({ encryption_key: encKey })
-      .then(function (client) {
-        return client.security.encrypt(cardData);
-      });
+  // Sincroniza campo validade MM/AA para exp_date (MM-YY) para tokenizecard
+  function syncExpDateToken(expInputId, tokenElId) {
+    var expEl = document.getElementById(expInputId);
+    var tokenEl = document.getElementById(tokenElId);
+    if (expEl && tokenEl) tokenEl.value = (expEl.value || '').replace(/\//g, '-');
   }
 
   function parseExp(expStr) {
@@ -104,6 +95,89 @@
       return { month: m.slice(0, 2), year: m.slice(2, 4) };
     }
     return null;
+  }
+
+  // Tokenizecard.js — carrega script e inicializa PagarmeCheckout
+  var useTokenizecard = !!(window.VARVOS_CONFIG && window.VARVOS_CONFIG.pagarMePublicKey);
+  if (useTokenizecard) {
+    var s = document.createElement('script');
+    s.src = 'https://checkout.pagar.me/v1/tokenizecard.js';
+    s.setAttribute('data-pagarmecheckout-app-id', window.VARVOS_CONFIG.pagarMePublicKey);
+    s.onload = function () {
+      if (window.PagarmeCheckout && window.PagarmeCheckout.init) {
+        window.PagarmeCheckout.init(
+          function success(data) {
+            var token = data && (data.pagarmetoken || data.token);
+            var formType = data && data.formType;
+            if (!token || !formType) {
+              showError('Token do cartão não gerado. Tente novamente.');
+              return false;
+            }
+            var btn = formType === 'avulso' ? document.getElementById('btnAvulsoSubmit') : document.getElementById('btnMensalSubmit');
+            if (formType === 'avulso') {
+              doOrderFromToken(data, token, btn);
+            } else {
+              doSubscriptionFromToken(data, token, btn);
+            }
+            return false;
+          },
+          function fail(err) {
+            showError(err && (err.message || err.error_message) || 'Erro ao processar cartão. Verifique os dados.');
+            setLoading(document.getElementById('btnAvulsoSubmit'), false);
+            setLoading(document.getElementById('btnMensalSubmit'), false);
+          }
+        );
+      }
+    };
+    document.body.appendChild(s);
+  }
+
+  function doOrderFromToken(data, cardToken, btn) {
+    var payload = {
+      planId: data.planId,
+      paymentMethod: 'credit_card',
+      userId: getUserId(),
+      customer: { name: data.name, email: data.email, document: (data.cpf || '').replace(/\D/g, '') || undefined },
+      cardToken: cardToken,
+    };
+    debugStep('Passo 1: Dados enviados para a API', { url: getApiBase() + '/create-order', payload: { ...payload, cardToken: '(token)' } });
+    fetch(getApiBase() + '/create-order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+      .then(function (r) { return r.text().then(function (text) {
+        debugStep('Passo 2: Resposta do servidor', { status: r.status, url: r.url, body: text });
+        try { var d = JSON.parse(text); if (!r.ok) { debugStep('Passo 3: Erro da Pagar.me', d, true); throw new Error(d.error || d.message); } return d; }
+        catch (e) { if (text.trim().startsWith('<')) throw new Error('A API não está respondendo. Use "npx vercel dev".'); throw e; }
+      }); })
+      .then(function (order) {
+        document.getElementById('checkoutSuccess')?.classList.remove('hidden');
+        document.getElementById('checkoutAvulso')?.classList.add('hidden');
+        document.getElementById('successMsg').textContent = 'Pagamento aprovado! Seus créditos foram adicionados à conta.';
+      })
+      .catch(function (err) { showError(err.message || 'Erro ao processar.'); })
+      .finally(function () { setLoading(btn, false); });
+  }
+
+  function doSubscriptionFromToken(data, cardToken, btn) {
+    var payload = { planId: data.planId, userId: getUserId(), customer: { name: data.name, email: data.email }, cardToken: cardToken };
+    fetch(getApiBase() + '/create-subscription', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+      .then(function (r) { return r.text().then(function (text) {
+        try { var d = JSON.parse(text); if (!r.ok) throw new Error(d.error || d.message); return d; }
+        catch (e) { if (text.trim().startsWith('<')) throw new Error('A API não está respondendo.'); throw e; }
+      }); })
+      .then(function () {
+        document.getElementById('checkoutSuccess')?.classList.remove('hidden');
+        document.getElementById('checkoutMensal')?.classList.add('hidden');
+        document.getElementById('successMsg').textContent = 'Assinatura ativada! Seus créditos mensais foram creditados. A renovação é automática.';
+      })
+      .catch(function (err) { showError(err.message || 'Erro ao processar.'); })
+      .finally(function () { setLoading(btn, false); });
   }
 
   // Inicialização
@@ -133,6 +207,7 @@
   }
 
   // Tabs Pix / Cartão (avulsos)
+  var formAvulsoEl = document.getElementById('formAvulso');
   document.querySelectorAll('.pm-tab').forEach(function (tab) {
     tab.addEventListener('click', function () {
       const method = tab.dataset.method;
@@ -145,9 +220,11 @@
       if (method === 'pix') {
         cardFields?.classList.add('hidden');
         if (btnTxt) btnTxt.textContent = 'Gerar Pix';
+        formAvulsoEl?.removeAttribute('data-pagarmecheckout-form');
       } else {
         cardFields?.classList.remove('hidden');
         if (btnTxt) btnTxt.textContent = 'Pagar com cartão';
+        formAvulsoEl?.setAttribute('data-pagarmecheckout-form', '');
       }
       hideError();
     });
@@ -279,132 +356,56 @@
     }
 
     if (effectiveMethod === 'credit_card') {
-      const cardNum = document.getElementById('avulsoCardNumber').value.replace(/\D/g, '');
-      const cardName = document.getElementById('avulsoCardName').value.trim();
-      const exp = document.getElementById('avulsoCardExp').value;
-      const cvv = document.getElementById('avulsoCardCvv').value;
-      const parsed = parseExp(exp);
-      if (!cardNum || !cardName || !parsed) {
-        showError('Preencha todos os dados do cartão.');
-        setLoading(btn, false);
+      if (!useTokenizecard) {
+        showError('Configure pagarMePublicKey no config.js para pagamento com cartão.');
         return;
       }
-      tokenizeCard({
-        card_number: cardNum,
-        card_holder_name: cardName,
-        card_expiration_date: parsed.month + parsed.year,
-        card_cvv: cvv,
-      })
-        .then(function (hash) {
-          payload.cardToken = hash;
-          doOrder(hash);
-        })
-        .catch(function (err) {
-          showError(err.message || 'Erro ao tokenizar cartão. Verifique a chave de criptografia.');
-          setLoading(btn, false);
-        });
+      if (!window.PagarmeCheckout || !window.PagarmeCheckout.init) {
+        showError('Aguarde o carregamento do pagamento. Recarregue a página se persistir.');
+        return;
+      }
+      var cardNum = document.getElementById('avulsoCardNumber').value.replace(/\D/g, '');
+      var cardName = document.getElementById('avulsoCardName').value.trim();
+      var exp = document.getElementById('avulsoCardExp').value;
+      var parsed = parseExp(exp);
+      if (!cardNum || !cardName || !parsed) {
+        showError('Preencha todos os dados do cartão.');
+        return;
+      }
+      syncExpDateToken('avulsoCardExp', 'avulsoExpDateToken');
+      formAvulsoEl?.setAttribute('data-pagarmecheckout-form', '');
+      setLoading(btn, true);
     } else {
       doOrder();
     }
   });
 
-  // Submit mensal (Cartão)
+  // Submit mensal (Cartão) — usa tokenizecard
   document.getElementById('formMensal')?.addEventListener('submit', function (e) {
     e.preventDefault();
     hideError();
-    const planId = document.getElementById('mensalPlanId').value;
-    const name = document.getElementById('mensalName').value.trim();
-    const email = document.getElementById('mensalEmail').value.trim();
-    const cardNum = document.getElementById('mensalCardNumber').value.replace(/\D/g, '');
-    const cardName = document.getElementById('mensalCardName').value.trim();
-    const exp = document.getElementById('mensalCardExp').value;
-    const cvv = document.getElementById('mensalCardCvv').value;
-    const parsed = parseExp(exp);
+    var planId = document.getElementById('mensalPlanId').value;
+    var name = document.getElementById('mensalName').value.trim();
+    var email = document.getElementById('mensalEmail').value.trim();
+    var cardNum = document.getElementById('mensalCardNumber').value.replace(/\D/g, '');
+    var cardName = document.getElementById('mensalCardName').value.trim();
+    var exp = document.getElementById('mensalCardExp').value;
+    var parsed = parseExp(exp);
 
     if (!name || !email || !cardNum || !cardName || !parsed) {
       showError('Preencha todos os campos.');
       return;
     }
-
-    const btn = document.getElementById('btnMensalSubmit');
-    setLoading(btn, true);
-
-    const encKey = window.VARVOS_CONFIG?.pagarMeEncryptionKey;
-    const useToken = encKey && typeof pagarme !== 'undefined';
-
-    function doSubscription(cardToken) {
-      const payload = {
-        planId,
-        userId: getUserId(),
-        customer: { name, email },
-      };
-      if (cardToken) {
-        payload.cardToken = cardToken;
-      } else {
-        payload.card = {
-          holder_name: cardName,
-          number: cardNum,
-          exp_month: parsed.month,
-          exp_year: parsed.year,
-          cvv: cvv,
-          billing_address: {
-            line_1: 'N/A',
-            zip_code: '00000000',
-            city: 'N/A',
-            state: 'SP',
-            country: 'BR',
-          },
-        };
-      }
-
-      fetch(getApiBase() + '/create-subscription', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      })
-        .then(function (r) {
-          return r.text().then(function (text) {
-            try {
-              var data = JSON.parse(text);
-              if (!r.ok) throw new Error(data.error || data.message || 'Erro ao criar assinatura');
-              return data;
-            } catch (e) {
-              if (text.trim().startsWith('<')) {
-                throw new Error('A API de pagamento não está respondendo. Use "npx vercel dev" (não "serve") para testar localmente.');
-              }
-              throw e;
-            }
-          });
-        })
-        .then(function () {
-          document.getElementById('checkoutSuccess')?.classList.remove('hidden');
-          document.getElementById('checkoutMensal')?.classList.add('hidden');
-          document.getElementById('successMsg').textContent =
-            'Assinatura ativada! Seus créditos mensais foram creditados. A renovação é automática.';
-        })
-        .catch(function (err) {
-          showError(err.message || 'Erro ao processar. Tente novamente.');
-        })
-        .finally(function () {
-          setLoading(btn, false);
-        });
+    if (!useTokenizecard) {
+      showError('Configure pagarMePublicKey no config.js para assinatura com cartão.');
+      return;
     }
-
-    if (useToken) {
-      tokenizeCard({
-        card_number: cardNum,
-        card_holder_name: cardName,
-        card_expiration_date: parsed.month + parsed.year,
-        card_cvv: cvv,
-      })
-        .then(doSubscription)
-        .catch(function (err) {
-          showError(err.message || 'Erro ao tokenizar cartão.');
-          setLoading(btn, false);
-        });
-    } else {
-      doSubscription();
+    if (!window.PagarmeCheckout || !window.PagarmeCheckout.init) {
+      showError('Aguarde o carregamento do pagamento. Recarregue a página se persistir.');
+      return;
     }
+    syncExpDateToken('mensalCardExp', 'mensalExpDateToken');
+    setLoading(document.getElementById('btnMensalSubmit'), true);
   });
 
   // Formatar número do cartão
@@ -420,20 +421,24 @@
     if (el) formatCardNumber(el);
   });
 
-  // Formatar validade MM/AA
-  function formatExp(input) {
+  // Formatar validade MM/AA e sincronizar com tokenizecard (exp_date)
+  function formatExp(input, syncId) {
     input.addEventListener('input', function () {
-      let v = this.value.replace(/\D/g, '');
+      var v = this.value.replace(/\D/g, '');
       if (v.length >= 2) {
         v = v.substring(0, 2) + '/' + v.substring(2, 4);
       }
       this.value = v.substring(0, 5);
+      if (syncId) {
+        var tok = document.getElementById(syncId);
+        if (tok) tok.value = this.value.replace(/\//g, '-');
+      }
     });
   }
-  ['avulsoCardExp', 'mensalCardExp'].forEach(function (id) {
-    var el = document.getElementById(id);
-    if (el) formatExp(el);
-  });
+  var avulsoExp = document.getElementById('avulsoCardExp');
+  if (avulsoExp) formatExp(avulsoExp, 'avulsoExpDateToken');
+  var mensalExp = document.getElementById('mensalCardExp');
+  if (mensalExp) formatExp(mensalExp, 'mensalExpDateToken');
 
   // Formatar CPF XXX.XXX.XXX-XX
   var cpfEl = document.getElementById('avulsoCpf');

@@ -63,6 +63,7 @@
 
         <form id="formAvulso" class="checkout-form">
           <input type="hidden" name="planId" id="avulsoPlanId">
+          <input type="hidden" name="formType" value="avulso">
           <div class="form-row">
             <label for="avulsoName">Nome completo</label>
             <input type="text" id="avulsoName" name="name" required placeholder="Como no documento">
@@ -77,13 +78,14 @@
           </div>
 
           <div id="cardFieldsAvulso" class="card-fields hidden">
+            <input type="hidden" data-pagarmecheckout-element="exp_date" id="avulsoExpDateToken">
             <div class="form-row">
               <label for="avulsoCardNumber">Número do cartão</label>
-              <input type="text" id="avulsoCardNumber" name="card_number" placeholder="0000 0000 0000 0000" maxlength="19" autocomplete="cc-number">
+              <input type="text" id="avulsoCardNumber" name="card_number" data-pagarmecheckout-element="number" placeholder="0000 0000 0000 0000" maxlength="19" autocomplete="cc-number">
             </div>
             <div class="form-row">
               <label for="avulsoCardName">Nome no cartão</label>
-              <input type="text" id="avulsoCardName" name="card_holder" placeholder="Como impresso no cartão" autocomplete="cc-name">
+              <input type="text" id="avulsoCardName" name="card_holder" data-pagarmecheckout-element="holder_name" placeholder="Como impresso no cartão" autocomplete="cc-name">
             </div>
             <div class="form-row form-row-inline">
               <div>
@@ -92,7 +94,7 @@
               </div>
               <div>
                 <label for="avulsoCardCvv">CVV</label>
-                <input type="text" id="avulsoCardCvv" name="card_cvv" placeholder="123" maxlength="4" autocomplete="cc-csc">
+                <input type="text" id="avulsoCardCvv" name="card_cvv" data-pagarmecheckout-element="cvv" placeholder="123" maxlength="4" autocomplete="cc-csc">
               </div>
             </div>
           </div>
@@ -120,8 +122,9 @@
         <h1 id="mensalTitle">Assinatura — Plano mensal</h1>
         <p id="mensalPlan" class="checkout-plan-info"></p>
 
-        <form id="formMensal" class="checkout-form">
+        <form id="formMensal" class="checkout-form" data-pagarmecheckout-form>
           <input type="hidden" name="planId" id="mensalPlanId">
+          <input type="hidden" name="formType" value="mensal">
           <div class="form-row">
             <label for="mensalName">Nome completo</label>
             <input type="text" id="mensalName" name="name" required placeholder="Como no documento">
@@ -130,13 +133,14 @@
             <label for="mensalEmail">E-mail</label>
             <input type="email" id="mensalEmail" name="email" required placeholder="seu@email.com">
           </div>
+          <input type="hidden" data-pagarmecheckout-element="exp_date" id="mensalExpDateToken">
           <div class="form-row">
             <label for="mensalCardNumber">Número do cartão</label>
-            <input type="text" id="mensalCardNumber" name="card_number" required placeholder="0000 0000 0000 0000" maxlength="19" autocomplete="cc-number">
+            <input type="text" id="mensalCardNumber" name="card_number" data-pagarmecheckout-element="number" required placeholder="0000 0000 0000 0000" maxlength="19" autocomplete="cc-number">
           </div>
           <div class="form-row">
             <label for="mensalCardName">Nome no cartão</label>
-            <input type="text" id="mensalCardName" name="card_holder" required placeholder="Como impresso no cartão" autocomplete="cc-name">
+            <input type="text" id="mensalCardName" name="card_holder" data-pagarmecheckout-element="holder_name" required placeholder="Como impresso no cartão" autocomplete="cc-name">
           </div>
           <div class="form-row form-row-inline">
             <div>
@@ -145,7 +149,7 @@
             </div>
             <div>
               <label for="mensalCardCvv">CVV</label>
-              <input type="text" id="mensalCardCvv" name="card_cvv" required placeholder="123" maxlength="4" autocomplete="cc-csc">
+              <input type="text" id="mensalCardCvv" name="card_cvv" data-pagarmecheckout-element="cvv" required placeholder="123" maxlength="4" autocomplete="cc-csc">
             </div>
           </div>
 
@@ -168,7 +172,6 @@
 
   <script src="config.js"></script>
   <script src="plans-config.js"></script>
-  <script src="https://unpkg.com/pagarme@4.35.2/browser/pagarme.min.js"></script>
   <script src="checkout.js"></script>
 </body>
 </html>

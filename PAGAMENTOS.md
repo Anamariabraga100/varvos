@@ -14,7 +14,7 @@ No projeto Vercel, em Settings → Environment Variables, adicione:
 | Variável | Descrição |
 |----------|-----------|
 | `PAGAR_ME_SECRET_KEY` | Chave secreta (sk_test_ ou sk_live_) — Dashboard Pagar.me |
-| `PAGAR_ME_ENCRYPTION_KEY` | Chave de criptografia (ek_test_ ou ek_live_) — para tokenização de cartão no frontend |
+| `PAGAR_ME_PUBLIC_KEY` | Chave pública (pk_test_ ou pk_live_) — tokenização de cartão no frontend (obrigatória para cartão) |
 | `PAGAR_ME_PLAN_START` | ID do plano Start (criar via `/api/create-plan` ou Dashboard) |
 | `PAGAR_ME_PLAN_PRO` | ID do plano Pro |
 | `PAGAR_ME_PLAN_AGENCY` | ID do plano Agency |
@@ -35,23 +35,31 @@ A resposta incluirá o `plan_id`. Adicione-o como `PAGAR_ME_PLAN_START` no Verce
 
 Repita para `pro` e `agency`.
 
-### 3. Webhook Pagar.me
+### 3. Domínio para tokenizecard (cartão)
+
+O tokenizecard.js só funciona em domínios cadastrados. No Dashboard Pagar.me → Configurações → Chaves/Domínios, adicione:
+- Desenvolvimento: `localhost`, `127.0.0.1`
+- Produção: `www.varvos.com`, `varvos.com`
+
+### 4. Webhook Pagar.me
 
 No Dashboard Pagar.me → Configurações → Webhooks:
 
 - **URL**: `https://seu-dominio.vercel.app/api/webhooks/pagarme`
 - **Eventos**: `order.paid`, `subscription.invoice_paid` (ou `invoice.paid`)
 
-### 4. config.js (desenvolvimento local)
+### 5. config.js (desenvolvimento local) e build
 
-Adicione `pagarMeEncryptionKey` para pagamento com cartão:
+Para pagamento com cartão, adicione `pagarMePublicKey` (chave pública do Dashboard Pagar.me):
 
 ```js
 window.VARVOS_CONFIG = {
   // ... outras chaves
-  pagarMeEncryptionKey: 'ek_test_xxxx'  // Chave de criptografia
+  pagarMePublicKey: 'pk_test_xxxx'  // Chave pública (pk_test_ ou pk_live_)
 };
 ```
+
+No Vercel, adicione `PAGAR_ME_PUBLIC_KEY` nas variáveis de ambiente para o build injetar em `config.js`.
 
 ## Como testar o webhook (créditos)
 
@@ -65,8 +73,8 @@ window.VARVOS_CONFIG = {
 ## Fluxo
 
 1. **Avulsos (Pix)**: Usuário escolhe Pix → API cria pedido → exibe QR/código → webhook confirma → créditos adicionados
-2. **Avulsos (Cartão)**: Frontend tokeniza cartão com encryption key → API cria pedido com token → webhook confirma
-3. **Mensais**: Frontend tokeniza cartão → API cria assinatura com plan_id → cobrança recorrente mensal
+2. **Avulsos (Cartão)**: Frontend usa tokenizecard.js (chave pública) → gera token curto → API cria pedido → webhook confirma
+3. **Mensais**: Mesmo fluxo tokenizecard.js → API cria assinatura com plan_id → cobrança recorrente mensal
 
 ## Referências
 
