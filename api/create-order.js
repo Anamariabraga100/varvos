@@ -66,9 +66,19 @@ export default async function handler(req, res) {
       email: email.substring(0, 64),
       type: 'individual',
       address: {
+        line_1: customer.address?.line_1 || 'Av. Paulista, 1000',
+        zip_code: customer.address?.zip_code || '01310100',
+        city: customer.address?.city || 'São Paulo',
+        state: customer.address?.state || 'SP',
         country: 'BR',
       },
-      phones: {},
+      phones: {
+        mobile_phone: {
+          country_code: '55',
+          area_code: '11',
+          number: (String(customer.phone || '').replace(/\D/g, '').slice(-9) || '999999999').slice(0, 9),
+        },
+      },
     },
     items: [
       {
@@ -102,8 +112,11 @@ export default async function handler(req, res) {
     const data = await response.json();
 
     if (!response.ok) {
+      const detailStr = data.errors && typeof data.errors === 'object'
+        ? ' ' + JSON.stringify(data.errors)
+        : '';
       return res.status(response.status).json({
-        error: data.message || 'Erro ao criar pedido',
+        error: (data.message || 'Erro ao criar pedido') + detailStr,
         details: data.errors,
       });
     }
