@@ -1530,7 +1530,8 @@ async function saveActiveTask(taskId, startTime, prompt) {
     if (idx >= 0) tasks[idx] = payload;
     else {
       tasks.push(payload);
-      if (tasks.length > 2) tasks.shift();
+      const MAX_ACTIVE_TASKS = 5;
+      if (tasks.length > MAX_ACTIVE_TASKS) tasks.shift();
     }
     sessionStorage.setItem(ACTIVE_TASK_STORAGE, JSON.stringify({ tasks }));
   } catch (e) {}
@@ -1538,13 +1539,13 @@ async function saveActiveTask(taskId, startTime, prompt) {
   const sb = window.varvosSupabase;
   if (userId && sb) {
     try {
-      await sb.from('user_active_tasks').upsert({
+      await sb.from('user_active_task_items').upsert({
         user_id: userId,
         task_id: taskId,
         mode: currentMode,
         started_at: new Date(payload.startTime).toISOString(),
-        updated_at: new Date().toISOString()
-      }, { onConflict: 'user_id' });
+        prompt: payload.prompt || ''
+      });
     } catch (e) { console.warn('saveActiveTask Supabase:', e); }
   }
 }
@@ -1568,7 +1569,7 @@ async function clearActiveTask(onlyIfTaskId = null) {
   const sb = window.varvosSupabase;
   if (userId && sb) {
     try {
-      let q = sb.from('user_active_tasks').delete().eq('user_id', userId);
+      let q = sb.from('user_active_task_items').delete().eq('user_id', userId);
       if (onlyIfTaskId) q = q.eq('task_id', onlyIfTaskId);
       await q;
     } catch (e) { console.warn('clearActiveTask Supabase:', e); }
@@ -1580,10 +1581,19 @@ async function getStoredActiveTasks() {
   const sb = window.varvosSupabase;
   if (userId && sb) {
     try {
-      const { data } = await sb.from('user_active_tasks').select('task_id, started_at, mode').eq('user_id', userId).maybeSingle();
-      if (data) {
-        const startTime = data.started_at ? new Date(data.started_at).getTime() : Date.now();
-        return [{ taskId: data.task_id, startTime, mode: data.mode || 'video' }];
+      const { data: items } = await sb.from('user_active_task_items').select('task_id, started_at, mode, prompt').eq('user_id', userId).order('started_at', { ascending: true });
+      if (items && items.length > 0) {
+        return items.slice(-5).map((r) => ({
+          taskId: r.task_id,
+          startTime: r.started_at ? new Date(r.started_at).getTime() : Date.now(),
+          mode: r.mode || 'video',
+          prompt: r.prompt || ''
+        }));
+      }
+      const { data: legacy } = await sb.from('user_active_tasks').select('task_id, started_at, mode').eq('user_id', userId).maybeSingle();
+      if (legacy) {
+        const startTime = legacy.started_at ? new Date(legacy.started_at).getTime() : Date.now();
+        return [{ taskId: legacy.task_id, startTime, mode: legacy.mode || 'video', prompt: '' }];
       }
     } catch (e) { console.warn('getStoredActiveTasks Supabase:', e); }
   }
@@ -1592,7 +1602,7 @@ async function getStoredActiveTasks() {
     if (stored) {
       const d = JSON.parse(stored);
       const tasks = Array.isArray(d.tasks) ? d.tasks : (d.taskId ? [{ taskId: d.taskId, startTime: d.startTime || Date.now(), mode: d.mode || 'video', prompt: d.prompt || '' }] : []);
-      return tasks.map(t => ({ ...t, prompt: t.prompt || '' })).slice(0, 2);
+      return tasks.map(t => ({ ...t, prompt: t.prompt || '' })).slice(0, 5);
     }
   } catch (e) {}
   return [];
@@ -1636,13 +1646,15 @@ async function pollUntilComplete(taskId, cardRefs, startTime, isMotion = false) 
   });
 }
 
+const MAX_RESULT_CARDS = 3;
+
 function getAvailableCardIndex() {
-  const card0 = outputResultsList?.querySelector('.output-result-card[data-card="0"]');
-  const card1 = outputResultsList?.querySelector('.output-result-card[data-card="1"]');
-  const inUse0 = Array.from(activeTasks.values()).some(m => m.cardRefs?.card === card0);
-  const inUse1 = Array.from(activeTasks.values()).some(m => m.cardRefs?.card === card1);
-  if (!inUse0) return 0;
-  if (!inUse1) return 1;
+  for (let i = 0; i < MAX_RESULT_CARDS; i++) {
+    const card = outputResultsList?.querySelector(`.output-result-card[data-card="${i}"]`);
+    if (!card) return 0;
+    const inUse = Array.from(activeTasks.values()).some(m => m.cardRefs?.card === card);
+    if (!inUse) return i;
+  }
   return 0;
 }
 
