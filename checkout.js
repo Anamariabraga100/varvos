@@ -131,17 +131,15 @@
               var inp = f && (f.elements['pagarmetoken'] || f.querySelector('input[name=pagarmetoken]'));
               if (inp && inp.value) token = inp.value;
             }
-            var formType = data && (data.formType || data.form_type);
-            if (!formType) {
-              formType = document.getElementById('checkoutAvulso')?.classList.contains('hidden') ? 'mensal' : 'avulso';
-            }
+            var planId = data && data.planId;
+            var isAvulso = planId && AVULSOS.indexOf(planId) >= 0;
+            var btn = isAvulso ? document.getElementById('btnAvulsoSubmit') : document.getElementById('btnMensalSubmit');
             if (!token) {
               debugStep('Tokenizecard retornou sem token', data, true);
               showError('Token do cartão não gerado. Tente novamente.');
               return false;
             }
-            var btn = formType === 'avulso' ? document.getElementById('btnAvulsoSubmit') : document.getElementById('btnMensalSubmit');
-            if (formType === 'avulso') {
+            if (isAvulso) {
               doOrderFromToken(data, token, btn);
             } else {
               doSubscriptionFromToken(data, token, btn);
