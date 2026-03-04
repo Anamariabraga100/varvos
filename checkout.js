@@ -117,9 +117,26 @@
         window.PagarmeCheckout.init(
           function success(data) {
             if (cardSubmitTimeoutId) { clearTimeout(cardSubmitTimeoutId); cardSubmitTimeoutId = null; }
-            var token = data && (data.pagarmetoken || data.token);
-            var formType = data && data.formType;
-            if (!token || !formType) {
+            var token = data && (data.pagarmetoken || data.token || data.pagarmetoken_0 || data['pagarmetoken-0']);
+            if (!token && data && typeof data === 'object') {
+              for (var k in data) {
+                if ((k === 'pagarmetoken' || k.indexOf('token') >= 0) && typeof data[k] === 'string' && data[k].length > 0 && data[k].length <= 50) {
+                  token = data[k];
+                  break;
+                }
+              }
+            }
+            if (!token) {
+              var f = document.querySelector('form[data-pagarmecheckout-form]');
+              var inp = f && (f.elements['pagarmetoken'] || f.querySelector('input[name=pagarmetoken]'));
+              if (inp && inp.value) token = inp.value;
+            }
+            var formType = data && (data.formType || data.form_type);
+            if (!formType) {
+              formType = document.getElementById('checkoutAvulso')?.classList.contains('hidden') ? 'mensal' : 'avulso';
+            }
+            if (!token) {
+              debugStep('Tokenizecard retornou sem token', data, true);
               showError('Token do cartão não gerado. Tente novamente.');
               return false;
             }
