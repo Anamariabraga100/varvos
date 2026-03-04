@@ -53,6 +53,15 @@ window.VARVOS_CONFIG = {
 };
 ```
 
+## Como testar o webhook (créditos)
+
+1. **Configurar**: Dashboard Pagar.me → Webhooks → URL `https://www.varvos.com/api/webhooks/pagarme` → evento `order.paid`
+2. **Verificar URL**: Acesse `https://www.varvos.com/api/webhooks/pagarme` (GET) — deve retornar `{ ok: true }`
+3. **Teste real**: Faça login, gere um Pix (ex. Starter R$ 14,90), pague no app do banco
+4. **Conferir**: Supabase → Table Editor → `payments` (novo registro) e `users` (campo `credits` aumentou)
+
+**Importante:** O usuário deve estar logado ao gerar o Pix, pois o `user_id` vai no metadata do pedido para o webhook creditar na conta certa.
+
 ## Fluxo
 
 1. **Avulsos (Pix)**: Usuário escolhe Pix → API cria pedido → exibe QR/código → webhook confirma → créditos adicionados
