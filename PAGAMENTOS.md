@@ -37,9 +37,10 @@ Repita para `pro` e `agency`.
 
 ### 3. Domínio para tokenizecard (cartão)
 
-O tokenizecard.js só funciona em domínios cadastrados. No Dashboard Pagar.me → Configurações → Chaves/Domínios, adicione:
-- Desenvolvimento: `localhost`, `127.0.0.1`
-- Produção: `www.varvos.com`, `varvos.com`
+O tokenizecard.js pode exigir domínio cadastrado. Se aparecer erro ou tempo esgotado ao pagar com cartão:
+- **Dashboard Pagar.me**: Configurações da conta → procure "Domínios", "Chaves" ou "Segurança"
+- Se houver opção de domínios: adicione `localhost`, `127.0.0.1` (dev) e `www.varvos.com`, `varvos.com` (produção)
+- **Alternativa**: algumas contas Pagar.me não exigem cadastro; teste primeiro em produção
 
 ### 4. Webhook Pagar.me
 

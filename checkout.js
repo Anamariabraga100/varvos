@@ -256,6 +256,8 @@
         showError('Informe um CPF válido para pagamento com Pix (11 dígitos).');
         return;
       }
+    }
+
     const payload = {
       planId,
       paymentMethod: effectiveMethod,
