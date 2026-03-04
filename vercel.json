@@ -4,6 +4,12 @@
   "builds": [
     { "src": "api/**/*.js", "use": "@vercel/node" }
   ],
+  "rewrites": [
+    { "source": "/imitar-movimento", "destination": "/imitar-movimento/" },
+    { "source": "/imitar-movimento/", "destination": "/imitar-movimento/index.html" },
+    { "source": "/video", "destination": "/video/" },
+    { "source": "/video/", "destination": "/video/index.html" }
+  ],
   "redirects": [{"source": "/index.html", "destination": "/", "permanent": true}],
   "cleanUrls": true
 }
