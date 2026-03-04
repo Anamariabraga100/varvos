@@ -35,9 +35,13 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'cardToken obrigatório para pagamento com cartão' });
   }
 
-  const { name, email } = customer;
+  const { name, email, document } = customer;
   if (!name || !email) {
     return res.status(400).json({ error: 'customer.name e customer.email obrigatórios' });
+  }
+  const docClean = document ? String(document).replace(/\D/g, '') : '';
+  if (paymentMethod === 'pix' && (!docClean || docClean.length !== 11)) {
+    return res.status(400).json({ error: 'CPF obrigatório para pagamento com Pix' });
   }
 
   const orderCode = `varvos_${planId}_${Date.now()}`;
@@ -65,6 +69,8 @@ export default async function handler(req, res) {
       name: name.substring(0, 64),
       email: email.substring(0, 64),
       type: 'individual',
+      document: docClean || undefined,
+      document_type: docClean ? 'CPF' : undefined,
       address: {
         line_1: customer.address?.line_1 || 'Av. Paulista, 1000',
         zip_code: customer.address?.zip_code || '01310100',
@@ -126,12 +132,13 @@ export default async function handler(req, res) {
       const charge = data.charges[0];
       const tx = charge.last_transaction || {};
       const gw = tx.gateway_response || {};
-      const pixCode = tx.pix_qr_code || tx.qr_code || tx.pix_code || tx.emv
-        || gw.emv || gw.qr_code || gw.pix_copy_paste || gw.code;
+      const pixCodeRaw = tx.pix_qr_code || tx.qr_code || tx.pix_code || tx.emv
+        || gw.emv || gw.qr_code || gw.pix_copy_paste;
+      const pixCode = (pixCodeRaw && String(pixCodeRaw).length > 50) ? pixCodeRaw : null;
       if (pixCode) {
         data._pix = { code: pixCode, qr_url: tx.qr_code_url || gw.qr_code_url };
-      } else {
-        console.warn('[create-order] Pix sem código. last_transaction:', JSON.stringify(tx).slice(0, 500));
+      } else if (charge.status === 'failed' && gw?.errors?.length) {
+        data._pix = { error: gw.errors.map(function (e) { return e.message; }).join('. ') };
       }
     }
 

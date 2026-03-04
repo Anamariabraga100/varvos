@@ -171,11 +171,18 @@
     console.log('[Checkout] Submit:', { paymentMethod, effectiveMethod, isPix, cardFieldsHidden, btnText: btnTxt });
     debugStep('Início: método de pagamento', { tabAtivo: paymentMethod, cardFieldsOcultos: cardFieldsHidden, usando: effectiveMethod });
 
+    const cpf = (document.getElementById('avulsoCpf')?.value || '').replace(/\D/g, '');
+    if (effectiveMethod === 'pix') {
+      if (cpf.length !== 11) {
+        showError('Informe um CPF válido para pagamento com Pix (11 dígitos).');
+        return;
+      }
+    }
     const payload = {
       planId,
       paymentMethod: effectiveMethod,
       userId: getUserId(),
-      customer: { name, email },
+      customer: { name, email, document: cpf || undefined },
     };
 
     const btn = document.getElementById('btnAvulsoSubmit');
@@ -210,20 +217,21 @@
         })
         .then(function (order) {
           if (effectiveMethod === 'pix') {
-            const normalized = order._pix;
             const charge = order.charges?.[0];
             const lastTx = charge?.last_transaction;
             const gw = lastTx?.gateway_response || {};
-            debugStep('Passo 3: Estrutura Pix recebida', {
-              hasCharge: !!charge,
-              hasLastTx: !!lastTx,
-              _pix: normalized,
-              lastTxKeys: lastTx ? Object.keys(lastTx) : [],
-              gatewayKeys: gw ? Object.keys(gw) : [],
-            });
+            const orderFailed = order.status === 'failed' || charge?.status === 'failed';
 
+            if (orderFailed && gw?.errors?.length) {
+              const errMsg = gw.errors.map(function (e) { return e.message; }).join('. ');
+              showError(errMsg);
+              debugStep('Passo 3: Erro da Pagar.me', gw.errors);
+              return;
+            }
+
+            const normalized = order._pix;
             const pixCode = normalized?.code || lastTx?.pix_qr_code || lastTx?.qr_code || lastTx?.pix_code || lastTx?.emv
-              || gw?.emv || gw?.qr_code || gw?.pix_copy_paste || gw?.code;
+              || (gw?.emv && gw.emv.length > 20 ? gw.emv : null) || (gw?.pix_copy_paste || null);
             const qrCode = normalized?.qr_url || lastTx?.qr_code_url || lastTx?.qr_code || lastTx?.pix_image
               || gw?.qr_code_url;
 
@@ -426,4 +434,21 @@
     var el = document.getElementById(id);
     if (el) formatExp(el);
   });
+
+  // Formatar CPF XXX.XXX.XXX-XX
+  var cpfEl = document.getElementById('avulsoCpf');
+  if (cpfEl) {
+    cpfEl.addEventListener('input', function () {
+      var v = this.value.replace(/\D/g, '').slice(0, 11);
+      if (v.length > 9) {
+        this.value = v.slice(0, 3) + '.' + v.slice(3, 6) + '.' + v.slice(6, 9) + '-' + v.slice(9);
+      } else if (v.length > 6) {
+        this.value = v.slice(0, 3) + '.' + v.slice(3, 6) + '.' + v.slice(6);
+      } else if (v.length > 3) {
+        this.value = v.slice(0, 3) + '.' + v.slice(3);
+      } else {
+        this.value = v;
+      }
+    });
+  }
 })();
