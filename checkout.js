@@ -99,6 +99,7 @@
 
   // Tokenizecard.js — carrega script e inicializa PagarmeCheckout
   var useTokenizecard = !!(window.VARVOS_CONFIG && window.VARVOS_CONFIG.pagarMePublicKey);
+  var cardSubmitTimeoutId = null;
   if (useTokenizecard) {
     var s = document.createElement('script');
     s.src = 'https://checkout.pagar.me/v1/tokenizecard.js';
@@ -107,6 +108,7 @@
       if (window.PagarmeCheckout && window.PagarmeCheckout.init) {
         window.PagarmeCheckout.init(
           function success(data) {
+            if (cardSubmitTimeoutId) { clearTimeout(cardSubmitTimeoutId); cardSubmitTimeoutId = null; }
             var token = data && (data.pagarmetoken || data.token);
             var formType = data && data.formType;
             if (!token || !formType) {
@@ -122,6 +124,7 @@
             return false;
           },
           function fail(err) {
+            if (cardSubmitTimeoutId) { clearTimeout(cardSubmitTimeoutId); cardSubmitTimeoutId = null; }
             showError(err && (err.message || err.error_message) || 'Erro ao processar cartão. Verifique os dados.');
             setLoading(document.getElementById('btnAvulsoSubmit'), false);
             setLoading(document.getElementById('btnMensalSubmit'), false);
@@ -157,7 +160,7 @@
         document.getElementById('successMsg').textContent = 'Pagamento aprovado! Seus créditos foram adicionados à conta.';
       })
       .catch(function (err) { showError(err.message || 'Erro ao processar.'); })
-      .finally(function () { setLoading(btn, false); });
+      .finally(function () { if (cardSubmitTimeoutId) { clearTimeout(cardSubmitTimeoutId); cardSubmitTimeoutId = null; } setLoading(btn, false); });
   }
 
   function doSubscriptionFromToken(data, cardToken, btn) {
@@ -177,7 +180,7 @@
         document.getElementById('successMsg').textContent = 'Assinatura ativada! Seus créditos mensais foram creditados. A renovação é automática.';
       })
       .catch(function (err) { showError(err.message || 'Erro ao processar.'); })
-      .finally(function () { setLoading(btn, false); });
+      .finally(function () { if (cardSubmitTimeoutId) { clearTimeout(cardSubmitTimeoutId); cardSubmitTimeoutId = null; } setLoading(btn, false); });
   }
 
   // Inicialização
@@ -206,7 +209,7 @@
     if (user?.name) document.getElementById('mensalName').value = user.name;
   }
 
-  // Tabs Pix / Cartão (avulsos)
+  // Tabs Pix / Cartão (avulsos) — formAvulso sempre tem data-pagarmecheckout-form para o tokenizecard vincular no init
   var formAvulsoEl = document.getElementById('formAvulso');
   document.querySelectorAll('.pm-tab').forEach(function (tab) {
     tab.addEventListener('click', function () {
@@ -220,11 +223,9 @@
       if (method === 'pix') {
         cardFields?.classList.add('hidden');
         if (btnTxt) btnTxt.textContent = 'Gerar Pix';
-        formAvulsoEl?.removeAttribute('data-pagarmecheckout-form');
       } else {
         cardFields?.classList.remove('hidden');
         if (btnTxt) btnTxt.textContent = 'Pagar com cartão';
-        formAvulsoEl?.setAttribute('data-pagarmecheckout-form', '');
       }
       hideError();
     });
@@ -232,7 +233,6 @@
 
   // Submit avulso (Pix ou Cartão)
   document.getElementById('formAvulso')?.addEventListener('submit', function (e) {
-    e.preventDefault();
     hideError();
     clearDebug();
     const planId = document.getElementById('avulsoPlanId').value;
@@ -250,11 +250,12 @@
 
     const cpf = (document.getElementById('avulsoCpf')?.value || '').replace(/\D/g, '');
     if (effectiveMethod === 'pix') {
+      e.preventDefault();
+      e.stopImmediatePropagation();
       if (cpf.length !== 11) {
         showError('Informe um CPF válido para pagamento com Pix (11 dígitos).');
         return;
       }
-    }
     const payload = {
       planId,
       paymentMethod: effectiveMethod,
@@ -373,11 +374,18 @@
         return;
       }
       syncExpDateToken('avulsoCardExp', 'avulsoExpDateToken');
-      formAvulsoEl?.setAttribute('data-pagarmecheckout-form', '');
       setLoading(btn, true);
+      if (cardSubmitTimeoutId) clearTimeout(cardSubmitTimeoutId);
+      cardSubmitTimeoutId = setTimeout(function () {
+        cardSubmitTimeoutId = null;
+        setLoading(btn, false);
+        showError('Tempo esgotado. Verifique se o domínio está cadastrado no Dashboard Pagar.me e tente novamente.');
+      }, 25000);
     } else {
       doOrder();
+      return;
     }
+    e.preventDefault();
   });
 
   // Submit mensal (Cartão) — usa tokenizecard
@@ -405,7 +413,14 @@
       return;
     }
     syncExpDateToken('mensalCardExp', 'mensalExpDateToken');
-    setLoading(document.getElementById('btnMensalSubmit'), true);
+    var btn = document.getElementById('btnMensalSubmit');
+    setLoading(btn, true);
+    if (cardSubmitTimeoutId) clearTimeout(cardSubmitTimeoutId);
+    cardSubmitTimeoutId = setTimeout(function () {
+      cardSubmitTimeoutId = null;
+      setLoading(btn, false);
+      showError('Tempo esgotado. Verifique se o domínio está cadastrado no Dashboard Pagar.me e tente novamente.');
+    }, 25000);
   });
 
   // Formatar número do cartão
