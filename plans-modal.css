@@ -3,11 +3,13 @@
   inset: 0;
   z-index: 2000;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
-  padding: 24px;
+  padding: max(16px, env(safe-area-inset-top)) 16px 24px;
   background: rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(6px);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .plans-modal.hidden {
@@ -24,12 +26,14 @@
   position: relative;
   width: 100%;
   max-width: 420px;
-  max-height: 90vh;
+  max-height: calc(100vh - 48px);
   overflow-y: auto;
   background: var(--bg-card, #fff);
   border-radius: 14px;
   box-shadow: 0 24px 48px rgba(0, 0, 0, 0.12);
   padding: 32px 24px;
+  margin: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .plans-modal-close {
@@ -81,19 +85,19 @@
   border-radius: 10px;
   font-size: 0.9rem;
   font-weight: 500;
-  color: var(--text-muted, #6b7280);
+  color: #1a1a1a;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .plans-tab:hover {
-  color: var(--text, #111827);
+  color: #1a1a1a;
 }
 
 .plans-tab.active {
-  background: var(--text, #111827);
-  color: #fff;
-  border-color: var(--text, #111827);
+  background: #1a1a1a;
+  color: #fff !important;
+  border-color: #1a1a1a;
 }
 
 .plans-tab-content {
@@ -137,13 +141,13 @@
   margin: 8px 0 2px;
   font-size: 1.25rem;
   font-weight: 600;
-  color: var(--text, #111827);
+  color: #1a1a1a;
 }
 
 .plan-desc {
   margin: 0 0 12px;
   font-size: 0.9rem;
-  color: var(--text-muted, #6b7280);
+  color: #4a4a4a;
 }
 
 .plan-price {
@@ -168,7 +172,7 @@
 
 .plan-per {
   font-size: 0.85rem;
-  color: var(--text-muted, #6b7280);
+  color: #4a4a4a;
 }
 
 .plan-credits {
@@ -178,7 +182,7 @@
   border-radius: 8px;
   font-size: 0.9rem;
   font-weight: 600;
-  color: var(--text, #111827);
+  color: #1a1a1a;
 }
 
 .plan-features {
@@ -186,7 +190,7 @@
   padding: 0;
   list-style: none;
   font-size: 0.9rem;
-  color: var(--text-muted, #6b7280);
+  color: #4a4a4a;
 }
 
 .plan-features li {
@@ -238,7 +242,7 @@
   display: block;
   margin-top: 10px;
   font-size: 0.8rem;
-  color: var(--text-muted, #6b7280);
+  color: #4a4a4a;
   text-align: center;
 }
 
@@ -342,7 +346,7 @@
 .plan-card-avulso .plan-price-inverted .plan-current-small {
   font-size: 0.85rem;
   font-weight: 500;
-  color: var(--text-muted, #6b7280);
+  color: #4a4a4a;
 }
 
 .plan-card-avulso .plan-features {
@@ -451,7 +455,7 @@
 .plan-card-schema .plan-price-inverted .plan-current-small {
   font-size: 0.9rem;
   font-weight: 500;
-  color: var(--text-muted, #6b7280);
+  color: #4a4a4a;
 }
 
 .plan-card-schema .plan-features {

@@ -191,17 +191,14 @@ header {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
+  color: #1a1a1a;
 }
 
 .pm-tab:hover { border-color: #999; }
 
 .pm-tab.active {
   background: #1a1a1a;
-  color: white;
+  color: #fff !important;
   border-color: #1a1a1a;
 }
 
