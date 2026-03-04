@@ -131,7 +131,9 @@
               var inp = f && (f.elements['pagarmetoken'] || f.querySelector('input[name=pagarmetoken]'));
               if (inp && inp.value) token = inp.value;
             }
-            var planId = data && data.planId;
+            var avulsoVisible = !document.getElementById('checkoutAvulso')?.classList.contains('hidden');
+            var planId = (data && data.planId) || (avulsoVisible ? document.getElementById('avulsoPlanId')?.value : document.getElementById('mensalPlanId')?.value);
+            if (!planId && avulsoVisible) planId = new URLSearchParams(location.search).get('plano');
             var isAvulso = planId && AVULSOS.indexOf(planId) >= 0;
             var btn = isAvulso ? document.getElementById('btnAvulsoSubmit') : document.getElementById('btnMensalSubmit');
             if (!token) {
@@ -139,10 +141,17 @@
               showError('Token do cartão não gerado. Tente novamente.');
               return false;
             }
+            var merged = Object.assign({}, data || {});
+            if (!merged.planId) merged.planId = planId;
+            if (!merged.name && avulsoVisible) merged.name = document.getElementById('avulsoName')?.value;
+            if (!merged.email && avulsoVisible) merged.email = document.getElementById('avulsoEmail')?.value;
+            if (!merged.cpf && avulsoVisible) merged.cpf = document.getElementById('avulsoCpf')?.value;
+            if (!merged.name && !avulsoVisible) merged.name = document.getElementById('mensalName')?.value;
+            if (!merged.email && !avulsoVisible) merged.email = document.getElementById('mensalEmail')?.value;
             if (isAvulso) {
-              doOrderFromToken(data, token, btn);
+              doOrderFromToken(merged, token, btn);
             } else {
-              doSubscriptionFromToken(data, token, btn);
+              doSubscriptionFromToken(merged, token, btn);
             }
             return false;
           },
