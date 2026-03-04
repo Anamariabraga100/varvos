@@ -1304,6 +1304,8 @@ select:focus {
   font-size: 0.82rem;
   color: var(--text-muted);
   line-height: 1.45;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 .creation-disclaimer a {
   color: var(--btn-bg, #2d2d2d);

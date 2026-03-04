@@ -423,10 +423,15 @@ function getCredits() {
     const userRaw = localStorage.getItem(AUTH_STORAGE);
     if (userRaw) {
       const user = JSON.parse(userRaw);
-      if (user.credits != null && user.credits !== undefined) return parseInt(user.credits, 10);
+      if (user.credits != null && user.credits !== undefined) {
+        const n = parseInt(user.credits, 10);
+        return Number.isFinite(n) ? n : null;
+      }
     }
     const v = localStorage.getItem(CREDITS_STORAGE_KEY);
-    return v != null ? parseInt(v, 10) : null;
+    if (v == null) return null;
+    const n = parseInt(v, 10);
+    return Number.isFinite(n) ? n : null;
   } catch { return null; }
 }
 
@@ -440,10 +445,19 @@ async function refreshCreditsFromSupabase() {
   try {
     const raw = localStorage.getItem(AUTH_STORAGE);
     const user = raw ? JSON.parse(raw) : null;
-    if (!user?.id || !window.varvosSupabase) return;
-    const { data } = await window.varvosSupabase.from('users').select('credits').eq('id', user.id).single();
-    if (data && data.credits != null) {
-      user.credits = data.credits;
+    if (!user?.id) return;
+    let credits = null;
+    const res = await fetch(`/api/get-credits?userId=${encodeURIComponent(user.id)}`);
+    if (res.ok) {
+      const data = await res.json();
+      credits = data.credits != null && Number.isFinite(data.credits) ? data.credits : null;
+    }
+    if (credits == null && window.varvosSupabase) {
+      const { data } = await window.varvosSupabase.from('users').select('credits').eq('id', user.id).single();
+      if (data && data.credits != null) credits = parseInt(data.credits, 10);
+    }
+    if (credits != null && Number.isFinite(credits)) {
+      user.credits = credits;
       localStorage.setItem(AUTH_STORAGE, JSON.stringify(user));
       updateCreditsDisplay();
     }
@@ -1438,7 +1452,10 @@ function updateOutputUI(data, cardRefs, startTime) {
       imageGallery.innerHTML = '';
     }
     if (resultPromptEl) resultPromptEl.classList.add('hidden');
-    if (creationDisclaimer) creationDisclaimer.classList.add('hidden');
+    if (creationDisclaimer) {
+      creationDisclaimer.textContent = (prompt && prompt.trim()) ? prompt : 'Pode sair se quiser — o vídeo ficará salvo. Você também pode gerar mais de um vídeo ao mesmo tempo.';
+      creationDisclaimer.classList.remove('hidden');
+    }
     if (statusMessage) statusMessage.classList.add('hidden');
     if (cardRefs.card) {
       cardRefs.card.dataset.aspectRatio = aspectRatio;
@@ -1678,13 +1695,32 @@ function getCreditsCostForBody(body) {
 async function generateMedia(body) {
   const cost = getCreditsCostForBody(body);
   const userId = getCurrentUserId();
-  const credits = getCredits();
 
   if (!userId) {
     openCreditsModal();
     return;
   }
-  if (credits == null || credits < cost) {
+
+  let credits = null;
+  try {
+    const res = await fetch(`/api/get-credits?userId=${encodeURIComponent(userId)}`);
+    if (res.ok) {
+      const data = await res.json();
+      credits = data.credits != null && Number.isFinite(data.credits) ? data.credits : null;
+    }
+  } catch (_) {}
+  if (credits == null && window.varvosSupabase) {
+    try {
+      const raw = localStorage.getItem(AUTH_STORAGE);
+      const user = raw ? JSON.parse(raw) : null;
+      if (user?.id) {
+        const { data } = await window.varvosSupabase.from('users').select('credits').eq('id', user.id).single();
+        if (data && data.credits != null) credits = parseInt(data.credits, 10);
+      }
+    } catch (_) {}
+  }
+  if (credits == null || !Number.isFinite(credits) || credits < cost) {
+    await refreshCreditsFromSupabase();
     openCreditsModal();
     return;
   }
@@ -1715,26 +1751,41 @@ async function generateMedia(body) {
   if (cardRefs.downloadBtn) cardRefs.downloadBtn.classList.add('hidden');
   if (cardRefs.shareSection) cardRefs.shareSection.classList.add('hidden');
   if (cardRefs.downloadWarning) cardRefs.downloadWarning.classList.add('hidden');
-  if (cardRefs.creationDisclaimer) cardRefs.creationDisclaimer.classList.remove('hidden');
+  if (cardRefs.creationDisclaimer) {
+    cardRefs.creationDisclaimer.classList.remove('hidden');
+    cardRefs.creationDisclaimer.textContent = (lastPrompt && lastPrompt.trim()) ? lastPrompt : 'Pode sair se quiser — o vídeo ficará salvo. Você também pode gerar mais de um vídeo ao mesmo tempo.';
+  }
   if (cardRefs.statusMessage) { cardRefs.statusMessage.classList.remove('hidden'); cardRefs.statusMessage.textContent = ''; }
   if (cardRefs.resultPromptEl) cardRefs.resultPromptEl.classList.add('hidden');
 
   let taskId = null;
   let creditsDeducted = false;
+  const reserveId = 'reserve-' + Date.now();
   try {
-    taskId = await submitTask(body);
-    if (!taskId) throw new Error('Nenhum task_id retornado');
-
     const deductRes = await fetch('/api/deduct-credits', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId, amount: cost, taskId }),
+      body: JSON.stringify({ userId, amount: cost, taskId: reserveId }),
     });
-    if (deductRes.ok) {
-      creditsDeducted = true;
-      await refreshCreditsFromSupabase();
-    } else {
-      console.warn('[VARVOS] Deduct credits falhou:', await deductRes.text());
+    if (!deductRes.ok) {
+      const errText = await deductRes.text();
+      console.warn('[VARVOS] Deduct credits falhou:', errText);
+      const err = new Error('Créditos insuficientes');
+      err.isCredits = true;
+      throw err;
+    }
+    creditsDeducted = true;
+    await refreshCreditsFromSupabase();
+
+    taskId = await submitTask(body);
+    if (!taskId) {
+      const refundRes = await fetch('/api/refund-credits', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, amount: cost, taskId: reserveId }),
+      });
+      if (refundRes.ok) await refreshCreditsFromSupabase();
+      throw new Error('Nenhum task_id retornado');
     }
 
     outputPlaceholder.classList.add('hidden');
@@ -1777,12 +1828,13 @@ async function generateMedia(body) {
     console.error('[VARVOS] Erro na geração:', err);
 
     let refunded = false;
-    if (creditsDeducted && userId && taskId) {
+    if (creditsDeducted && userId) {
       try {
+        const refundId = taskId || reserveId;
         const refundRes = await fetch('/api/refund-credits', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId, amount: cost, taskId }),
+          body: JSON.stringify({ userId, amount: cost, taskId: refundId }),
         });
         if (refundRes.ok) {
           refunded = true;
@@ -1920,8 +1972,12 @@ async function restoreActiveTask() {
     }
 
     cardRefs.card.classList.remove('hidden');
-    activeTasks.set(data.taskId, { cardRefs, startTime });
+    activeTasks.set(data.taskId, { cardRefs, startTime, prompt: data.prompt || '' });
     startLoadingForCard(cardRefs, data.mode || 'video');
+    if (cardRefs.creationDisclaimer) {
+      cardRefs.creationDisclaimer.textContent = (data.prompt && data.prompt.trim()) ? data.prompt : 'Pode sair se quiser — o vídeo ficará salvo. Você também pode gerar mais de um vídeo ao mesmo tempo.';
+      cardRefs.creationDisclaimer.classList.remove('hidden');
+    }
 
     if (cardRefs.taskStatusEl) cardRefs.taskStatusEl.textContent = 'Enviando...';
     if (cardRefs.taskProgressEl) cardRefs.taskProgressEl.textContent = '0%';

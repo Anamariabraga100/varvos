@@ -58,12 +58,11 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Erro ao estornar créditos' });
   }
 
-  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(taskId));
   await supabase.from('credit_logs').insert({
     user_id: userId,
     amount: amountNum,
     type: 'refund',
-    reference_id: isUuid ? taskId : null,
+    reference_id: taskId || null,
   });
 
   return res.status(200).json({
