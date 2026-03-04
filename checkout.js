@@ -240,19 +240,23 @@
   if (AVULSOS.includes(plan.id)) {
     document.getElementById('checkoutAvulso')?.classList.remove('hidden');
     document.getElementById('avulsoPlanId').value = plan.id;
-    document.getElementById('avulsoTitle').textContent = 'Checkout — ' + plan.name;
+    document.getElementById('avulsoTitle').textContent = 'Comprar créditos — ' + plan.name;
+    var creditsDisplay = (plan.credits * 10).toLocaleString('pt-BR');
     document.getElementById('avulsoPlan').textContent =
-      plan.description + ' — ' + (plan.amount / 100).toFixed(2).replace('.', ',') + ' (único)';
+      creditsDisplay + ' créditos — R$ ' + (plan.amount / 100).toFixed(2).replace('.', ',') + ' (único)';
+    var creditsNumEl = document.getElementById('avulsoPixCreditsNum');
+    if (creditsNumEl) creditsNumEl.textContent = creditsDisplay;
     if (user?.email) document.getElementById('avulsoEmail').value = user.email;
     if (user?.name) document.getElementById('avulsoName').value = user.name;
     var btnT = document.getElementById('btnAvulsoSubmit')?.querySelector('.btn-text');
-    if (btnT) btnT.textContent = 'Gerar Pix';
+    if (btnT) btnT.textContent = 'Gerar QR Code Pix';
   } else {
     document.getElementById('checkoutMensal')?.classList.remove('hidden');
     document.getElementById('mensalPlanId').value = plan.id;
     document.getElementById('mensalTitle').textContent = 'Assinatura — ' + plan.name;
+    var creditsDisplay = (plan.credits * 10).toLocaleString('pt-BR');
     document.getElementById('mensalPlan').textContent =
-      plan.description + ' — R$ ' + (plan.amount / 100).toFixed(2).replace('.', ',') + '/mês';
+      creditsDisplay + ' créditos/mês — R$ ' + (plan.amount / 100).toFixed(2).replace('.', ',') + '/mês';
     if (user?.email) document.getElementById('mensalEmail').value = user.email;
     if (user?.name) document.getElementById('mensalName').value = user.name;
   }
@@ -268,16 +272,27 @@
       const cardFields = document.getElementById('cardFieldsAvulso');
       const btn = document.getElementById('btnAvulsoSubmit');
       const btnTxt = btn?.querySelector('.btn-text');
+      const trustCards = document.getElementById('avulsoTrustCards');
+      var pixInstant = document.getElementById('avulsoPixInstant');
+      var pixCreditsMsg = document.getElementById('avulsoPixCreditsMsg');
       if (method === 'pix') {
         cardFields?.classList.add('hidden');
-        if (btnTxt) btnTxt.textContent = 'Gerar Pix';
+        if (btnTxt) btnTxt.textContent = 'Gerar QR Code Pix';
+        if (trustCards) trustCards.classList.add('hidden');
+        if (pixInstant) pixInstant.classList.remove('hidden');
+        if (pixCreditsMsg) pixCreditsMsg.classList.remove('hidden');
       } else {
         cardFields?.classList.remove('hidden');
         if (btnTxt) btnTxt.textContent = 'Pagar com cartão';
+        if (trustCards) trustCards.classList.remove('hidden');
+        if (pixInstant) pixInstant.classList.add('hidden');
+        if (pixCreditsMsg) pixCreditsMsg.classList.add('hidden');
       }
       hideError();
     });
   });
+  // Inicial: Pix selecionado — esconde bandeiras, mostra instantâneo
+  document.getElementById('avulsoTrustCards')?.classList.add('hidden');
 
   // Submit avulso (Pix ou Cartão)
   document.getElementById('formAvulso')?.addEventListener('submit', function (e) {
@@ -368,6 +383,17 @@
             document.querySelector('.payment-method-tabs')?.classList.add('hidden');
             const successDiv = document.getElementById('pixSuccess');
             successDiv?.classList.remove('hidden');
+
+            var planId = document.getElementById('avulsoPlanId')?.value;
+            var plan = planId && (window.VARVOS_PLANS?.avulsos?.[planId] || window.VARVOS_PLANS?.mensais?.[planId]);
+            var creditsMsg = document.getElementById('pixCreditsMsg');
+            if (creditsMsg && plan) {
+              var creditsDisplay = (plan.credits * 10).toLocaleString('pt-BR');
+              creditsMsg.textContent = 'Após o pagamento você receberá seus ' + creditsDisplay + ' créditos automaticamente.';
+              creditsMsg.classList.remove('hidden');
+            } else if (creditsMsg) {
+              creditsMsg.classList.add('hidden');
+            }
 
             const codeToShow = pixCode || qrCode;
             const qrContainer = document.getElementById('pixQrContainer');

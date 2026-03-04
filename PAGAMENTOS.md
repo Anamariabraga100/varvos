@@ -64,12 +64,36 @@ No Vercel, adicione `PAGAR_ME_PUBLIC_KEY` nas variáveis de ambiente para o buil
 
 ## Como testar o webhook (créditos)
 
-1. **Configurar**: Dashboard Pagar.me → Webhooks → URL `https://www.varvos.com/api/webhooks/pagarme` → evento `order.paid`
-2. **Verificar URL**: Acesse `https://www.varvos.com/api/webhooks/pagarme` (GET) — deve retornar `{ ok: true }`
-3. **Teste real**: Faça login, gere um Pix (ex. Starter R$ 14,90), pague no app do banco
-4. **Conferir**: Supabase → Table Editor → `payments` (novo registro) e `users` (campo `credits` aumentou)
+### Opção A: Teste real (Pix pago)
+
+1. **Configurar webhook**: Dashboard Pagar.me → Webhooks → URL `https://seu-dominio.vercel.app/api/webhooks/pagarme` → evento `order.paid`
+2. **Usuário logado**: O `user_id` vai no metadata; se não logado, o webhook tenta buscar por e-mail (pode não encontrar)
+3. **Gerar Pix**: Acesse checkout com um plano (ex. `?plano=popular`), preencha dados e clique em "Gerar QR Code Pix"
+4. **Pagar**: Use o app do banco para pagar o Pix
+5. **Conferir**: Supabase → Table Editor → `payments`, `credit_logs`, `users.credits`
 
 **Importante:** O usuário deve estar logado ao gerar o Pix, pois o `user_id` vai no metadata do pedido para o webhook creditar na conta certa.
+
+### Opção B: Simular webhook (sem pagar)
+
+Para testar localmente se os créditos chegam na conta, use o script que simula o webhook:
+
+1. **Pegue seu `user_id`**: Supabase → Table Editor → `users` → coluna `id` (UUID)
+2. **Com o servidor rodando** (`npx vercel dev`):
+
+```bash
+USER_ID=seu-uuid-aqui CREDITOS=60 node scripts/test-webhook-credits.js
+```
+
+3. **Conferir**: Supabase → `users.credits`, `payments`, `credit_logs`
+
+O script envia um POST para `/api/webhooks/pagarme` com payload simulado. Não precisa configurar webhook no Pagar.me.
+
+### Opção C: Teste em produção (deploy)
+
+1. Deploy no Vercel
+2. Configure webhook no Pagar.me apontando para `https://seu-dominio.vercel.app/api/webhooks/pagarme`
+3. Faça um pagamento Pix real e confira no Supabase
 
 ## Fluxo
 

@@ -20,7 +20,6 @@
         </svg>
         <span>VARVOS</span>
       </a>
-      <a href="video/" class="nav-btn">Criar vídeo</a>
     </header>
 
     <main class="checkout-main">
@@ -57,8 +56,12 @@
         <p id="avulsoPlan" class="checkout-plan-info"></p>
 
         <div class="payment-method-tabs">
-          <button type="button" class="pm-tab active" data-method="pix">Pix</button>
-          <button type="button" class="pm-tab" data-method="credit_card">Cartão de crédito</button>
+          <button type="button" class="pm-tab active" data-method="pix">
+            <span class="pm-tab-pix-icon" aria-hidden="true"></span> Pix
+          </button>
+          <button type="button" class="pm-tab" data-method="credit_card">
+            <span class="pm-tab-card-icon" aria-hidden="true">💳</span> Cartão de crédito
+          </button>
         </div>
 
         <form id="formAvulso" class="checkout-form" data-pagarmecheckout-form>
@@ -101,13 +104,20 @@
           </div>
 
           <button type="submit" class="btn-checkout" id="btnAvulsoSubmit">
-            <span class="btn-text">Pagar com Pix</span>
+            <span class="btn-text">Gerar QR Code Pix</span>
             <span class="btn-loading hidden">Processando...</span>
           </button>
+          <p id="avulsoPixInstant" class="checkout-pix-instant">⚡ Pagamento via Pix é aprovado instantaneamente</p>
+          <p id="avulsoPixCreditsMsg" class="checkout-pix-instant">Seus <span id="avulsoPixCreditsNum">—</span> créditos serão liberados automaticamente</p>
+          <div class="checkout-trust">
+            <p class="checkout-trust-security">🔒 Pagamento seguro com criptografia SSL</p>
+            <p id="avulsoTrustCards" class="checkout-trust-cards">Visa • Mastercard • Amex • Elo</p>
+          </div>
         </form>
 
         <div id="pixSuccess" class="pix-success hidden">
           <p class="pix-title">Pague o Pix</p>
+          <p id="pixCreditsMsg" class="pix-credits-msg"></p>
           <div id="pixQrContainer" class="pix-qr"></div>
           <p class="pix-copy-label">Ou copie o código:</p>
           <div class="pix-copy-wrap">
@@ -159,6 +169,11 @@
             <span class="btn-text">Ativar assinatura</span>
             <span class="btn-loading hidden">Processando...</span>
           </button>
+          <div class="checkout-trust">
+            <p class="checkout-trust-security">🔒 Pagamento seguro com criptografia SSL</p>
+            <p class="checkout-trust-cards">Visa • Mastercard • Amex • Elo</p>
+            <p class="checkout-trust-cancel">↩ Cancele quando quiser</p>
+          </div>
         </form>
       </div>
 

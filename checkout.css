@@ -187,9 +187,14 @@ header {
   border-radius: 10px;
   font-size: 0.95rem;
   font-weight: 500;
-  cursor: pointer;
-  font-family: inherit;
-  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
 .pm-tab:hover { border-color: #999; }
@@ -258,6 +263,70 @@ header {
 }
 
 .btn-loading.hidden { display: none; }
+
+.pm-tab-pix-icon {
+  display: inline-block;
+  width: 24px;
+  height: 16px;
+  background: url('https://juauagypsrgnmwsavrto.supabase.co/storage/v1/object/public/images/2889edc1-1a70-456a-a32c-e3f050102347.png') no-repeat center;
+  background-size: contain;
+}
+
+.pm-tab-card-icon {
+  font-size: 1.1em;
+  line-height: 1;
+}
+
+.checkout-pix-instant {
+  margin: 12px 0 0;
+  font-size: 0.85rem;
+  color: #6b7280;
+  text-align: center;
+}
+
+.checkout-pix-instant.hidden {
+  display: none;
+}
+
+.pix-credits-msg {
+  margin: 0 0 16px;
+  font-size: 0.9rem;
+  color: #059669;
+  text-align: center;
+}
+
+.pix-credits-msg.hidden {
+  display: none;
+}
+
+.checkout-trust {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #eee;
+  text-align: center;
+}
+
+.checkout-trust-security {
+  margin: 0 0 4px;
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+.checkout-trust-cards {
+  margin: 0 0 4px;
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+.checkout-trust-cards.hidden {
+  display: none;
+}
+
+.checkout-trust-cancel {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #6b7280;
+}
 
 .pix-success {
   margin-top: 24px;
