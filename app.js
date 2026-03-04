@@ -1,6 +1,8 @@
 const API_BASE = 'https://api.vidgo.ai';
 const KIE_API_BASE = 'https://api.kie.ai';
 const POLL_INTERVAL = 3000;
+const CREDITS_COST_VIDEO = 50;
+const CREDITS_PER_SECOND_MOTION = 8;  // Imitar movimento: 8 créditos por segundo do vídeo
 const STORAGE_KEY = 'varvos_api_key';
 const HISTORY_STORAGE_KEY = 'varvos_history';
 const CREDITS_STORAGE_KEY = 'varvos_credits';
@@ -261,11 +263,32 @@ function setMotionRefVideoFromUrl(url) {
   const area = document.getElementById('motionRefVideoArea');
   const preview = document.getElementById('motionRefVideoPreview');
   const previewVid = document.getElementById('motionRefVideoPreviewVid');
+  const loadingOverlay = document.getElementById('motionRefVideoLoading');
   if (!area || !preview || !previewVid) return;
   motionRefVideoUrl = url;
   area.classList.add('hidden');
   preview.classList.remove('hidden');
+  if (loadingOverlay) {
+    loadingOverlay.classList.remove('hidden');
+    loadingOverlay.setAttribute('aria-hidden', 'false');
+  }
+  previewVid.classList.add('loading');
   previewVid.src = url;
+  const hideLoading = () => {
+    if (loadingOverlay) {
+      loadingOverlay.classList.add('hidden');
+      loadingOverlay.setAttribute('aria-hidden', 'true');
+    }
+    previewVid.classList.remove('loading');
+    updateMotionReadyState();
+    updateMotionButtonCredits();
+  };
+  if (previewVid.readyState >= 2) hideLoading();
+  else {
+    previewVid.addEventListener('loadeddata', hideLoading, { once: true });
+    previewVid.addEventListener('canplay', hideLoading, { once: true });
+    previewVid.addEventListener('error', hideLoading, { once: true });
+  }
   updateMotionReadyState();
 }
 
@@ -282,13 +305,17 @@ function handleImitarMovimentoFromModal() {
   }
 }
 
-// Sample video slots - abre modal ampliado
+// Sample video slots — na página Imitar Movimento: define direto como referência; senão: abre modal
 document.querySelectorAll('.sample-video-slot').forEach(card => {
   card.addEventListener('click', () => {
     const video = card.querySelector('video');
     const src = video?.src || video?.getAttribute('src') || '';
-    const p = card.dataset.prompt || '';
-    if (src && src !== 'undefined') openVideoModal(src, p);
+    if (!src || src === 'undefined') return;
+    if (/imitar-movimento/.test(window.location.pathname)) {
+      setMotionRefVideoFromUrl(src);
+    } else {
+      openVideoModal(src, card.dataset.prompt || '');
+    }
   });
 });
 
@@ -408,6 +435,20 @@ function updateCreditsDisplay() {
   document.querySelectorAll('#headerCredits, #hamburgerCredits').forEach(el => { if (el) el.textContent = txt; });
 }
 
+async function refreshCreditsFromSupabase() {
+  try {
+    const raw = localStorage.getItem(AUTH_STORAGE);
+    const user = raw ? JSON.parse(raw) : null;
+    if (!user?.id || !window.varvosSupabase) return;
+    const { data } = await window.varvosSupabase.from('users').select('credits').eq('id', user.id).single();
+    if (data && data.credits != null) {
+      user.credits = data.credits;
+      localStorage.setItem(AUTH_STORAGE, JSON.stringify(user));
+      updateCreditsDisplay();
+    }
+  } catch (_) {}
+}
+
 function openPlansModal() {
   const m = document.getElementById('plansModal');
   if (m) {
@@ -519,6 +560,10 @@ document.querySelector('.plans-modal-backdrop')?.addEventListener('click', close
 // Init créditos
 updateCreditsDisplay();
 
+// Atualiza créditos do Supabase (ex.: após admin editar) — ao carregar e ao focar na janela
+refreshCreditsFromSupabase();
+window.addEventListener('focus', refreshCreditsFromSupabase);
+
 // Abre modal de planos quando ?planos=1 na URL (ex: vindo de "Planos e preços")
 if (new URLSearchParams(location.search).get('planos') === '1' && document.getElementById('plansModal')) {
   setTimeout(openPlansModal, 150);
@@ -541,6 +586,18 @@ const samplesObserver = new IntersectionObserver((entries) => {
 
 document.querySelectorAll('.sample-video-slot').forEach(card => {
   samplesObserver.observe(card);
+  const video = card.querySelector('video');
+  const loadingEl = card.querySelector('.sample-thumb-loading');
+  if (video && loadingEl) {
+    const hideLoading = () => {
+      card.classList.add('loaded');
+      loadingEl.remove();
+    };
+    if (video.readyState >= 2) hideLoading();
+    else video.addEventListener('loadeddata', hideLoading, { once: true });
+    video.addEventListener('canplay', hideLoading, { once: true });
+    video.addEventListener('error', hideLoading, { once: true });
+  }
 });
 
 // Aplica modo (campos, botões, como fazer)
@@ -581,9 +638,25 @@ function applyMode(mode) {
   document.getElementById('mode').value = currentMode;
   const labels = { video: 'Gerar vídeo', image: 'Gerar imagem', motion: 'Imitar movimento' };
   const btnText = document.getElementById('btnGenerateText');
-  if (btnText) btnText.textContent = labels[currentMode] || 'Gerar';
-  const btnCredits = document.getElementById('btnCredits');
+  if (btnText) {
+    let cost = CREDITS_COST_VIDEO;
+    let hasValue = true;
+    if (currentMode === 'motion') {
+      cost = getCreditsCostForBody({ model: 'kling-2.6/motion-control' });
+      if (cost <= CREDITS_PER_SECOND_MOTION && !motionRefVideoUrl) {
+        cost = '—';
+        hasValue = false;
+      }
+    } else if (currentMode === 'video' || currentMode === 'image') {
+      cost = CREDITS_COST_VIDEO;
+    }
+    btnText.textContent = hasValue ? `${labels[currentMode] || 'Gerar'} · ${cost} créditos` : labels[currentMode] || 'Gerar';
+  }
+  const btnCredits = document.querySelector('.btn-credits');
   if (btnCredits) btnCredits.textContent = '✨';
+  const motionNote = document.querySelector('.motion-cost-note');
+  const motionHasValue = currentMode === 'motion' && motionRefVideoUrl && getCreditsCostForBody({ model: 'kling-2.6/motion-control' }) > 0;
+  if (motionNote) motionNote.classList.toggle('hidden', currentMode !== 'motion' || !motionHasValue);
   document.getElementById('prompt').required = currentMode !== 'motion';
   if (currentMode === 'motion') setTimeout(updateMotionReadyState, 0);
   else if (btnGenerate) { if (currentMode === 'video') updateRefImageReadyState(); else btnGenerate.disabled = false; }
@@ -1004,6 +1077,7 @@ function updateMotionReadyState(forceState) {
   const p2 = document.getElementById('motionCharImageProgress');
   const hasUploading = (p1 && !p1.classList.contains('hidden')) || (p2 && p2.classList.contains('uploading'));
   if (btn && currentMode === 'motion') btn.disabled = hasUploading || !(motionCharImageUrl && motionRefVideoUrl);
+  if (currentMode === 'motion') updateMotionButtonCredits();
 }
 setupFileUpload({ inputId: 'motionCharImageFile', areaId: 'motionCharImageArea', previewId: 'motionCharImagePreview', imgId: 'motionCharImagePreviewImg', removeId: 'motionCharImageRemove', setUrl: (v) => motionCharImageUrl = v, onReady: updateMotionReadyState, uploadFn: (f) => uploadToSupabaseStorage(f, 'images'), onRemove: () => deleteMotionRefsFromStorage([motionCharImageUrl]), uploadStatusLabel: 'image', setUploadStatus: updateMotionReadyState, progressElId: 'motionCharImageProgress', hideProgressUI: true });
 
@@ -1101,16 +1175,53 @@ function setupVideoUpload(config) {
 
 setupVideoUpload({ inputId: 'motionRefVideoFile', areaId: 'motionRefVideoArea', previewId: 'motionRefVideoPreview', videoId: 'motionRefVideoPreviewVid', removeId: 'motionRefVideoRemove', setUrl: (v) => motionRefVideoUrl = v, maxMb: 100, onReady: updateMotionReadyState, uploadFn: (f) => uploadToSupabaseStorage(f, 'videos'), onRemove: () => deleteMotionRefsFromStorage([motionRefVideoUrl]), uploadStatusLabel: 'video', setUploadStatus: updateMotionReadyState, progressElId: 'motionRefVideoProgress' });
 
+function updateMotionButtonCredits() {
+  if (currentMode !== 'motion') return;
+  const btnText = document.getElementById('btnGenerateText');
+  const motionNote = document.querySelector('.motion-cost-note');
+  if (!btnText) return;
+  const cost = getCreditsCostForBody({ model: 'kling-2.6/motion-control' });
+  const hasValue = motionRefVideoUrl && cost > 0;
+  const labels = { motion: 'Imitar movimento' };
+  btnText.textContent = hasValue ? `${labels.motion} · ${cost} créditos` : labels.motion;
+  if (motionNote) motionNote.classList.toggle('hidden', !hasValue);
+}
+
+function updateGenerateButtonLabel(showCredits = true) {
+  const btnText = document.getElementById('btnGenerateText');
+  if (!btnText) return;
+  if (!showCredits) {
+    btnText.textContent = 'Gerando...';
+    return;
+  }
+  const labels = { video: 'Gerar vídeo', image: 'Gerar imagem', motion: 'Imitar movimento' };
+  let cost = CREDITS_COST_VIDEO;
+  let hasValue = true;
+  if (currentMode === 'motion') {
+    cost = getCreditsCostForBody({ model: 'kling-2.6/motion-control' });
+    if (cost <= CREDITS_PER_SECOND_MOTION && !motionRefVideoUrl) {
+      cost = '—';
+      hasValue = false;
+    }
+  } else if (currentMode === 'video' || currentMode === 'image') {
+    cost = CREDITS_COST_VIDEO;
+  }
+  btnText.textContent = hasValue ? `${labels[currentMode] || 'Gerar'} · ${cost} créditos` : labels[currentMode] || 'Gerar';
+}
+document.getElementById('motionRefVideoPreviewVid')?.addEventListener('loadedmetadata', updateMotionButtonCredits);
+
 // Build request body from form
 function buildRequestBody() {
   if (currentMode === 'motion') {
     const orientation = document.getElementById('motionOrientation').value;
     const mode = document.getElementById('motionResolution').value;
+    const aspectRatio = (document.getElementById('motionFormat') || document.getElementById('aspectRatio'))?.value || '9:16';
     const input = {
       input_urls: [motionCharImageUrl],
       video_urls: [motionRefVideoUrl],
       character_orientation: orientation,
-      mode
+      mode,
+      aspect_ratio: aspectRatio
     };
     const prompt = document.getElementById('prompt').value.trim();
     if (prompt) input.prompt = prompt;
@@ -1528,13 +1639,43 @@ function getAvailableCardIndex() {
   return 0;
 }
 
+function getMotionRefVideoDuration() {
+  const vid = document.getElementById('motionRefVideoPreviewVid');
+  if (!vid || !vid.src) return 0;
+  const d = vid.duration;
+  return (typeof d === 'number' && !isNaN(d) && d > 0) ? d : 0;
+}
+
+function getCreditsCostForBody(body) {
+  const isMotion = body?.model === 'kling-2.6/motion-control';
+  if (!isMotion) return CREDITS_COST_VIDEO;
+  const duration = getMotionRefVideoDuration();
+  const seconds = Math.ceil(duration);
+  return Math.max(CREDITS_PER_SECOND_MOTION, seconds * CREDITS_PER_SECOND_MOTION);
+}
+
 async function generateMedia(body) {
+  const cost = getCreditsCostForBody(body);
+  const userId = getCurrentUserId();
+  const credits = getCredits();
+
+  if (!userId) {
+    openCreditsModal();
+    return;
+  }
+  if (credits == null || credits < cost) {
+    openCreditsModal();
+    return;
+  }
+
   btnGenerate.disabled = true;
+  updateGenerateButtonLabel(false);
   const startTime = Date.now();
   const cardIndex = getAvailableCardIndex();
   const cardRefs = getCardByIndex(cardIndex);
 
   if (!cardRefs) {
+    updateGenerateButtonLabel(true);
     if (currentMode === 'video') updateRefImageReadyState(); else btnGenerate.disabled = false;
     return;
   }
@@ -1558,9 +1699,22 @@ async function generateMedia(body) {
   if (cardRefs.resultPromptEl) cardRefs.resultPromptEl.classList.add('hidden');
 
   let taskId = null;
+  let creditsDeducted = false;
   try {
     taskId = await submitTask(body);
     if (!taskId) throw new Error('Nenhum task_id retornado');
+
+    const deductRes = await fetch('/api/deduct-credits', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, amount: cost, taskId }),
+    });
+    if (deductRes.ok) {
+      creditsDeducted = true;
+      await refreshCreditsFromSupabase();
+    } else {
+      console.warn('[VARVOS] Deduct credits falhou:', await deductRes.text());
+    }
 
     outputPlaceholder.classList.add('hidden');
     outputResultsList.classList.remove('hidden');
@@ -1571,7 +1725,7 @@ async function generateMedia(body) {
     if (cardRefs.progressFill) cardRefs.progressFill.style.width = '0%';
     if (cardRefs.statusMessage) cardRefs.statusMessage.textContent = '';
 
-    const aspectRatio = document.getElementById('aspectRatio')?.value || '9:16';
+    const aspectRatio = (currentMode === 'motion' ? document.getElementById('motionFormat') : document.getElementById('aspectRatio'))?.value || '9:16';
     if (cardRefs.card) cardRefs.card.dataset.aspectRatio = aspectRatio;
     activeTasks.set(taskId, { cardRefs, startTime, prompt: lastPrompt, aspectRatio, isMotion: body?.model === 'kling-2.6/motion-control' });
     startLoadingForCard(cardRefs, currentMode);
@@ -1581,6 +1735,7 @@ async function generateMedia(body) {
     saveActiveTask(taskId, startTime, lastPrompt);
     updateOutputUI({ status: 'not_started', progress: 0 }, cardRefs, startTime);
 
+    updateGenerateButtonLabel(true);
     if (currentMode === 'video') updateRefImageReadyState(); else btnGenerate.disabled = false;
 
     const isMotion = body?.model === 'kling-2.6/motion-control';
@@ -1590,7 +1745,7 @@ async function generateMedia(body) {
     if (isMotion) deleteMotionRefsFromStorage();
     if (result?.status === 'finished' && result?.files?.length) {
       const ar = result.files[0]?.file_type === 'video'
-        ? (document.getElementById('aspectRatio')?.value || '9:16')
+        ? ((currentMode === 'motion' ? document.getElementById('motionFormat') : document.getElementById('aspectRatio'))?.value || '9:16')
         : (document.getElementById('imgSize')?.value || '1:1');
       addToHistory(result, lastPrompt, ar);
     }
@@ -1599,15 +1754,34 @@ async function generateMedia(body) {
     if (body?.model === 'kling-2.6/motion-control') deleteMotionRefsFromStorage();
     stopLoadingForCard(cardRefs);
     console.error('[VARVOS] Erro na geração:', err);
+
+    let refunded = false;
+    if (creditsDeducted && userId && taskId) {
+      try {
+        const refundRes = await fetch('/api/refund-credits', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId, amount: cost, taskId }),
+        });
+        if (refundRes.ok) {
+          refunded = true;
+          await refreshCreditsFromSupabase();
+        }
+      } catch (e) { console.warn('[VARVOS] Refund falhou:', e); }
+    }
+
     if (err.isCredits) {
       openCreditsModal();
     } else if (cardRefs.statusMessage) {
       const msg = (err?.message || '').toString().trim();
-      cardRefs.statusMessage.textContent = msg || 'Ocorreu um erro. Tente novamente em alguns minutos.';
+      let displayMsg = msg || 'Ocorreu um erro. Tente novamente em alguns minutos.';
+      if (refunded) displayMsg += ' Seus créditos foram estornados.';
+      cardRefs.statusMessage.textContent = displayMsg;
       cardRefs.statusMessage.className = 'status-message error';
     }
     const tid = pollTimeouts.get(taskId);
     if (tid) { clearTimeout(tid); pollTimeouts.delete(taskId); }
+    updateGenerateButtonLabel(true);
     if (currentMode === 'video') updateRefImageReadyState(); else btnGenerate.disabled = false;
   }
 }
@@ -1617,6 +1791,11 @@ generateForm.addEventListener('submit', async (e) => {
   if (currentMode === 'motion') {
     if (!motionCharImageUrl || !motionRefVideoUrl) {
       alert('Selecione a imagem do personagem e o vídeo de referência.');
+      return;
+    }
+    const duration = getMotionRefVideoDuration();
+    if (duration <= 0) {
+      alert('Aguarde o carregamento do vídeo de referência.');
       return;
     }
     lastPrompt = document.getElementById('prompt').value.trim() || 'Motion transfer';
@@ -1750,6 +1929,7 @@ async function restoreActiveTask() {
         }
       })
       .finally(() => {
+        updateGenerateButtonLabel(true);
         if (currentMode === 'video') updateRefImageReadyState(); else btnGenerate.disabled = false;
       });
   };

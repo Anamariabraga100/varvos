@@ -4,9 +4,9 @@
  * Body: { planId, customer, card }
  */
 const PLANS = {
-  start: { amount: 5990, credits: 150, name: 'Start' },
-  pro: { amount: 14990, credits: 500, name: 'Pro' },
-  agency: { amount: 49700, credits: 2000, name: 'Agency' },
+  start: { amount: 5990, credits: 1360, name: 'Start' },
+  pro: { amount: 14990, credits: 3780, name: 'Pro' },
+  agency: { amount: 49700, credits: 14120, name: 'Agency' },
 };
 
 const PLAN_IDS = {

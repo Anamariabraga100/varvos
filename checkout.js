@@ -384,6 +384,35 @@
             const successDiv = document.getElementById('pixSuccess');
             successDiv?.classList.remove('hidden');
 
+            var orderId = order.id;
+            if (orderId) {
+              var pollCount = 0;
+              var maxPolls = 100;
+              var pollInterval = setInterval(function () {
+                pollCount++;
+                if (pollCount > maxPolls) {
+                  clearInterval(pollInterval);
+                  return;
+                }
+                fetch(getApiBase() + '/order-status?orderId=' + encodeURIComponent(orderId))
+                  .then(function (r) { return r.json(); })
+                  .then(function (data) {
+                    if (data.paid) {
+                      clearInterval(pollInterval);
+                      successDiv?.classList.add('hidden');
+                      var successCard = document.getElementById('checkoutSuccess');
+                      var successMsg = document.getElementById('successMsg');
+                      if (successCard) successCard.classList.remove('hidden');
+                      if (successMsg) successMsg.textContent = 'Pagamento confirmado! Seus créditos foram adicionados à conta.';
+                      setTimeout(function () {
+                        location.href = '/video/';
+                      }, 2500);
+                    }
+                  })
+                  .catch(function () {});
+              }, 3000);
+            }
+
             var planId = document.getElementById('avulsoPlanId')?.value;
             var plan = planId && (window.VARVOS_PLANS?.avulsos?.[planId] || window.VARVOS_PLANS?.mensais?.[planId]);
             var creditsMsg = document.getElementById('pixCreditsMsg');

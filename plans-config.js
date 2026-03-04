@@ -40,22 +40,22 @@ window.VARVOS_PLANS = {
       id: 'start',
       name: 'Start',
       amount: 5990,       // R$ 59,90/mês
-      credits: 150,
-      description: '30 vídeos/mês (1.500 créditos)',
+      credits: 1360,      // ~27 vídeos — R$ 2,20/vídeo
+      description: '27 vídeos/mês (1.360 créditos)',
     },
     pro: {
       id: 'pro',
       name: 'Pro',
       amount: 14990,      // R$ 149,90/mês
-      credits: 500,
-      description: '100 vídeos/mês (5.000 créditos)',
+      credits: 3780,      // ~75 vídeos — R$ 1,98/vídeo
+      description: '75 vídeos/mês (3.780 créditos)',
     },
     agency: {
       id: 'agency',
       name: 'Agency',
       amount: 49700,      // R$ 497,00/mês
-      credits: 2000,
-      description: '400 vídeos/mês (20.000 créditos)',
+      credits: 14120,     // ~282 vídeos — R$ 1,76/vídeo
+      description: '282 vídeos/mês (14.120 créditos)',
     },
   },
 };

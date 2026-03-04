@@ -157,8 +157,21 @@ async function loadDashboard() {
         <td>${escapeHtml(u.email)}</td>
         <td>${u.credits ?? 0}</td>
         <td>${formatDate(u.created_at)}</td>
+        <td><button type="button" class="admin-btn-edit" data-user-id="${u.id}" data-credits="${u.credits ?? 0}">Editar créditos</button></td>
       </tr>
-    `).join('') : '<tr><td colspan="4" class="admin-loading">Nenhum usuário</td></tr>';
+    `).join('') : '<tr><td colspan="5" class="admin-loading">Nenhum usuário</td></tr>';
+
+    tbody.querySelectorAll('.admin-btn-edit').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const row = btn.closest('tr');
+        openEditCreditsModal({
+          id: btn.dataset.userId,
+          email: row?.cells[1]?.textContent || '—',
+          name: row?.cells[0]?.textContent || '',
+          credits: parseInt(btn.dataset.credits, 10) || 0
+        });
+      });
+    });
 
     const userIds = [...new Set(payments.map(p => p.user_id))];
     const usersMap = {};
@@ -195,7 +208,7 @@ async function loadDashboard() {
   } catch (err) {
     console.error('Admin load:', err);
     const msg = err?.message || 'Erro ao carregar';
-    document.getElementById('usersTableBody').innerHTML = `<tr><td colspan="4">Erro: ${escapeHtml(msg)}</td></tr>`;
+    document.getElementById('usersTableBody').innerHTML = `<tr><td colspan="5">Erro: ${escapeHtml(msg)}</td></tr>`;
     document.getElementById('paymentsTableBody').innerHTML = `<tr><td colspan="5">Erro: ${escapeHtml(msg)}</td></tr>`;
   }
   await loadAppSettings();
@@ -215,6 +228,61 @@ function formatDate(iso) {
   const d = new Date(iso);
   return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
+
+const editCreditsModal = document.getElementById('adminEditCreditsModal');
+const editCreditsInput = document.getElementById('adminEditCreditsInput');
+const editCreditsUserInfo = document.getElementById('adminEditUserInfo');
+const editCreditsSave = document.getElementById('adminEditCreditsSave');
+let editingUserId = null;
+
+function openEditCreditsModal(user) {
+  editingUserId = user.id;
+  editCreditsUserInfo.textContent = (user.name ? user.name + ' · ' : '') + user.email;
+  editCreditsInput.value = user.credits;
+  editCreditsModal?.classList.remove('hidden');
+}
+
+function closeEditCreditsModal() {
+  editingUserId = null;
+  editCreditsModal?.classList.add('hidden');
+}
+
+editCreditsModal?.querySelector('.admin-modal-backdrop')?.addEventListener('click', closeEditCreditsModal);
+editCreditsModal?.querySelector('.admin-modal-cancel')?.addEventListener('click', closeEditCreditsModal);
+
+editCreditsSave?.addEventListener('click', async () => {
+  const val = parseInt(editCreditsInput.value, 10);
+  if (isNaN(val) || val < 0) {
+    alert('Digite um número válido de créditos (≥ 0).');
+    return;
+  }
+  const sb = window.varvosSupabase;
+  if (!sb || !editingUserId) return;
+  editCreditsSave.disabled = true;
+  try {
+    const { data: userRow } = await sb.from('users').select('credits').eq('id', editingUserId).single();
+    const oldCredits = userRow?.credits ?? 0;
+    const diff = val - oldCredits;
+
+    await sb.from('users').update({ credits: val }).eq('id', editingUserId);
+
+    if (diff !== 0) {
+      await sb.from('credit_logs').insert({
+        user_id: editingUserId,
+        amount: diff,
+        type: 'admin_adjustment',
+        reference_id: null
+      });
+    }
+    closeEditCreditsModal();
+    loadDashboard();
+  } catch (err) {
+    console.error('Erro ao atualizar créditos:', err);
+    alert('Erro: ' + (err?.message || 'Não foi possível atualizar'));
+  } finally {
+    editCreditsSave.disabled = false;
+  }
+});
 
 document.getElementById('adminSearchBtn')?.addEventListener('click', async () => {
   const input = document.getElementById('adminSearchEmail');

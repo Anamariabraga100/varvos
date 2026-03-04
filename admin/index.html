@@ -56,10 +56,11 @@
                 <th>Email</th>
                 <th>Créditos</th>
                 <th>Cadastro</th>
+                <th>Ações</th>
               </tr>
             </thead>
             <tbody id="usersTableBody">
-              <tr><td colspan="4" class="admin-loading">Carregando…</td></tr>
+              <tr><td colspan="5" class="admin-loading">Carregando…</td></tr>
             </tbody>
           </table>
         </div>
@@ -94,6 +95,22 @@
           </label>
         </div>
       </section>
+
+      <div id="adminEditCreditsModal" class="admin-modal hidden">
+    <div class="admin-modal-backdrop"></div>
+    <div class="admin-modal-card">
+      <h3>Editar créditos</h3>
+      <p class="admin-modal-user" id="adminEditUserInfo">—</p>
+      <div class="admin-modal-form">
+        <label>Novo saldo de créditos</label>
+        <input type="number" id="adminEditCreditsInput" min="0" step="1" placeholder="0">
+      </div>
+      <div class="admin-modal-actions">
+        <button type="button" class="admin-modal-cancel">Cancelar</button>
+        <button type="button" class="admin-modal-save" id="adminEditCreditsSave">Salvar</button>
+      </div>
+    </div>
+  </div>
 
       <section class="admin-section">
         <h2>Buscar usuário</h2>

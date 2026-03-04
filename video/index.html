@@ -25,7 +25,7 @@
       <div class="header-right">
         <div class="header-credits-wrap">
           <span class="header-credits">
-            <svg class="credits-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" aria-hidden="true"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+            <svg class="credits-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z"/></svg>
             <span id="headerCredits" class="credits-count">—</span>
             <span class="credits-label">créditos</span>
           </span>
@@ -47,7 +47,7 @@
             <span class="create-label">O que você quer criar?</span>
             <div class="mode-switcher">
               <a href="." class="mode-btn active" data-mode="video"><span class="mode-btn-icon">🎬</span> Vídeo</a>
-              <a href="../imitar-movimento/" class="mode-btn" data-mode="motion"><span class="mode-btn-icon">✨</span> Imitar Movimento</a>
+              <a href="../imitar-movimento/" class="mode-btn" data-mode="motion"><span class="mode-btn-icon">👯</span> Imitar Movimento</a>
             </div>
           </div>
 
@@ -218,6 +218,9 @@
                 <div class="file-preview file-preview-motion hidden" id="motionRefVideoPreview">
                   <div class="motion-preview-wrap">
                     <video id="motionRefVideoPreviewVid" class="motion-preview-media" controls muted></video>
+                    <div class="motion-ref-loading-overlay hidden" id="motionRefVideoLoading" aria-hidden="true">
+                      <span class="motion-ref-loading-text">Carregando vídeo...</span>
+                    </div>
                     <div class="upload-overlay hidden" id="motionRefVideoProgress" aria-hidden="true">
                       <div class="upload-progress-bar-wrap"><div class="upload-progress-fill" id="motionRefVideoProgressFill"></div></div>
                       <span class="upload-progress-pct" id="motionRefVideoProgressPct">0%</span>
@@ -250,10 +253,18 @@
             </div>
             <div class="field-row">
               <div class="field">
+                <label for="motionFormat">Formato</label>
+                <select id="motionFormat" name="motion_format">
+                  <option value="9:16" selected>Reels (TikTok, Stories)</option>
+                  <option value="16:9">YouTube (16:9)</option>
+                  <option value="1:1">Destaque (1:1)</option>
+                </select>
+              </div>
+              <div class="field">
                 <label for="motionOrientation">Orientação do personagem</label>
                 <select id="motionOrientation" name="motion_orientation">
                   <option value="image">Imagem</option>
-                  <option value="video">Vídeo</option>
+                  <option value="video" selected>Vídeo</option>
                 </select>
                 <p class="field-hint-small">Imagem: usa a pose da foto. Vídeo: usa a pose do vídeo de referência.</p>
               </div>
@@ -273,6 +284,7 @@
                 <span id="btnGenerateText">Gerar vídeo</span>
                 <span class="btn-credits">✨</span>
               </button>
+              <p class="motion-cost-note hidden">Valor baseado no tamanho do vídeo</p>
             </div>
         </form>
       </section>
@@ -527,12 +539,12 @@
           <p class="plan-desc">Melhor custo-benefício</p>
           <div class="plan-credits-block">
             <svg class="plan-credits-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L14 8L20 10L14 12L12 18L10 12L4 10L10 8L12 2Z" stroke-linejoin="round"/></svg>
-            <span class="plan-credits-num">5.000</span>
+            <span class="plan-credits-num">3.780</span>
             <span class="plan-credits-label">créditos/mês</span>
           </div>
-          <p class="plan-credits-desc">Possível criar até 100 vídeos/mês</p>
+          <p class="plan-credits-desc">Possível criar até 75 vídeos/mês</p>
           <div class="plan-price-box plan-price-inverted">
-            <span class="plan-per-first">R$ 1,49 por vídeo</span>
+            <span class="plan-per-first">R$ 1,98 por vídeo</span>
             <span class="plan-current-small">Total: R$ 149,90/mês</span>
           </div>
           <ul class="plan-features">
@@ -551,12 +563,12 @@
           <p class="plan-desc">Para quem está começando</p>
           <div class="plan-credits-block">
             <svg class="plan-credits-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L14 8L20 10L14 12L12 18L10 12L4 10L10 8L12 2Z" stroke-linejoin="round"/></svg>
-            <span class="plan-credits-num">1.500</span>
+            <span class="plan-credits-num">1.360</span>
             <span class="plan-credits-label">créditos/mês</span>
           </div>
-          <p class="plan-credits-desc">Possível criar até 30 vídeos/mês</p>
+          <p class="plan-credits-desc">Possível criar até 27 vídeos/mês</p>
           <div class="plan-price-box plan-price-inverted">
-            <span class="plan-per-first">R$ 2,00 por vídeo</span>
+            <span class="plan-per-first">R$ 2,20 por vídeo</span>
             <span class="plan-current-small">Total: R$ 59,90/mês</span>
           </div>
           <ul class="plan-features">
@@ -574,12 +586,12 @@
           <p class="plan-desc">Para alto volume</p>
           <div class="plan-credits-block">
             <svg class="plan-credits-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L14 8L20 10L14 12L12 18L10 12L4 10L10 8L12 2Z" stroke-linejoin="round"/></svg>
-            <span class="plan-credits-num">20.000</span>
+            <span class="plan-credits-num">14.120</span>
             <span class="plan-credits-label">créditos/mês</span>
           </div>
-          <p class="plan-credits-desc">Possível criar até 400 vídeos/mês</p>
+          <p class="plan-credits-desc">Possível criar até 282 vídeos/mês</p>
           <div class="plan-price-box plan-price-inverted">
-            <span class="plan-per-first">R$ 1,24 por vídeo</span>
+            <span class="plan-per-first">R$ 1,76 por vídeo</span>
             <span class="plan-current-small">Total: R$ 497,00/mês</span>
           </div>
           <ul class="plan-features">
