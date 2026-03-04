@@ -60,6 +60,45 @@ header {
 
 .checkout-error.hidden { display: none; }
 
+.checkout-debug {
+  margin-bottom: 24px;
+  padding: 16px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-family: monospace;
+}
+
+.checkout-debug.hidden { display: none; }
+
+.checkout-debug-title {
+  font-weight: 600;
+  margin: 0 0 12px;
+  color: #475569;
+}
+
+#checkoutDebugSteps .debug-step {
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  background: white;
+  border-radius: 6px;
+  border-left: 3px solid #3b82f6;
+}
+
+#checkoutDebugSteps .debug-step.error { border-left-color: #ef4444; }
+
+#checkoutDebugSteps .debug-step pre {
+  margin: 6px 0 0;
+  padding: 8px;
+  background: #f1f5f9;
+  border-radius: 4px;
+  overflow-x: auto;
+  font-size: 0.8rem;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
 .checkout-card {
   background: white;
   border: 1px solid #e5e5e5;

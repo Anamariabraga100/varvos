@@ -46,6 +46,23 @@
     document.getElementById('checkoutError')?.classList.add('hidden');
   }
 
+  function debugStep(label, content, isError) {
+    const panel = document.getElementById('checkoutDebug');
+    const steps = document.getElementById('checkoutDebugSteps');
+    if (!panel || !steps) return;
+    panel.classList.remove('hidden');
+    const step = document.createElement('div');
+    step.className = 'debug-step' + (isError ? ' error' : '');
+    step.innerHTML = '<strong>' + label + '</strong>' +
+      (content ? '<pre>' + (typeof content === 'string' ? content : JSON.stringify(content, null, 2)) + '</pre>' : '');
+    steps.appendChild(step);
+  }
+
+  function clearDebug() {
+    const steps = document.getElementById('checkoutDebugSteps');
+    if (steps) steps.innerHTML = '';
+  }
+
   function setLoading(btn, loading) {
     if (!btn) return;
     const txt = btn.querySelector('.btn-text');
@@ -103,6 +120,8 @@
       plan.description + ' — ' + (plan.amount / 100).toFixed(2).replace('.', ',') + ' (único)';
     if (user?.email) document.getElementById('avulsoEmail').value = user.email;
     if (user?.name) document.getElementById('avulsoName').value = user.name;
+    var btnT = document.getElementById('btnAvulsoSubmit')?.querySelector('.btn-text');
+    if (btnT) btnT.textContent = 'Gerar Pix';
   } else {
     document.getElementById('checkoutMensal')?.classList.remove('hidden');
     document.getElementById('mensalPlanId').value = plan.id;
@@ -138,15 +157,23 @@
   document.getElementById('formAvulso')?.addEventListener('submit', function (e) {
     e.preventDefault();
     hideError();
+    clearDebug();
     const planId = document.getElementById('avulsoPlanId').value;
     const name = document.getElementById('avulsoName').value.trim();
     const email = document.getElementById('avulsoEmail').value.trim();
     const activeTab = document.querySelector('.pm-tab.active');
-    const paymentMethod = activeTab?.dataset.method || 'pix';
+    const paymentMethod = (activeTab?.dataset.method || 'pix');
+    const cardFieldsEl = document.getElementById('cardFieldsAvulso');
+    const cardFieldsHidden = cardFieldsEl?.classList.contains('hidden');
+    const btnTxt = document.getElementById('btnAvulsoSubmit')?.querySelector('.btn-text')?.textContent || '';
+    const isPix = cardFieldsHidden || paymentMethod === 'pix' || btnTxt.toLowerCase().includes('pix');
+    const effectiveMethod = isPix ? 'pix' : 'credit_card';
+    console.log('[Checkout] Submit:', { paymentMethod, effectiveMethod, isPix, cardFieldsHidden, btnText: btnTxt });
+    debugStep('Início: método de pagamento', { tabAtivo: paymentMethod, cardFieldsOcultos: cardFieldsHidden, usando: effectiveMethod });
 
     const payload = {
       planId,
-      paymentMethod,
+      paymentMethod: effectiveMethod,
       userId: getUserId(),
       customer: { name, email },
     };
@@ -156,6 +183,8 @@
 
     function doOrder(cardToken) {
       if (cardToken) payload.cardToken = cardToken;
+      debugStep('Passo 1: Dados enviados para a API', { url: getApiBase() + '/create-order', payload: payload });
+
       fetch(getApiBase() + '/create-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -163,9 +192,13 @@
       })
         .then(function (r) {
           return r.text().then(function (text) {
+            debugStep('Passo 2: Resposta do servidor', { status: r.status, url: r.url, body: text });
             try {
               var data = JSON.parse(text);
-              if (!r.ok) throw new Error(data.error || data.message || 'Erro ao criar pedido');
+              if (!r.ok) {
+                debugStep('Passo 3: Erro da Pagar.me', data, true);
+                throw new Error(data.error || data.message || 'Erro ao criar pedido');
+              }
               return data;
             } catch (e) {
               if (text.trim().startsWith('<')) {
@@ -176,19 +209,31 @@
           });
         })
         .then(function (order) {
-          if (paymentMethod === 'pix') {
+          if (effectiveMethod === 'pix') {
+            const normalized = order._pix;
             const charge = order.charges?.[0];
             const lastTx = charge?.last_transaction;
-            const qrCode = lastTx?.qr_code || lastTx?.qr_code_url || lastTx?.pix_image;
-            const pixCode = lastTx?.pix_qr_code || lastTx?.qr_code || lastTx?.pix_code || lastTx?.emv;
+            const gw = lastTx?.gateway_response || {};
+            debugStep('Passo 3: Estrutura Pix recebida', {
+              hasCharge: !!charge,
+              hasLastTx: !!lastTx,
+              _pix: normalized,
+              lastTxKeys: lastTx ? Object.keys(lastTx) : [],
+              gatewayKeys: gw ? Object.keys(gw) : [],
+            });
+
+            const pixCode = normalized?.code || lastTx?.pix_qr_code || lastTx?.qr_code || lastTx?.pix_code || lastTx?.emv
+              || gw?.emv || gw?.qr_code || gw?.pix_copy_paste || gw?.code;
+            const qrCode = normalized?.qr_url || lastTx?.qr_code_url || lastTx?.qr_code || lastTx?.pix_image
+              || gw?.qr_code_url;
 
             document.getElementById('formAvulso')?.classList.add('hidden');
             document.querySelector('.payment-method-tabs')?.classList.add('hidden');
             const successDiv = document.getElementById('pixSuccess');
             successDiv?.classList.remove('hidden');
 
-            const qrContainer = document.getElementById('pixQrContainer');
             const codeToShow = pixCode || qrCode;
+            const qrContainer = document.getElementById('pixQrContainer');
             if (qrContainer && codeToShow) {
               if (typeof qrCode === 'string' && qrCode.startsWith('http')) {
                 const img = document.createElement('img');
@@ -200,8 +245,11 @@
               }
             }
             const codeInput = document.getElementById('pixCode');
-            if (codeInput && codeToShow) {
-              codeInput.value = codeToShow;
+            if (codeInput) {
+              codeInput.value = codeToShow || '';
+              if (!codeToShow) {
+                codeInput.placeholder = 'Aguardando código... Verifique o app do seu banco.';
+              }
             }
             document.getElementById('btnCopyPix')?.addEventListener('click', function () {
               codeInput?.select();
@@ -222,7 +270,7 @@
         });
     }
 
-    if (paymentMethod === 'credit_card') {
+    if (effectiveMethod === 'credit_card') {
       const cardNum = document.getElementById('avulsoCardNumber').value.replace(/\D/g, '');
       const cardName = document.getElementById('avulsoCardName').value.trim();
       const exp = document.getElementById('avulsoCardExp').value;

@@ -121,6 +121,20 @@ export default async function handler(req, res) {
       });
     }
 
+    // Normalizar Pix: extrair código de várias estruturas possíveis da Pagar.me
+    if (paymentMethod === 'pix' && data.charges?.[0]) {
+      const charge = data.charges[0];
+      const tx = charge.last_transaction || {};
+      const gw = tx.gateway_response || {};
+      const pixCode = tx.pix_qr_code || tx.qr_code || tx.pix_code || tx.emv
+        || gw.emv || gw.qr_code || gw.pix_copy_paste || gw.code;
+      if (pixCode) {
+        data._pix = { code: pixCode, qr_url: tx.qr_code_url || gw.qr_code_url };
+      } else {
+        console.warn('[create-order] Pix sem código. last_transaction:', JSON.stringify(tx).slice(0, 500));
+      }
+    }
+
     return res.status(200).json(data);
   } catch (err) {
     console.error('create-order error:', err);
