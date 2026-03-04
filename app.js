@@ -2,8 +2,7 @@ const API_BASE = 'https://api.vidgo.ai';
 const KIE_API_BASE = 'https://api.kie.ai';
 const POLL_INTERVAL = 3000;
 const CREDITS_COST_VIDEO = 50;
-const CREDITS_PER_SECOND_MOTION = 8;   // Imitar movimento 720p: 8 créditos/seg
-const CREDITS_PER_SECOND_MOTION_1080P = 11;  // Imitar movimento 1080p: 11 créditos/seg
+const CREDITS_PER_SECOND_MOTION = 8;  // Imitar movimento: 8 créditos por segundo do vídeo
 const STORAGE_KEY = 'varvos_api_key';
 const HISTORY_STORAGE_KEY = 'varvos_history';
 const CREDITS_STORAGE_KEY = 'varvos_credits';
@@ -423,15 +422,10 @@ function getCredits() {
     const userRaw = localStorage.getItem(AUTH_STORAGE);
     if (userRaw) {
       const user = JSON.parse(userRaw);
-      if (user.credits != null && user.credits !== undefined) {
-        const n = parseInt(user.credits, 10);
-        return Number.isFinite(n) ? n : null;
-      }
+      if (user.credits != null && user.credits !== undefined) return parseInt(user.credits, 10);
     }
     const v = localStorage.getItem(CREDITS_STORAGE_KEY);
-    if (v == null) return null;
-    const n = parseInt(v, 10);
-    return Number.isFinite(n) ? n : null;
+    return v != null ? parseInt(v, 10) : null;
   } catch { return null; }
 }
 
@@ -445,19 +439,10 @@ async function refreshCreditsFromSupabase() {
   try {
     const raw = localStorage.getItem(AUTH_STORAGE);
     const user = raw ? JSON.parse(raw) : null;
-    if (!user?.id) return;
-    let credits = null;
-    const res = await fetch(`/api/get-credits?userId=${encodeURIComponent(user.id)}`);
-    if (res.ok) {
-      const data = await res.json();
-      credits = data.credits != null && Number.isFinite(data.credits) ? data.credits : null;
-    }
-    if (credits == null && window.varvosSupabase) {
-      const { data } = await window.varvosSupabase.from('users').select('credits').eq('id', user.id).single();
-      if (data && data.credits != null) credits = parseInt(data.credits, 10);
-    }
-    if (credits != null && Number.isFinite(credits)) {
-      user.credits = credits;
+    if (!user?.id || !window.varvosSupabase) return;
+    const { data } = await window.varvosSupabase.from('users').select('credits').eq('id', user.id).single();
+    if (data && data.credits != null) {
+      user.credits = data.credits;
       localStorage.setItem(AUTH_STORAGE, JSON.stringify(user));
       updateCreditsDisplay();
     }
@@ -658,7 +643,7 @@ function applyMode(mode) {
     let hasValue = true;
     if (currentMode === 'motion') {
       cost = getCreditsCostForBody({ model: 'kling-2.6/motion-control' });
-      if (!motionRefVideoUrl) {
+      if (cost <= CREDITS_PER_SECOND_MOTION && !motionRefVideoUrl) {
         cost = '—';
         hasValue = false;
       }
@@ -693,7 +678,8 @@ function getApiKey() {
 function getKieApiKey() {
   const cfg = window.VARVOS_CONFIG;
   if (cfg?.kieApiKey) return cfg.kieApiKey;
-  return localStorage.getItem('varvos_kie_api_key') || null;
+  if (cfg?.apiKey) return cfg.apiKey;
+  return localStorage.getItem(STORAGE_KEY);
 }
 
 
@@ -766,13 +752,12 @@ async function addToHistorySupabase(entry) {
 async function addToHistory(data, prompt, aspectRatio) {
   if (data.status !== 'finished' || !data.files?.length) return;
   const ar = aspectRatio || document.getElementById('aspectRatio')?.value || '9:16';
-  const mode = currentMode === 'motion' ? 'motion' : (data.files[0].file_type === 'video' ? 'video' : 'image');
   const entry = {
     id: data.task_id + '-' + Date.now(),
     task_id: data.task_id,
     created_time: data.created_time || new Date().toISOString(),
     prompt: prompt || '',
-    mode,
+    mode: data.files[0].file_type === 'video' ? 'video' : 'image',
     files: data.files,
     aspect_ratio: ar
   };
@@ -783,11 +768,7 @@ async function addToHistory(data, prompt, aspectRatio) {
 }
 
 function renderHistory() {
-  const allItems = getHistory();
-  const isMotionPage = /imitar-movimento/.test(window.location.pathname || '');
-  const items = isMotionPage
-    ? allItems.filter(i => i.mode === 'motion')
-    : allItems.filter(i => i.mode !== 'motion');
+  const items = getHistory();
   historyList.classList.toggle('hidden', !items.length);
   historyEmpty.classList.toggle('hidden', !!items.length);
   document.querySelector('.history-download-hint')?.classList.toggle('hidden', !items.length);
@@ -813,7 +794,7 @@ function renderHistory() {
       <div class="creation-item" data-aspect-ratio="${escapeHtml(aspectRatio)}" data-prompt="${escapeHtml(item.prompt || '')}">
         <div class="creation-thumb">${thumb}</div>
         <div class="creation-info">
-          <div class="meta">${item.mode === 'motion' ? '✨ Imitar Movimento' : (item.mode === 'video' ? '🎬 Vídeo' : '🖼️ Imagem')}${date ? ' · ' + date : ''}</div>
+          <div class="meta">${item.mode === 'video' ? '🎬 Vídeo' : '🖼️ Imagem'}${date ? ' · ' + date : ''}</div>
         </div>
         <div class="creation-actions">${downloads}${shareLinks}</div>
       </div>
@@ -1218,7 +1199,7 @@ function updateGenerateButtonLabel(showCredits = true) {
   let hasValue = true;
   if (currentMode === 'motion') {
     cost = getCreditsCostForBody({ model: 'kling-2.6/motion-control' });
-    if (!motionRefVideoUrl) {
+    if (cost <= CREDITS_PER_SECOND_MOTION && !motionRefVideoUrl) {
       cost = '—';
       hasValue = false;
     }
@@ -1228,7 +1209,6 @@ function updateGenerateButtonLabel(showCredits = true) {
   btnText.textContent = hasValue ? `${labels[currentMode] || 'Gerar'} · ${cost} créditos` : labels[currentMode] || 'Gerar';
 }
 document.getElementById('motionRefVideoPreviewVid')?.addEventListener('loadedmetadata', updateMotionButtonCredits);
-document.getElementById('motionResolution')?.addEventListener('change', updateMotionButtonCredits);
 
 // Build request body from form
 function buildRequestBody() {
@@ -1293,9 +1273,7 @@ async function submitTask(body) {
   const isMotion = body?.model === 'kling-2.6/motion-control';
   const apiKey = isMotion ? getKieApiKey() : getApiKey();
   if (!apiKey) {
-    alert(isMotion
-      ? 'Configure a chave da API KIE (kieApiKey em config.js ou KIE_API_KEY no Vercel) para usar Imitar movimento.'
-      : 'Configure sua chave API em config.js para começar.');
+    alert('Configure sua chave API em config.js para começar.');
     return null;
   }
 
@@ -1311,10 +1289,7 @@ async function submitTask(body) {
     let data;
     try { data = await res.json(); } catch (_) { throw new Error(`Erro ${res.status}`); }
     if (data?.code !== 200) {
-      let msg = (data?.msg || data?.failMsg || `Erro ${res.status}`).toString();
-      if (/unauthorized|authentication failed/i.test(msg)) {
-        msg = 'Chave da API KIE inválida ou não configurada. Adicione KIE_API_KEY no Vercel ou kieApiKey em config.js.';
-      }
+      const msg = (data?.msg || data?.failMsg || `Erro ${res.status}`).toString();
       const err = new Error(msg);
       err.isCredits = /credit|insufficient|saldo|quota|balance|402/i.test(msg);
       throw err;
@@ -1456,10 +1431,7 @@ function updateOutputUI(data, cardRefs, startTime) {
       imageGallery.innerHTML = '';
     }
     if (resultPromptEl) resultPromptEl.classList.add('hidden');
-    if (creationDisclaimer) {
-      creationDisclaimer.textContent = (prompt && prompt.trim()) ? prompt : 'Pode sair se quiser — o vídeo ficará salvo. Você também pode gerar mais de um vídeo ao mesmo tempo.';
-      creationDisclaimer.classList.remove('hidden');
-    }
+    if (creationDisclaimer) creationDisclaimer.classList.add('hidden');
     if (statusMessage) statusMessage.classList.add('hidden');
     if (cardRefs.card) {
       cardRefs.card.dataset.aspectRatio = aspectRatio;
@@ -1551,8 +1523,7 @@ async function saveActiveTask(taskId, startTime, prompt) {
     if (idx >= 0) tasks[idx] = payload;
     else {
       tasks.push(payload);
-      const MAX_ACTIVE_TASKS = 5;
-      if (tasks.length > MAX_ACTIVE_TASKS) tasks.shift();
+      if (tasks.length > 2) tasks.shift();
     }
     sessionStorage.setItem(ACTIVE_TASK_STORAGE, JSON.stringify({ tasks }));
   } catch (e) {}
@@ -1560,13 +1531,13 @@ async function saveActiveTask(taskId, startTime, prompt) {
   const sb = window.varvosSupabase;
   if (userId && sb) {
     try {
-      await sb.from('user_active_task_items').upsert({
+      await sb.from('user_active_tasks').upsert({
         user_id: userId,
         task_id: taskId,
         mode: currentMode,
         started_at: new Date(payload.startTime).toISOString(),
-        prompt: payload.prompt || ''
-      });
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'user_id' });
     } catch (e) { console.warn('saveActiveTask Supabase:', e); }
   }
 }
@@ -1590,7 +1561,7 @@ async function clearActiveTask(onlyIfTaskId = null) {
   const sb = window.varvosSupabase;
   if (userId && sb) {
     try {
-      let q = sb.from('user_active_task_items').delete().eq('user_id', userId);
+      let q = sb.from('user_active_tasks').delete().eq('user_id', userId);
       if (onlyIfTaskId) q = q.eq('task_id', onlyIfTaskId);
       await q;
     } catch (e) { console.warn('clearActiveTask Supabase:', e); }
@@ -1602,19 +1573,10 @@ async function getStoredActiveTasks() {
   const sb = window.varvosSupabase;
   if (userId && sb) {
     try {
-      const { data: items } = await sb.from('user_active_task_items').select('task_id, started_at, mode, prompt').eq('user_id', userId).order('started_at', { ascending: true });
-      if (items && items.length > 0) {
-        return items.slice(-5).map((r) => ({
-          taskId: r.task_id,
-          startTime: r.started_at ? new Date(r.started_at).getTime() : Date.now(),
-          mode: r.mode || 'video',
-          prompt: r.prompt || ''
-        }));
-      }
-      const { data: legacy } = await sb.from('user_active_tasks').select('task_id, started_at, mode').eq('user_id', userId).maybeSingle();
-      if (legacy) {
-        const startTime = legacy.started_at ? new Date(legacy.started_at).getTime() : Date.now();
-        return [{ taskId: legacy.task_id, startTime, mode: legacy.mode || 'video', prompt: '' }];
+      const { data } = await sb.from('user_active_tasks').select('task_id, started_at, mode').eq('user_id', userId).maybeSingle();
+      if (data) {
+        const startTime = data.started_at ? new Date(data.started_at).getTime() : Date.now();
+        return [{ taskId: data.task_id, startTime, mode: data.mode || 'video' }];
       }
     } catch (e) { console.warn('getStoredActiveTasks Supabase:', e); }
   }
@@ -1623,7 +1585,7 @@ async function getStoredActiveTasks() {
     if (stored) {
       const d = JSON.parse(stored);
       const tasks = Array.isArray(d.tasks) ? d.tasks : (d.taskId ? [{ taskId: d.taskId, startTime: d.startTime || Date.now(), mode: d.mode || 'video', prompt: d.prompt || '' }] : []);
-      return tasks.map(t => ({ ...t, prompt: t.prompt || '' })).slice(0, 5);
+      return tasks.map(t => ({ ...t, prompt: t.prompt || '' })).slice(0, 2);
     }
   } catch (e) {}
   return [];
@@ -1667,15 +1629,13 @@ async function pollUntilComplete(taskId, cardRefs, startTime, isMotion = false) 
   });
 }
 
-const MAX_RESULT_CARDS = 3;
-
 function getAvailableCardIndex() {
-  for (let i = 0; i < MAX_RESULT_CARDS; i++) {
-    const card = outputResultsList?.querySelector(`.output-result-card[data-card="${i}"]`);
-    if (!card) return 0;
-    const inUse = Array.from(activeTasks.values()).some(m => m.cardRefs?.card === card);
-    if (!inUse) return i;
-  }
+  const card0 = outputResultsList?.querySelector('.output-result-card[data-card="0"]');
+  const card1 = outputResultsList?.querySelector('.output-result-card[data-card="1"]');
+  const inUse0 = Array.from(activeTasks.values()).some(m => m.cardRefs?.card === card0);
+  const inUse1 = Array.from(activeTasks.values()).some(m => m.cardRefs?.card === card1);
+  if (!inUse0) return 0;
+  if (!inUse1) return 1;
   return 0;
 }
 
@@ -1689,46 +1649,21 @@ function getMotionRefVideoDuration() {
 function getCreditsCostForBody(body) {
   const isMotion = body?.model === 'kling-2.6/motion-control';
   if (!isMotion) return CREDITS_COST_VIDEO;
-  const resolution = document.getElementById('motionResolution')?.value || '720p';
-  const creditsPerSec = resolution === '1080p' ? CREDITS_PER_SECOND_MOTION_1080P : CREDITS_PER_SECOND_MOTION;
   const duration = getMotionRefVideoDuration();
   const seconds = Math.ceil(duration);
-  return Math.max(creditsPerSec, seconds * creditsPerSec);
+  return Math.max(CREDITS_PER_SECOND_MOTION, seconds * CREDITS_PER_SECOND_MOTION);
 }
 
 async function generateMedia(body) {
   const cost = getCreditsCostForBody(body);
   const userId = getCurrentUserId();
+  const credits = getCredits();
 
   if (!userId) {
     openCreditsModal();
     return;
   }
-
-  let credits = null;
-  try {
-    const res = await fetch(`/api/get-credits?userId=${encodeURIComponent(userId)}`);
-    if (res.ok) {
-      const data = await res.json();
-      credits = data.credits != null && Number.isFinite(data.credits) ? data.credits : null;
-    }
-  } catch (_) {}
-  if (credits == null && window.varvosSupabase) {
-    try {
-      const raw = localStorage.getItem(AUTH_STORAGE);
-      const user = raw ? JSON.parse(raw) : null;
-      if (user?.id) {
-        const { data } = await window.varvosSupabase.from('users').select('credits').eq('id', user.id).single();
-        if (data && data.credits != null) credits = parseInt(data.credits, 10);
-      }
-    } catch (_) {}
-  }
-  if (credits == null || !Number.isFinite(credits)) {
-    const cached = getCredits();
-    if (Number.isFinite(cached) && cached >= cost) credits = cached;
-  }
-  if (credits == null || !Number.isFinite(credits) || credits < cost) {
-    await refreshCreditsFromSupabase();
+  if (credits == null || credits < cost) {
     openCreditsModal();
     return;
   }
@@ -1759,62 +1694,26 @@ async function generateMedia(body) {
   if (cardRefs.downloadBtn) cardRefs.downloadBtn.classList.add('hidden');
   if (cardRefs.shareSection) cardRefs.shareSection.classList.add('hidden');
   if (cardRefs.downloadWarning) cardRefs.downloadWarning.classList.add('hidden');
-  if (cardRefs.creationDisclaimer) {
-    cardRefs.creationDisclaimer.classList.remove('hidden');
-    cardRefs.creationDisclaimer.textContent = (lastPrompt && lastPrompt.trim()) ? lastPrompt : 'Pode sair se quiser — o vídeo ficará salvo. Você também pode gerar mais de um vídeo ao mesmo tempo.';
-  }
+  if (cardRefs.creationDisclaimer) cardRefs.creationDisclaimer.classList.remove('hidden');
   if (cardRefs.statusMessage) { cardRefs.statusMessage.classList.remove('hidden'); cardRefs.statusMessage.textContent = ''; }
   if (cardRefs.resultPromptEl) cardRefs.resultPromptEl.classList.add('hidden');
 
   let taskId = null;
   let creditsDeducted = false;
-  const reserveId = 'reserve-' + Date.now();
   try {
+    taskId = await submitTask(body);
+    if (!taskId) throw new Error('Nenhum task_id retornado');
+
     const deductRes = await fetch('/api/deduct-credits', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId, amount: cost, taskId: reserveId }),
+      body: JSON.stringify({ userId, amount: cost, taskId }),
     });
-    if (!deductRes.ok) {
-      const errText = await deductRes.text();
-      console.warn('[VARVOS] Deduct credits falhou:', errText);
-      let msg = 'Créditos insuficientes';
-      if (deductRes.status === 404) {
-        msg = 'API de créditos indisponível (404). Reinicie o servidor (npx vercel dev) ou faça deploy.';
-      } else if (deductRes.status === 400) {
-        try { const d = JSON.parse(errText); if (d?.error) msg = d.error; } catch (_) {}
-      }
-      const err = new Error(msg);
-      err.isCredits = (deductRes.status === 400 && /insuficientes|insufficient/i.test(msg)) || deductRes.status !== 404;
-      throw err;
-    }
-    creditsDeducted = true;
-    try {
-      const deductData = await deductRes.json();
-      if (deductData?.credits != null && Number.isFinite(deductData.credits)) {
-        const raw = localStorage.getItem(AUTH_STORAGE);
-        const user = raw ? JSON.parse(raw) : null;
-        if (user) {
-          user.credits = deductData.credits;
-          localStorage.setItem(AUTH_STORAGE, JSON.stringify(user));
-          updateCreditsDisplay();
-        }
-      } else {
-        await refreshCreditsFromSupabase();
-      }
-    } catch (_) {
+    if (deductRes.ok) {
+      creditsDeducted = true;
       await refreshCreditsFromSupabase();
-    }
-
-    taskId = await submitTask(body);
-    if (!taskId) {
-      const refundRes = await fetch('/api/refund-credits', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, amount: cost, taskId: reserveId }),
-      });
-      if (refundRes.ok) await refreshCreditsFromSupabase();
-      throw new Error('Nenhum task_id retornado');
+    } else {
+      console.warn('[VARVOS] Deduct credits falhou:', await deductRes.text());
     }
 
     outputPlaceholder.classList.add('hidden');
@@ -1849,7 +1748,6 @@ async function generateMedia(body) {
         ? ((currentMode === 'motion' ? document.getElementById('motionFormat') : document.getElementById('aspectRatio'))?.value || '9:16')
         : (document.getElementById('imgSize')?.value || '1:1');
       addToHistory(result, lastPrompt, ar);
-      await refreshCreditsFromSupabase();
     }
   } catch (err) {
     if (taskId) activeTasks.delete(taskId);
@@ -1858,13 +1756,12 @@ async function generateMedia(body) {
     console.error('[VARVOS] Erro na geração:', err);
 
     let refunded = false;
-    if (creditsDeducted && userId) {
+    if (creditsDeducted && userId && taskId) {
       try {
-        const refundId = taskId || reserveId;
         const refundRes = await fetch('/api/refund-credits', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId, amount: cost, taskId: refundId }),
+          body: JSON.stringify({ userId, amount: cost, taskId }),
         });
         if (refundRes.ok) {
           refunded = true;
@@ -1975,11 +1872,7 @@ if (promptParam && pathname.includes('video')) {
 // Restaurar tarefas em andamento após recarregar (Supabase se logado, senão sessionStorage)
 async function restoreActiveTask() {
   if (!outputPlaceholder || !outputResultsList) return;
-  const allTasks = await getStoredActiveTasks();
-  const isMotionPage = /imitar-movimento/.test(window.location.pathname || '');
-  const tasks = isMotionPage
-    ? allTasks.filter(t => t.mode === 'motion')
-    : allTasks.filter(t => t.mode !== 'motion');
+  const tasks = await getStoredActiveTasks();
   if (tasks.length === 0) return;
 
   outputPlaceholder.classList.add('hidden');
@@ -2002,12 +1895,8 @@ async function restoreActiveTask() {
     }
 
     cardRefs.card.classList.remove('hidden');
-    activeTasks.set(data.taskId, { cardRefs, startTime, prompt: data.prompt || '' });
+    activeTasks.set(data.taskId, { cardRefs, startTime });
     startLoadingForCard(cardRefs, data.mode || 'video');
-    if (cardRefs.creationDisclaimer) {
-      cardRefs.creationDisclaimer.textContent = (data.prompt && data.prompt.trim()) ? data.prompt : 'Pode sair se quiser — o vídeo ficará salvo. Você também pode gerar mais de um vídeo ao mesmo tempo.';
-      cardRefs.creationDisclaimer.classList.remove('hidden');
-    }
 
     if (cardRefs.taskStatusEl) cardRefs.taskStatusEl.textContent = 'Enviando...';
     if (cardRefs.taskProgressEl) cardRefs.taskProgressEl.textContent = '0%';
