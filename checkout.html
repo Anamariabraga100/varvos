@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checkout — VARVOS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="stylesheet" href="checkout.css">
+</head>
+<body>
+  <div class="checkout-page">
+    <header>
+      <a href="." class="logo">
+        <svg class="logo-icon" width="28" height="28" viewBox="0 0 24 24" fill="none">
+          <path d="M12 2L2 7l10 5 10-5-10-5z" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M2 17l10 5 10-5" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span>VARVOS</span>
+      </a>
+      <a href="video/" class="nav-btn">Criar vídeo</a>
+    </header>
+
+    <main class="checkout-main">
+      <div id="checkoutError" class="checkout-error hidden"></div>
+
+      <!-- Plano não selecionado: mostra planos para clicar e ir direto ao pagamento -->
+      <div id="noPlan" class="checkout-card hidden">
+        <h1>Escolha um plano</h1>
+        <p class="checkout-plan-intro">Selecione abaixo para continuar ao pagamento.</p>
+        <div class="checkout-plan-picker">
+          <div class="plan-picker-label">Créditos avulsos (Pix ou Cartão)</div>
+          <div class="plan-picker-btns">
+            <a href="?plano=starter" class="plan-picker-btn">Starter R$ 14,90</a>
+            <a href="?plano=popular" class="plan-picker-btn plan-picker-featured">Popular R$ 39,90</a>
+            <a href="?plano=pro-avulso" class="plan-picker-btn">Pro R$ 79,90</a>
+            <a href="?plano=escala" class="plan-picker-btn">Escala R$ 297</a>
+          </div>
+          <div class="plan-picker-label">Assinatura mensal (Cartão)</div>
+          <div class="plan-picker-btns">
+            <a href="?plano=start" class="plan-picker-btn">Start R$ 59,90/mês</a>
+            <a href="?plano=pro" class="plan-picker-btn plan-picker-featured">Pro R$ 149,90/mês</a>
+            <a href="?plano=agency" class="plan-picker-btn">Agency R$ 497/mês</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Checkout avulso: Pix ou Cartão -->
+      <div id="checkoutAvulso" class="checkout-card hidden">
+        <h1 id="avulsoTitle">Checkout — Créditos avulsos</h1>
+        <p id="avulsoPlan" class="checkout-plan-info"></p>
+
+        <div class="payment-method-tabs">
+          <button type="button" class="pm-tab active" data-method="pix">Pix</button>
+          <button type="button" class="pm-tab" data-method="credit_card">Cartão de crédito</button>
+        </div>
+
+        <form id="formAvulso" class="checkout-form">
+          <input type="hidden" name="planId" id="avulsoPlanId">
+          <div class="form-row">
+            <label for="avulsoName">Nome completo</label>
+            <input type="text" id="avulsoName" name="name" required placeholder="Como no documento">
+          </div>
+          <div class="form-row">
+            <label for="avulsoEmail">E-mail</label>
+            <input type="email" id="avulsoEmail" name="email" required placeholder="seu@email.com">
+          </div>
+
+          <div id="cardFieldsAvulso" class="card-fields hidden">
+            <div class="form-row">
+              <label for="avulsoCardNumber">Número do cartão</label>
+              <input type="text" id="avulsoCardNumber" name="card_number" placeholder="0000 0000 0000 0000" maxlength="19" autocomplete="cc-number">
+            </div>
+            <div class="form-row">
+              <label for="avulsoCardName">Nome no cartão</label>
+              <input type="text" id="avulsoCardName" name="card_holder" placeholder="Como impresso no cartão" autocomplete="cc-name">
+            </div>
+            <div class="form-row form-row-inline">
+              <div>
+                <label for="avulsoCardExp">Validade (MM/AA)</label>
+                <input type="text" id="avulsoCardExp" name="card_exp" placeholder="12/28" maxlength="5" autocomplete="cc-exp">
+              </div>
+              <div>
+                <label for="avulsoCardCvv">CVV</label>
+                <input type="text" id="avulsoCardCvv" name="card_cvv" placeholder="123" maxlength="4" autocomplete="cc-csc">
+              </div>
+            </div>
+          </div>
+
+          <button type="submit" class="btn-checkout" id="btnAvulsoSubmit">
+            <span class="btn-text">Pagar com Pix</span>
+            <span class="btn-loading hidden">Processando...</span>
+          </button>
+        </form>
+
+        <div id="pixSuccess" class="pix-success hidden">
+          <p class="pix-title">Pague o Pix</p>
+          <div id="pixQrContainer" class="pix-qr"></div>
+          <p class="pix-copy-label">Ou copie o código:</p>
+          <div class="pix-copy-wrap">
+            <input type="text" id="pixCode" readonly>
+            <button type="button" id="btnCopyPix">Copiar</button>
+          </div>
+          <p class="pix-expires">Válido por 30 minutos</p>
+        </div>
+      </div>
+
+      <!-- Checkout mensal: apenas Cartão -->
+      <div id="checkoutMensal" class="checkout-card hidden">
+        <h1 id="mensalTitle">Assinatura — Plano mensal</h1>
+        <p id="mensalPlan" class="checkout-plan-info"></p>
+
+        <form id="formMensal" class="checkout-form">
+          <input type="hidden" name="planId" id="mensalPlanId">
+          <div class="form-row">
+            <label for="mensalName">Nome completo</label>
+            <input type="text" id="mensalName" name="name" required placeholder="Como no documento">
+          </div>
+          <div class="form-row">
+            <label for="mensalEmail">E-mail</label>
+            <input type="email" id="mensalEmail" name="email" required placeholder="seu@email.com">
+          </div>
+          <div class="form-row">
+            <label for="mensalCardNumber">Número do cartão</label>
+            <input type="text" id="mensalCardNumber" name="card_number" required placeholder="0000 0000 0000 0000" maxlength="19" autocomplete="cc-number">
+          </div>
+          <div class="form-row">
+            <label for="mensalCardName">Nome no cartão</label>
+            <input type="text" id="mensalCardName" name="card_holder" required placeholder="Como impresso no cartão" autocomplete="cc-name">
+          </div>
+          <div class="form-row form-row-inline">
+            <div>
+              <label for="mensalCardExp">Validade (MM/AA)</label>
+              <input type="text" id="mensalCardExp" name="card_exp" required placeholder="12/28" maxlength="5" autocomplete="cc-exp">
+            </div>
+            <div>
+              <label for="mensalCardCvv">CVV</label>
+              <input type="text" id="mensalCardCvv" name="card_cvv" required placeholder="123" maxlength="4" autocomplete="cc-csc">
+            </div>
+          </div>
+
+          <button type="submit" class="btn-checkout" id="btnMensalSubmit">
+            <span class="btn-text">Ativar assinatura</span>
+            <span class="btn-loading hidden">Processando...</span>
+          </button>
+        </form>
+      </div>
+
+      <!-- Sucesso -->
+      <div id="checkoutSuccess" class="checkout-card hidden">
+        <div class="success-icon">✓</div>
+        <h1>Pagamento realizado!</h1>
+        <p id="successMsg">Seus créditos foram adicionados à conta. Em caso de Pix, pode levar alguns minutos para a confirmação.</p>
+        <a href="video/" class="btn-checkout">Ir para criar vídeo</a>
+      </div>
+    </main>
+  </div>
+
+  <script src="config.js"></script>
+  <script src="plans-config.js"></script>
+  <script src="https://unpkg.com/pagarme@4.35.2/browser/pagarme.min.js"></script>
+  <script src="checkout.js"></script>
+</body>
+</html>

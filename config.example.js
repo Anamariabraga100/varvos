@@ -7,5 +7,7 @@ window.VARVOS_CONFIG = {
   // Supabase (https://supabase.com/dashboard) — Project Settings > API
   supabaseUrl: 'https://seu-projeto.supabase.co',
   supabaseAnonKey: 'sua-anon-key-aqui',
-  adminPassword: 'senha-secreta-admin'
+  adminPassword: 'senha-secreta-admin',
+  // Pagar.me (https://dashboard.pagar.me) — Configurações > Chaves > Chave de criptografia (ek_test_ ou ek_live_)
+  pagarMeEncryptionKey: 'ek_test_xxxx' // Obrigatório para pagamento com cartão no checkout
 };

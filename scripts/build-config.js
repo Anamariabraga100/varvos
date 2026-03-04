@@ -7,10 +7,12 @@ const path = require('path');
 
 const config = {
   apiKey: process.env.VARVOS_API_KEY || '',
+  kieApiKey: process.env.KIE_API_KEY || '',
   googleClientId: process.env.GOOGLE_CLIENT_ID || '',
   supabaseUrl: process.env.SUPABASE_URL || '',
   supabaseAnonKey: process.env.SUPABASE_ANON_KEY || '',
-  adminPassword: process.env.ADMIN_PASSWORD || ''
+  adminPassword: process.env.ADMIN_PASSWORD || '',
+  pagarMeEncryptionKey: process.env.PAGAR_ME_ENCRYPTION_KEY || ''
 };
 
 const output = `// Gerado automaticamente no build (não edite)
