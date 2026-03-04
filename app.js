@@ -2,7 +2,8 @@ const API_BASE = 'https://api.vidgo.ai';
 const KIE_API_BASE = 'https://api.kie.ai';
 const POLL_INTERVAL = 3000;
 const CREDITS_COST_VIDEO = 50;
-const CREDITS_PER_SECOND_MOTION = 8;  // Imitar movimento: 8 créditos por segundo do vídeo
+const CREDITS_PER_SECOND_MOTION = 8;   // Imitar movimento 720p: 8 créditos/seg
+const CREDITS_PER_SECOND_MOTION_1080P = 11;  // Imitar movimento 1080p: 11 créditos/seg
 const STORAGE_KEY = 'varvos_api_key';
 const HISTORY_STORAGE_KEY = 'varvos_history';
 const CREDITS_STORAGE_KEY = 'varvos_credits';
@@ -643,7 +644,7 @@ function applyMode(mode) {
     let hasValue = true;
     if (currentMode === 'motion') {
       cost = getCreditsCostForBody({ model: 'kling-2.6/motion-control' });
-      if (cost <= CREDITS_PER_SECOND_MOTION && !motionRefVideoUrl) {
+      if (!motionRefVideoUrl) {
         cost = '—';
         hasValue = false;
       }
@@ -752,12 +753,13 @@ async function addToHistorySupabase(entry) {
 async function addToHistory(data, prompt, aspectRatio) {
   if (data.status !== 'finished' || !data.files?.length) return;
   const ar = aspectRatio || document.getElementById('aspectRatio')?.value || '9:16';
+  const mode = currentMode === 'motion' ? 'motion' : (data.files[0].file_type === 'video' ? 'video' : 'image');
   const entry = {
     id: data.task_id + '-' + Date.now(),
     task_id: data.task_id,
     created_time: data.created_time || new Date().toISOString(),
     prompt: prompt || '',
-    mode: data.files[0].file_type === 'video' ? 'video' : 'image',
+    mode,
     files: data.files,
     aspect_ratio: ar
   };
@@ -768,7 +770,11 @@ async function addToHistory(data, prompt, aspectRatio) {
 }
 
 function renderHistory() {
-  const items = getHistory();
+  const allItems = getHistory();
+  const isMotionPage = /imitar-movimento/.test(window.location.pathname || '');
+  const items = isMotionPage
+    ? allItems.filter(i => i.mode === 'motion')
+    : allItems.filter(i => i.mode !== 'motion');
   historyList.classList.toggle('hidden', !items.length);
   historyEmpty.classList.toggle('hidden', !!items.length);
   document.querySelector('.history-download-hint')?.classList.toggle('hidden', !items.length);
@@ -794,7 +800,7 @@ function renderHistory() {
       <div class="creation-item" data-aspect-ratio="${escapeHtml(aspectRatio)}" data-prompt="${escapeHtml(item.prompt || '')}">
         <div class="creation-thumb">${thumb}</div>
         <div class="creation-info">
-          <div class="meta">${item.mode === 'video' ? '🎬 Vídeo' : '🖼️ Imagem'}${date ? ' · ' + date : ''}</div>
+          <div class="meta">${item.mode === 'motion' ? '✨ Imitar Movimento' : (item.mode === 'video' ? '🎬 Vídeo' : '🖼️ Imagem')}${date ? ' · ' + date : ''}</div>
         </div>
         <div class="creation-actions">${downloads}${shareLinks}</div>
       </div>
@@ -1199,7 +1205,7 @@ function updateGenerateButtonLabel(showCredits = true) {
   let hasValue = true;
   if (currentMode === 'motion') {
     cost = getCreditsCostForBody({ model: 'kling-2.6/motion-control' });
-    if (cost <= CREDITS_PER_SECOND_MOTION && !motionRefVideoUrl) {
+    if (!motionRefVideoUrl) {
       cost = '—';
       hasValue = false;
     }
@@ -1209,6 +1215,7 @@ function updateGenerateButtonLabel(showCredits = true) {
   btnText.textContent = hasValue ? `${labels[currentMode] || 'Gerar'} · ${cost} créditos` : labels[currentMode] || 'Gerar';
 }
 document.getElementById('motionRefVideoPreviewVid')?.addEventListener('loadedmetadata', updateMotionButtonCredits);
+document.getElementById('motionResolution')?.addEventListener('change', updateMotionButtonCredits);
 
 // Build request body from form
 function buildRequestBody() {
@@ -1649,9 +1656,11 @@ function getMotionRefVideoDuration() {
 function getCreditsCostForBody(body) {
   const isMotion = body?.model === 'kling-2.6/motion-control';
   if (!isMotion) return CREDITS_COST_VIDEO;
+  const resolution = document.getElementById('motionResolution')?.value || '720p';
+  const creditsPerSec = resolution === '1080p' ? CREDITS_PER_SECOND_MOTION_1080P : CREDITS_PER_SECOND_MOTION;
   const duration = getMotionRefVideoDuration();
   const seconds = Math.ceil(duration);
-  return Math.max(CREDITS_PER_SECOND_MOTION, seconds * CREDITS_PER_SECOND_MOTION);
+  return Math.max(creditsPerSec, seconds * creditsPerSec);
 }
 
 async function generateMedia(body) {
@@ -1872,7 +1881,11 @@ if (promptParam && pathname.includes('video')) {
 // Restaurar tarefas em andamento após recarregar (Supabase se logado, senão sessionStorage)
 async function restoreActiveTask() {
   if (!outputPlaceholder || !outputResultsList) return;
-  const tasks = await getStoredActiveTasks();
+  const allTasks = await getStoredActiveTasks();
+  const isMotionPage = /imitar-movimento/.test(window.location.pathname || '');
+  const tasks = isMotionPage
+    ? allTasks.filter(t => t.mode === 'motion')
+    : allTasks.filter(t => t.mode !== 'motion');
   if (tasks.length === 0) return;
 
   outputPlaceholder.classList.add('hidden');

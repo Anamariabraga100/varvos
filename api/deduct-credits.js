@@ -2,13 +2,14 @@
  * API: Deduzir créditos ao iniciar geração (vídeo ou imitar movimento)
  * POST /api/deduct-credits
  * Body: { userId, amount, taskId }
- * Vídeo: 50 créditos | Imitar movimento: 8 créditos/segundo (8–400, múltiplo de 8)
+ * Vídeo: 50 créditos | Imitar movimento: 720p 8 créd/seg | 1080p 11 créd/seg
  */
 import { createClient } from '@supabase/supabase-js';
 
 function isValidAmount(n) {
   if (n === 50) return true;  // vídeo
-  if (n >= 8 && n <= 800 && n % 8 === 0) return true;  // motion: 8 créditos/seg (até 100s)
+  if (n >= 8 && n <= 800 && n % 8 === 0) return true;   // motion 720p
+  if (n >= 11 && n <= 1100 && n % 11 === 0) return true;  // motion 1080p
   return false;
 }
 
@@ -22,7 +23,7 @@ export default async function handler(req, res) {
 
   if (!userId || !taskId || isNaN(amountNum) || !isValidAmount(amountNum)) {
     return res.status(400).json({
-      error: 'userId, taskId e amount válidos são obrigatórios (vídeo: 50 | motion: 8–800, múltiplo de 8)',
+      error: 'userId, taskId e amount válidos são obrigatórios (vídeo: 50 | motion 720p: 8–800 múltiplo de 8 | motion 1080p: 11–1100 múltiplo de 11)',
     });
   }
 
