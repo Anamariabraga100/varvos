@@ -82,11 +82,19 @@
     return window.location.origin + '/api';
   }
 
-  // Sincroniza campo validade MM/AA para exp_date (MM-YY) para tokenizecard
+  // Sincroniza campo validade MM/AA para exp_date (MM-YYYY) para tokenizecard
   function syncExpDateToken(expInputId, tokenElId) {
     var expEl = document.getElementById(expInputId);
     var tokenEl = document.getElementById(tokenElId);
-    if (expEl && tokenEl) tokenEl.value = (expEl.value || '').replace(/\//g, '-');
+    if (!expEl || !tokenEl) return;
+    var v = (expEl.value || '').replace(/\D/g, '');
+    if (v.length >= 4) {
+      var mm = v.slice(0, 2);
+      var yy = v.slice(2, 4);
+      tokenEl.value = mm + '-' + (parseInt(yy, 10) < 50 ? '20' + yy : '19' + yy);
+    } else {
+      tokenEl.value = (expEl.value || '').replace(/\//g, '-');
+    }
   }
 
   function parseExp(expStr) {
@@ -376,6 +384,8 @@
         return;
       }
       syncExpDateToken('avulsoCardExp', 'avulsoExpDateToken');
+      var cardNumEl = document.getElementById('avulsoCardNumber');
+      if (cardNumEl) cardNumEl.value = cardNumEl.value.replace(/\D/g, '');
       setLoading(btn, true);
       if (cardSubmitTimeoutId) clearTimeout(cardSubmitTimeoutId);
       cardSubmitTimeoutId = setTimeout(function () {
@@ -415,6 +425,8 @@
       return;
     }
     syncExpDateToken('mensalCardExp', 'mensalExpDateToken');
+    var cardNumEl = document.getElementById('mensalCardNumber');
+    if (cardNumEl) cardNumEl.value = cardNumEl.value.replace(/\D/g, '');
     var btn = document.getElementById('btnMensalSubmit');
     setLoading(btn, true);
     if (cardSubmitTimeoutId) clearTimeout(cardSubmitTimeoutId);
@@ -448,7 +460,15 @@
       this.value = v.substring(0, 5);
       if (syncId) {
         var tok = document.getElementById(syncId);
-        if (tok) tok.value = this.value.replace(/\//g, '-');
+        if (tok) {
+          var raw = this.value.replace(/\D/g, '');
+          if (raw.length >= 4) {
+            var mm = raw.slice(0, 2), yy = raw.slice(2, 4);
+            tok.value = mm + '-' + (parseInt(yy, 10) < 50 ? '20' + yy : '19' + yy);
+          } else {
+            tok.value = this.value.replace(/\//g, '-');
+          }
+        }
       }
     });
   }
