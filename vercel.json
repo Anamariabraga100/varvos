@@ -1,6 +1,9 @@
 {
   "buildCommand": "npm run build",
   "outputDirectory": ".",
+  "builds": [
+    { "src": "api/**/*.js", "use": "@vercel/node" }
+  ],
   "redirects": [{"source": "/index.html", "destination": "/", "permanent": true}],
   "cleanUrls": true
 }

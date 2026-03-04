@@ -693,8 +693,7 @@ function getApiKey() {
 function getKieApiKey() {
   const cfg = window.VARVOS_CONFIG;
   if (cfg?.kieApiKey) return cfg.kieApiKey;
-  if (cfg?.apiKey) return cfg.apiKey;
-  return localStorage.getItem(STORAGE_KEY);
+  return localStorage.getItem('varvos_kie_api_key') || null;
 }
 
 
@@ -1294,7 +1293,9 @@ async function submitTask(body) {
   const isMotion = body?.model === 'kling-2.6/motion-control';
   const apiKey = isMotion ? getKieApiKey() : getApiKey();
   if (!apiKey) {
-    alert('Configure sua chave API em config.js para começar.');
+    alert(isMotion
+      ? 'Configure a chave da API KIE (kieApiKey em config.js ou KIE_API_KEY no Vercel) para usar Imitar movimento.'
+      : 'Configure sua chave API em config.js para começar.');
     return null;
   }
 
@@ -1310,7 +1311,10 @@ async function submitTask(body) {
     let data;
     try { data = await res.json(); } catch (_) { throw new Error(`Erro ${res.status}`); }
     if (data?.code !== 200) {
-      const msg = (data?.msg || data?.failMsg || `Erro ${res.status}`).toString();
+      let msg = (data?.msg || data?.failMsg || `Erro ${res.status}`).toString();
+      if (/unauthorized|authentication failed/i.test(msg)) {
+        msg = 'Chave da API KIE inválida ou não configurada. Adicione KIE_API_KEY no Vercel ou kieApiKey em config.js.';
+      }
       const err = new Error(msg);
       err.isCredits = /credit|insufficient|saldo|quota|balance|402/i.test(msg);
       throw err;
@@ -1719,6 +1723,10 @@ async function generateMedia(body) {
       }
     } catch (_) {}
   }
+  if (credits == null || !Number.isFinite(credits)) {
+    const cached = getCredits();
+    if (Number.isFinite(cached) && cached >= cost) credits = cached;
+  }
   if (credits == null || !Number.isFinite(credits) || credits < cost) {
     await refreshCreditsFromSupabase();
     openCreditsModal();
@@ -1770,12 +1778,33 @@ async function generateMedia(body) {
     if (!deductRes.ok) {
       const errText = await deductRes.text();
       console.warn('[VARVOS] Deduct credits falhou:', errText);
-      const err = new Error('Créditos insuficientes');
-      err.isCredits = true;
+      let msg = 'Créditos insuficientes';
+      if (deductRes.status === 404) {
+        msg = 'API de créditos indisponível (404). Reinicie o servidor (npx vercel dev) ou faça deploy.';
+      } else if (deductRes.status === 400) {
+        try { const d = JSON.parse(errText); if (d?.error) msg = d.error; } catch (_) {}
+      }
+      const err = new Error(msg);
+      err.isCredits = (deductRes.status === 400 && /insuficientes|insufficient/i.test(msg)) || deductRes.status !== 404;
       throw err;
     }
     creditsDeducted = true;
-    await refreshCreditsFromSupabase();
+    try {
+      const deductData = await deductRes.json();
+      if (deductData?.credits != null && Number.isFinite(deductData.credits)) {
+        const raw = localStorage.getItem(AUTH_STORAGE);
+        const user = raw ? JSON.parse(raw) : null;
+        if (user) {
+          user.credits = deductData.credits;
+          localStorage.setItem(AUTH_STORAGE, JSON.stringify(user));
+          updateCreditsDisplay();
+        }
+      } else {
+        await refreshCreditsFromSupabase();
+      }
+    } catch (_) {
+      await refreshCreditsFromSupabase();
+    }
 
     taskId = await submitTask(body);
     if (!taskId) {
@@ -1820,6 +1849,7 @@ async function generateMedia(body) {
         ? ((currentMode === 'motion' ? document.getElementById('motionFormat') : document.getElementById('aspectRatio'))?.value || '9:16')
         : (document.getElementById('imgSize')?.value || '1:1');
       addToHistory(result, lastPrompt, ar);
+      await refreshCreditsFromSupabase();
     }
   } catch (err) {
     if (taskId) activeTasks.delete(taskId);
