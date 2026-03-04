@@ -58,7 +58,7 @@ export default async function handler(req, res) {
     payments.push({
       payment_method: 'credit_card',
       credit_card: {
-        card_token_id: cardToken,
+        card_token: cardToken,
         installments: 1,
       },
     });

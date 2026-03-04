@@ -80,7 +80,7 @@ export default async function handler(req, res) {
   };
 
   if (cardToken) {
-    subscriptionPayload.card = { card_token_id: cardToken, card_token: cardToken };
+    subscriptionPayload.card = { card_token: cardToken };
   } else {
     const { holder_name, number, exp_month, exp_year, cvv } = card;
     if (!holder_name || !number || !exp_month || !exp_year) {
