@@ -1,7 +1,8 @@
 const API_BASE = 'https://api.vidgo.ai';
 const POLL_INTERVAL = 3000;
 const CREDITS_COST_VIDEO = 50;
-const CREDITS_PER_SECOND_MOTION = 8;  // Imitar movimento: 8 créditos por segundo do vídeo
+const CREDITS_PER_SECOND_MOTION_720 = 8;   // Imitar movimento 720p: 8 créditos/segundo
+const CREDITS_PER_SECOND_MOTION_1080 = 11;  // Imitar movimento Full HD (1080p): 11 créditos/segundo
 const SKIP_CREDITS = false;  // true = criar vídeos sem deduzir créditos (para desenvolvimento/teste)
 const STORAGE_KEY = 'varvos_api_key';
 const HISTORY_STORAGE_KEY = 'varvos_history';
@@ -662,7 +663,8 @@ function applyMode(mode) {
     let hasValue = true;
     if (currentMode === 'motion') {
       cost = getCreditsCostForBody({ model: 'kling-2.6/motion-control' });
-      if (cost <= CREDITS_PER_SECOND_MOTION && !motionRefVideoUrl) {
+      const motionMinRate = getCreditsPerSecondMotion(document.getElementById('motionResolution')?.value || '720p');
+      if (cost <= motionMinRate && !motionRefVideoUrl) {
         cost = '—';
         hasValue = false;
       }
@@ -1210,7 +1212,8 @@ function updateGenerateButtonLabel(showCredits = true) {
   let hasValue = true;
   if (currentMode === 'motion') {
     cost = getCreditsCostForBody({ model: 'kling-2.6/motion-control' });
-    if (cost <= CREDITS_PER_SECOND_MOTION && !motionRefVideoUrl) {
+    const motionMinRate = getCreditsPerSecondMotion(document.getElementById('motionResolution')?.value || '720p');
+    if (cost <= motionMinRate && !motionRefVideoUrl) {
       cost = '—';
       hasValue = false;
     }
@@ -1220,6 +1223,7 @@ function updateGenerateButtonLabel(showCredits = true) {
   btnText.textContent = hasValue ? `${labels[currentMode] || 'Gerar'} · ${cost} créditos` : labels[currentMode] || 'Gerar';
 }
 document.getElementById('motionRefVideoPreviewVid')?.addEventListener('loadedmetadata', updateMotionButtonCredits);
+document.getElementById('motionResolution')?.addEventListener('change', updateMotionButtonCredits);
 
 // Build request body from form
 function buildRequestBody() {
@@ -1548,7 +1552,8 @@ function updateOutputUI(data, cardRefs, startTime) {
         const credits = getCredits();
         const isMotion = body?.model === 'kling-2.6/motion-control';
         const duration = isMotion ? getMotionRefVideoDuration() : (body?.input?.duration ?? 8);
-        const creditsPerSecond = isMotion ? CREDITS_PER_SECOND_MOTION : null;
+        const resolution = body?.input?.mode || document.getElementById('motionResolution')?.value || '720p';
+        const creditsPerSecond = isMotion ? getCreditsPerSecondMotion(resolution) : null;
         openCreditsModal({ needsLogin: false, cost, credits, duration, creditsPerSecond, mode: currentMode });
       } catch (_) {
         openCreditsModal({ needsLogin: false, cost: null, credits: getCredits() });
@@ -1717,12 +1722,18 @@ function getMotionRefVideoDuration() {
   return (typeof d === 'number' && !isNaN(d) && d > 0) ? d : 0;
 }
 
+function getCreditsPerSecondMotion(resolution) {
+  return (resolution === '1080p') ? CREDITS_PER_SECOND_MOTION_1080 : CREDITS_PER_SECOND_MOTION_720;
+}
+
 function getCreditsCostForBody(body) {
   const isMotion = body?.model === 'kling-2.6/motion-control';
   if (!isMotion) return CREDITS_COST_VIDEO;
+  const resolution = body?.input?.mode || document.getElementById('motionResolution')?.value || '720p';
+  const creditsPerSec = getCreditsPerSecondMotion(resolution);
   const duration = getMotionRefVideoDuration();
   const seconds = Math.ceil(duration);
-  return Math.max(CREDITS_PER_SECOND_MOTION, seconds * CREDITS_PER_SECOND_MOTION);
+  return Math.max(creditsPerSec, seconds * creditsPerSec);
 }
 
 function isLocalhost() {
@@ -1745,7 +1756,8 @@ async function generateMedia(body) {
     if (credits == null || credits < cost) {
       const isMotion = body?.model === 'kling-2.6/motion-control';
       const duration = isMotion ? getMotionRefVideoDuration() : (body?.input?.duration ?? 8);
-      const creditsPerSecond = isMotion ? CREDITS_PER_SECOND_MOTION : null;
+      const resolution = body?.input?.mode || document.getElementById('motionResolution')?.value || '720p';
+      const creditsPerSecond = isMotion ? getCreditsPerSecondMotion(resolution) : null;
       openCreditsModal({ needsLogin: false, cost, credits, duration, creditsPerSecond, mode: currentMode });
       return;
     }
@@ -1863,7 +1875,8 @@ async function generateMedia(body) {
         const credits = getCredits();
         const isMotion = body?.model === 'kling-2.6/motion-control';
         const duration = isMotion ? getMotionRefVideoDuration() : (body?.input?.duration ?? 8);
-        const creditsPerSecond = isMotion ? CREDITS_PER_SECOND_MOTION : null;
+        const resolution = body?.input?.mode || document.getElementById('motionResolution')?.value || '720p';
+        const creditsPerSecond = isMotion ? getCreditsPerSecondMotion(resolution) : null;
         openCreditsModal({ needsLogin: false, cost, credits, duration, creditsPerSecond, mode: currentMode });
       } catch (_) {
         openCreditsModal({ needsLogin: false, cost: null, credits: getCredits() });
@@ -2023,7 +2036,8 @@ async function restoreActiveTask() {
             const credits = getCredits();
             const isMotion = body?.model === 'kling-2.6/motion-control';
             const duration = isMotion ? getMotionRefVideoDuration() : (body?.input?.duration ?? 8);
-            const creditsPerSecond = isMotion ? CREDITS_PER_SECOND_MOTION : null;
+            const resolution = body?.input?.mode || document.getElementById('motionResolution')?.value || '720p';
+            const creditsPerSecond = isMotion ? getCreditsPerSecondMotion(resolution) : null;
             openCreditsModal({ needsLogin: false, cost, credits, duration, creditsPerSecond, mode: currentMode });
           } catch (_) {
             openCreditsModal({ needsLogin: false, cost: null, credits: getCredits() });
