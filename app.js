@@ -1,5 +1,6 @@
 const API_BASE = 'https://api.vidgo.ai';
 const POLL_INTERVAL = 3000;
+const POLL_TIMEOUT_MS = 15 * 60 * 1000; // 15 minutos – cancela se a API não concluir
 const CREDITS_COST_VIDEO = 50;
 const CREDITS_PER_SECOND_MOTION_720 = 8;   // Imitar movimento 720p: 8 créditos/segundo
 const CREDITS_PER_SECOND_MOTION_1080 = 11;  // Imitar movimento Full HD (1080p): 11 créditos/segundo
@@ -1942,6 +1943,17 @@ async function pollUntilComplete(taskId, cardRefs, startTime, isMotion = false) 
           return;
         }
 
+        const elapsed = Date.now() - (startTime || Date.now());
+        if (elapsed >= POLL_TIMEOUT_MS) {
+          if (currentTaskId === taskId) currentTaskId = null;
+          await clearActiveTask(taskId);
+          if (btnVerify) btnVerify.classList.add('hidden');
+          const err = new Error('O processamento demorou mais de 15 minutos e foi cancelado.');
+          err.isTimeout = true;
+          reject(err);
+          return;
+        }
+
         const tid = setTimeout(check, POLL_INTERVAL);
         pollTimeouts.set(taskId, tid);
       } catch (err) {
@@ -2133,10 +2145,12 @@ async function generateMedia(body) {
         openCreditsModal({ needsLogin: false, cost: null, credits: getCredits() });
       }
     } else if (cardRefs.statusMessage) {
-      let displayMsg = 'Estamos com alta demanda no momento.';
+      let displayMsg = err.isTimeout
+        ? 'O processamento demorou mais de 15 minutos e foi cancelado.'
+        : 'Estamos com alta demanda no momento.';
       if (refunded) {
         displayMsg += ' Seus créditos foram reembolsados. Você pode tentar novamente em alguns minutos.';
-      } else {
+      } else if (!err.isTimeout) {
         displayMsg += ' Tente novamente em alguns minutos.';
       }
       cardRefs.statusMessage.textContent = displayMsg;
@@ -2317,9 +2331,11 @@ async function restoreActiveTask() {
             openCreditsModal({ needsLogin: false, cost: null, credits: getCredits() });
           }
         } else if (cardRefs.statusMessage) {
-          let msg = 'Estamos com alta demanda no momento.';
+          let msg = err.isTimeout
+            ? 'O processamento demorou mais de 15 minutos e foi cancelado.'
+            : 'Estamos com alta demanda no momento.';
           if (refunded) msg += ' Seus créditos foram reembolsados. Você pode tentar novamente em alguns minutos.';
-          else msg += ' Tente novamente em alguns minutos.';
+          else if (!err.isTimeout) msg += ' Tente novamente em alguns minutos.';
           cardRefs.statusMessage.textContent = msg;
           cardRefs.statusMessage.className = 'status-message error';
         }
