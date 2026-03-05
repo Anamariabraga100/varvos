@@ -81,6 +81,7 @@ body {
 }
 
 .header-credits-wrap {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -105,6 +106,39 @@ body {
   font-weight: 700;
   font-size: 0.9rem;
   color: var(--text);
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.header-credits-wrap.credits-just-decreased .credits-count {
+  animation: creditsDeductPulse 0.7s ease-out;
+}
+
+@keyframes creditsDeductPulse {
+  0% { transform: scale(1); color: var(--text); }
+  30% { transform: scale(1.35); color: var(--accent, #ff6b4a); }
+  60% { transform: scale(1.1); }
+  100% { transform: scale(1); color: var(--text); }
+}
+
+.credits-deduct-badge {
+  position: absolute;
+  top: -4px;
+  right: -2px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--accent, #ff6b4a);
+  background: rgba(255, 107, 74, 0.15);
+  padding: 2px 6px;
+  border-radius: 6px;
+  animation: creditsDeductBadge 1.2s ease-out forwards;
+  pointer-events: none;
+}
+
+@keyframes creditsDeductBadge {
+  0% { opacity: 0; transform: translateY(4px) scale(0.8); }
+  20% { opacity: 1; transform: translateY(0) scale(1.1); }
+  70% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-6px) scale(0.9); }
 }
 
 .credits-label {

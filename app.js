@@ -2,7 +2,7 @@ const API_BASE = 'https://api.vidgo.ai';
 const POLL_INTERVAL = 3000;
 const CREDITS_COST_VIDEO = 50;
 const CREDITS_PER_SECOND_MOTION = 8;  // Imitar movimento: 8 créditos por segundo do vídeo
-const SKIP_CREDITS = true;  // true = criar vídeos sem deduzir créditos (para desenvolvimento/teste)
+const SKIP_CREDITS = false;  // true = criar vídeos sem deduzir créditos (para desenvolvimento/teste)
 const STORAGE_KEY = 'varvos_api_key';
 const HISTORY_STORAGE_KEY = 'varvos_history';
 const CREDITS_STORAGE_KEY = 'varvos_credits';
@@ -433,6 +433,20 @@ function updateCreditsDisplay() {
   const n = getCredits();
   const txt = n != null ? String(n) : '0';
   document.querySelectorAll('#headerCredits, #hamburgerCredits').forEach(el => { if (el) el.textContent = txt; });
+}
+
+function animateCreditsDecrease(amount) {
+  const wrap = document.querySelector('.header-credits-wrap');
+  if (!wrap) return;
+  const badge = document.createElement('span');
+  badge.className = 'credits-deduct-badge';
+  badge.textContent = `−${amount}`;
+  wrap.appendChild(badge);
+  wrap.classList.add('credits-just-decreased');
+  setTimeout(() => {
+    wrap.classList.remove('credits-just-decreased');
+    badge.remove();
+  }, 750);
 }
 
 async function refreshCreditsFromSupabase() {
@@ -1703,6 +1717,7 @@ async function generateMedia(body) {
       if (deductRes.ok) {
         creditsDeducted = true;
         await refreshCreditsFromSupabase();
+        animateCreditsDecrease(cost);
       } else {
         console.warn('[VARVOS] Deduct credits falhou:', await deductRes.text());
       }
