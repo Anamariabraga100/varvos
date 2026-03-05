@@ -5,9 +5,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24px;
+  padding: 16px;
   background: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(4px);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .credits-modal.hidden {
@@ -24,17 +26,22 @@
   position: relative;
   width: 100%;
   max-width: 400px;
+  max-height: calc(100vh - 32px);
+  max-height: calc(100dvh - 32px);
+  margin: auto;
   background: #ffffff;
   border-radius: 12px;
   box-shadow: 0 24px 48px rgba(0, 0, 0, 0.12);
-  padding: 40px 32px;
+  padding: 32px 24px;
   text-align: center;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .credits-modal-close {
   position: absolute;
-  top: 16px;
-  right: 16px;
+  top: 12px;
+  right: 12px;
   width: 36px;
   height: 36px;
   display: flex;
@@ -56,39 +63,41 @@
 .credits-modal-icon {
   display: flex;
   justify-content: center;
-  margin-bottom: 20px;
+  margin-bottom: 12px;
 }
 
 .credits-modal-icon svg {
+  width: 40px;
+  height: 40px;
   color: #6b7280;
 }
 
 /* Hierarquia visual clara */
 .credits-modal-title {
-  margin: 0 0 8px;
-  font-size: 1.35rem;
+  margin: 0 0 6px;
+  font-size: 1.2rem;
   font-weight: 600;
   color: #1a1a1a;
   line-height: 1.3;
 }
 
 .credits-modal-content {
-  margin-bottom: 24px;
+  margin-bottom: 16px;
 }
 
 /* Nível 1: subtítulo */
 .credits-modal-desc {
-  margin: 0 0 20px;
-  font-size: 1rem;
+  margin: 0 0 12px;
+  font-size: 0.95rem;
   font-weight: 500;
   color: #4b5563;
-  line-height: 1.5;
+  line-height: 1.4;
 }
 
 /* Nível 2: saldo — informação secundária */
 .credits-modal-balance {
-  margin: 0 0 16px;
-  font-size: 0.9rem;
+  margin: 0 0 10px;
+  font-size: 0.85rem;
   color: #6b7280;
 }
 
@@ -97,12 +106,12 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  margin: 0 0 24px;
-  padding: 20px 24px;
+  gap: 2px;
+  margin: 0 0 14px;
+  padding: 14px 16px;
   background: rgba(37, 99, 235, 0.08);
   border: 2px solid rgba(37, 99, 235, 0.25);
-  border-radius: 12px;
+  border-radius: 10px;
 }
 
 .credits-modal-missing-row {
@@ -119,7 +128,7 @@
 }
 
 .credits-modal-missing-num {
-  font-size: 2.25rem;
+  font-size: 1.85rem;
   font-weight: 800;
   color: var(--accent, #2563eb);
   line-height: 1;
@@ -136,55 +145,55 @@
 .credits-modal-trust {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-bottom: 4px;
+  gap: 4px;
+  margin-bottom: 0;
 }
 
 .credits-modal-no-expire {
   margin: 0;
   padding: 0;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   font-weight: 500;
   color: #6b7280;
 }
 
 .credits-modal-trigger {
   margin: 0;
-  font-size: 0.85rem;
+  font-size: 0.78rem;
   color: #6b7280;
 }
 
 /* Oferta de primeira compra — versão suave da cor da marca */
 .credits-modal-offer-card {
-  margin: 20px 0 24px;
-  padding: 20px;
+  margin: 12px 0 14px;
+  padding: 14px 16px;
   background: rgba(37, 99, 235, 0.06);
   border: 2px solid rgba(37, 99, 235, 0.35);
-  border-radius: 12px;
+  border-radius: 10px;
   text-align: center;
 }
 
 .credits-modal-offer-badge {
   display: block;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   font-weight: 700;
   color: var(--text, #111827);
-  margin-bottom: 6px;
+  margin-bottom: 2px;
 }
 
 .credits-modal-offer-tagline {
-  margin: 0 0 12px;
-  font-size: 0.9rem;
+  margin: 0 0 8px;
+  font-size: 0.82rem;
   font-weight: 500;
   color: var(--text-muted, #6b7280);
 }
 
 .credits-modal-offer-credits {
-  margin-bottom: 10px;
+  margin-bottom: 6px;
 }
 
 .credits-modal-offer-base {
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 600;
   color: var(--text, #1a1a1a);
 }
@@ -193,33 +202,33 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  margin-bottom: 10px;
+  gap: 2px;
+  margin-bottom: 6px;
 }
 
 .credits-modal-offer-per-video {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: 800;
   color: var(--text, #1a1a1a);
   line-height: 1.2;
 }
 
 .credits-modal-offer-total {
-  font-size: 0.9rem;
+  font-size: 0.82rem;
   font-weight: 500;
   color: var(--text-muted, #6b7280);
 }
 
 .credits-modal-offer-cta-hint {
-  margin: 0 0 14px;
-  font-size: 0.8rem;
+  margin: 0 0 10px;
+  font-size: 0.75rem;
   color: var(--text-muted, #6b7280);
   font-weight: 500;
 }
 
 .credits-modal-offer-btn {
   display: block;
-  padding: 12px 24px;
+  padding: 10px 20px;
   background: var(--btn-bg, #111827);
   color: white;
   border-radius: 8px;
@@ -238,7 +247,7 @@
 .credits-modal-btn {
   display: block;
   width: 100%;
-  padding: 14px 24px;
+  padding: 12px 20px;
   background: transparent;
   color: var(--text, #1a1a1a);
   border: 2px solid var(--border, #e2e6eb);
@@ -253,4 +262,32 @@
 .credits-modal-btn:hover {
   border-color: var(--text-muted, #6b7280);
   background: var(--bg-soft, #f3f4f6);
+}
+
+@media (max-height: 640px) {
+  .credits-modal {
+    padding: 12px;
+    align-items: flex-start;
+  }
+  .credits-modal-card {
+    padding: 24px 20px;
+    max-height: calc(100dvh - 24px);
+  }
+  .credits-modal-icon {
+    margin-bottom: 8px;
+  }
+  .credits-modal-icon svg {
+    width: 36px;
+    height: 36px;
+  }
+  .credits-modal-title {
+    font-size: 1.1rem;
+  }
+  .credits-modal-offer-card {
+    margin: 10px 0 12px;
+    padding: 12px 14px;
+  }
+  .credits-modal-offer-per-video {
+    font-size: 1.15rem;
+  }
 }
