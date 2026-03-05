@@ -1,15 +1,28 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
   "buildCommand": "npm run build",
   "outputDirectory": ".",
   "builds": [
     { "src": "api/**/*.js", "use": "@vercel/node" }
   ],
   "rewrites": [
+    { "source": "/", "destination": "/index.html" },
     { "source": "/imitar-movimento", "destination": "/imitar-movimento/" },
     { "source": "/imitar-movimento/", "destination": "/imitar-movimento/index.html" },
     { "source": "/video", "destination": "/video/" },
-    { "source": "/video/", "destination": "/video/index.html" }
+    { "source": "/video/", "destination": "/video/index.html" },
+    { "source": "/danca", "destination": "/danca/" },
+    { "source": "/danca/", "destination": "/danca/index.html" },
+    { "source": "/marketing", "destination": "/marketing/" },
+    { "source": "/marketing/", "destination": "/marketing/index.html" },
+    { "source": "/imagem", "destination": "/imagem/" },
+    { "source": "/imagem/", "destination": "/imagem/index.html" },
+    { "source": "/admin", "destination": "/admin/" },
+    { "source": "/admin/", "destination": "/admin/index.html" }
   ],
-  "redirects": [{"source": "/index.html", "destination": "/", "permanent": true}],
+  "redirects": [
+    { "source": "/index.html", "destination": "/", "permanent": true }
+  ],
   "cleanUrls": true
 }
