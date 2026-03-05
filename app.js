@@ -1,5 +1,4 @@
 const API_BASE = 'https://api.vidgo.ai';
-const KIE_API_BASE = 'https://api.kie.ai';
 const POLL_INTERVAL = 3000;
 const CREDITS_COST_VIDEO = 50;
 const CREDITS_PER_SECOND_MOTION = 8;  // Imitar movimento: 8 créditos por segundo do vídeo
@@ -676,14 +675,6 @@ function getApiKey() {
   return localStorage.getItem(STORAGE_KEY);
 }
 
-function getKieApiKey() {
-  const cfg = window.VARVOS_CONFIG;
-  if (cfg?.kieApiKey) return cfg.kieApiKey;
-  if (cfg?.apiKey) return cfg.apiKey;
-  return localStorage.getItem(STORAGE_KEY);
-}
-
-
 // History — Supabase quando logado, localStorage como fallback
 let historyCache = [];
 
@@ -1272,19 +1263,18 @@ function buildRequestBody() {
 
 async function submitTask(body) {
   const isMotion = body?.model === 'kling-2.6/motion-control';
-  const apiKey = isMotion ? getKieApiKey() : getApiKey();
-  if (!apiKey) {
-    alert('Configure sua chave API em config.js para começar.');
-    return null;
+  if (!isMotion) {
+    const apiKey = getApiKey();
+    if (!apiKey) {
+      alert('Configure sua chave API em config.js para começar.');
+      return null;
+    }
   }
 
   if (isMotion) {
-    const res = await fetch(`${KIE_API_BASE}/api/v1/jobs/createTask`, {
+    const res = await fetch('/api/kie/create-task', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body)
     });
     let data;
@@ -1326,10 +1316,7 @@ async function submitTask(body) {
 
 async function getTaskStatus(taskId, isMotion = false) {
   if (isMotion) {
-    const apiKey = getKieApiKey();
-    const res = await fetch(`${KIE_API_BASE}/api/v1/jobs/recordInfo?taskId=${encodeURIComponent(taskId)}`, {
-      headers: { 'Authorization': `Bearer ${apiKey}` }
-    });
+    const res = await fetch(`/api/kie/record-info?taskId=${encodeURIComponent(taskId)}`);
     const data = await res.json();
     if (data?.code !== 200) throw new Error(data?.msg || `Erro ${res.status}`);
     const d = data?.data || {};

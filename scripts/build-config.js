@@ -7,7 +7,6 @@ const path = require('path');
 
 const config = {
   apiKey: process.env.VARVOS_API_KEY || '',
-  kieApiKey: process.env.KIE_API_KEY || '',
   googleClientId: process.env.GOOGLE_CLIENT_ID || '',
   supabaseUrl: process.env.SUPABASE_URL || '',
   supabaseAnonKey: process.env.SUPABASE_ANON_KEY || '',
