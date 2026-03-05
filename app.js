@@ -103,7 +103,7 @@ function getCardRefs(cardEl) {
     downloadBtn: cardEl.querySelector('.btn-download'),
     shareSection: cardEl.querySelector('.share-video-buttons'),
     whatsappBtn: cardEl.querySelector('.btn-share-whatsapp'),
-    resultPromptEl: cardEl.querySelector('.result-prompt')
+    resultPromptEl: cardEl.querySelector('.result-prompt-wrap')
   };
 }
 function getCardByIndex(i) {
@@ -353,6 +353,17 @@ outputResultsList?.addEventListener('click', (e) => {
 
 // Clique no vídeo gerado para abrir modal (delegação)
 outputResultsList?.addEventListener('click', (e) => {
+  const toggleBtn = e.target.closest('.result-prompt-toggle');
+  if (toggleBtn) {
+    e.preventDefault();
+    const wrap = toggleBtn.closest('.result-prompt-wrap');
+    const content = wrap?.querySelector('.result-prompt-content');
+    if (wrap && content) {
+      content.classList.toggle('collapsed');
+      toggleBtn.setAttribute('aria-expanded', content.classList.contains('collapsed') ? 'false' : 'true');
+    }
+    return;
+  }
   const mediaContainer = e.target.closest('.media-container');
   if (!mediaContainer) return;
   if (e.target.closest('.btn-download, .btn-share-whatsapp')) return;
@@ -1428,6 +1439,24 @@ function stopLoadingForCard(cardRefs) {
   }
 }
 
+async function userHasPurchased() {
+  try {
+    const raw = localStorage.getItem(AUTH_STORAGE);
+    const user = raw ? JSON.parse(raw) : null;
+    const sb = window.varvosSupabase;
+    if (!user || !sb) return false;
+    let userId = user.id;
+    if (!userId && (user.email || '').trim()) {
+      const email = String(user.email).trim().toLowerCase();
+      const { data: u } = await sb.from('users').select('id').eq('email', email).single();
+      userId = u?.id;
+    }
+    if (!userId) return false;
+    const { data } = await sb.from('payments').select('id').eq('user_id', userId).eq('status', 'completed').limit(1);
+    return !!(data && data.length > 0);
+  } catch (_) { return false; }
+}
+
 function openCreditsModal(opts = {}) {
   activeTasks.forEach(m => stopLoadingForCard(m.cardRefs));
   if (outputResultsList) outputResultsList.classList.add('hidden');
@@ -1483,7 +1512,12 @@ function openCreditsModal(opts = {}) {
       const triggerEl = document.getElementById('creditsModalTrigger');
       if (triggerEl) triggerEl.classList.remove('hidden');
       const offerEl = document.getElementById('creditsModalOffer');
-      if (offerEl) offerEl.classList.remove('hidden');
+      if (offerEl) {
+        offerEl.classList.add('hidden');
+        userHasPurchased().then((hasPurchased) => {
+          if (!hasPurchased) offerEl.classList.remove('hidden');
+        });
+      }
     }
     creditsModal.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
@@ -1503,7 +1537,7 @@ function isCreditsError(msg) {
 
 function updateOutputUI(data, cardRefs, startTime) {
   if (!cardRefs) return;
-  const { taskStatusEl, taskProgressEl, progressFill, loadingPlaceholder, videoPlayer, imageGallery, creationDisclaimer, statusMessage, downloadWarning, downloadBtn, resultPromptEl } = cardRefs;
+  const { taskStatusEl, taskProgressEl, progressFill, loadingPlaceholder, loadingTextEl, videoPlayer, imageGallery, creationDisclaimer, statusMessage, downloadWarning, downloadBtn, resultPromptEl } = cardRefs;
   const status = data.status || '';
   if (taskStatusEl) {
     taskStatusEl.textContent = STATUS_PT[status] || status;
@@ -1512,6 +1546,11 @@ function updateOutputUI(data, cardRefs, startTime) {
   const apiProgress = data.progress || 0;
   if (taskProgressEl) taskProgressEl.textContent = apiProgress + '%';
   if (progressFill) progressFill.style.width = apiProgress + '%';
+  if (apiProgress >= 95 && loadingTextEl) {
+    loadingTextEl.textContent = 'Preparando seu download…';
+    const tid = cardRefs.card && loadingIntervals.get(cardRefs.card);
+    if (tid) { clearInterval(tid); loadingIntervals.delete(cardRefs.card); }
+  }
 
   if (data.status === 'finished' && data.files?.length) {
     const taskMeta = activeTasks.get(data.task_id);
@@ -1527,7 +1566,15 @@ function updateOutputUI(data, cardRefs, startTime) {
       imageGallery.classList.add('hidden');
       imageGallery.innerHTML = '';
     }
-    if (resultPromptEl) resultPromptEl.classList.add('hidden');
+    if (resultPromptEl) {
+      const textEl = resultPromptEl.querySelector('.result-prompt-text');
+      const contentEl = resultPromptEl.querySelector('.result-prompt-content');
+      const toggleBtn = resultPromptEl.querySelector('.result-prompt-toggle');
+      if (textEl) textEl.textContent = prompt || '';
+      if (contentEl) contentEl.classList.add('collapsed');
+      if (toggleBtn) toggleBtn.setAttribute('aria-expanded', 'false');
+      resultPromptEl.classList.toggle('hidden', !prompt);
+    }
     if (creationDisclaimer) creationDisclaimer.classList.add('hidden');
     if (statusMessage) statusMessage.classList.add('hidden');
     if (cardRefs.card) {
@@ -1548,6 +1595,7 @@ function updateOutputUI(data, cardRefs, startTime) {
       if (downloadBtn) {
         downloadBtn.href = videoFile.file_url;
         downloadBtn.download = `varvos-video-${data.task_id}.mp4`;
+        downloadBtn.classList.remove('hidden');
       }
       if (cardRefs.shareSection) {
         cardRefs.shareSection.classList.remove('hidden');
@@ -1570,6 +1618,7 @@ function updateOutputUI(data, cardRefs, startTime) {
       if (imageFiles.length === 1 && downloadBtn) {
         downloadBtn.href = imageFiles[0].file_url;
         downloadBtn.download = `varvos-image-${data.task_id}.png`;
+        downloadBtn.classList.remove('hidden');
         if (cardRefs.shareSection) cardRefs.shareSection.classList.remove('hidden');
       }
       if (downloadWarning) downloadWarning.classList.remove('hidden');
@@ -1621,12 +1670,13 @@ function isLoggedIn() {
   } catch { return false; }
 }
 
-async function saveActiveTask(taskId, startTime, prompt) {
+async function saveActiveTask(taskId, startTime, prompt, cost) {
   const payload = {
     taskId,
     startTime: startTime || Date.now(),
     mode: currentMode,
-    prompt: prompt || ''
+    prompt: prompt || '',
+    cost: cost
   };
   try {
     const stored = sessionStorage.getItem(ACTIVE_TASK_STORAGE);
@@ -1871,7 +1921,7 @@ async function generateMedia(body) {
     document.getElementById('currentResultSection')?.scrollIntoView({ behavior: 'smooth', block: 'end' });
 
     currentTaskId = taskId;
-    saveActiveTask(taskId, startTime, lastPrompt);
+    saveActiveTask(taskId, startTime, lastPrompt, cost);
     updateOutputUI({ status: 'not_started', progress: 0 }, cardRefs, startTime);
 
     updateGenerateButtonLabel(true);
@@ -1923,9 +1973,12 @@ async function generateMedia(body) {
         openCreditsModal({ needsLogin: false, cost: null, credits: getCredits() });
       }
     } else if (cardRefs.statusMessage) {
-      const msg = (err?.message || '').toString().trim();
-      let displayMsg = msg || 'Ocorreu um erro. Tente novamente em alguns minutos.';
-      if (refunded) displayMsg += ' Seus créditos foram estornados.';
+      let displayMsg = 'Estamos com alta demanda no momento.';
+      if (refunded) {
+        displayMsg += ' Seus créditos foram reembolsados. Você pode tentar novamente em alguns minutos.';
+      } else {
+        displayMsg += ' Tente novamente em alguns minutos.';
+      }
       cardRefs.statusMessage.textContent = displayMsg;
       cardRefs.statusMessage.className = 'status-message error';
     }
@@ -2065,11 +2118,27 @@ async function restoreActiveTask() {
           addToHistory(result, promptToSave, ar);
         }
       })
-      .catch((err) => {
+      .catch(async (err) => {
         const tid = pollTimeouts.get(data.taskId);
         if (tid) { clearTimeout(tid); pollTimeouts.delete(data.taskId); }
         activeTasks.delete(data.taskId);
         stopLoadingForCard(cardRefs);
+        let refunded = false;
+        const restoreUserId = getCurrentUserId();
+        const restoreCost = data.cost != null ? parseInt(data.cost, 10) : (data.mode === 'motion' ? null : 50);
+        if (restoreUserId && data.taskId && restoreCost && restoreCost > 0) {
+          try {
+            const refundRes = await fetch('/api/refund-credits', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ userId: restoreUserId, amount: restoreCost, taskId: data.taskId }),
+            });
+            if (refundRes.ok) {
+              refunded = true;
+              await refreshCreditsFromSupabase();
+            }
+          } catch (_) {}
+        }
         if (err.isCredits) {
           try {
             const body = buildRequestBody();
@@ -2084,8 +2153,10 @@ async function restoreActiveTask() {
             openCreditsModal({ needsLogin: false, cost: null, credits: getCredits() });
           }
         } else if (cardRefs.statusMessage) {
-          const msg = (err?.message || '').toString().trim();
-          cardRefs.statusMessage.textContent = msg || 'Ocorreu um erro. Tente novamente em alguns minutos.';
+          let msg = 'Estamos com alta demanda no momento.';
+          if (refunded) msg += ' Seus créditos foram reembolsados. Você pode tentar novamente em alguns minutos.';
+          else msg += ' Tente novamente em alguns minutos.';
+          cardRefs.statusMessage.textContent = msg;
           cardRefs.statusMessage.className = 'status-message error';
         }
       })
