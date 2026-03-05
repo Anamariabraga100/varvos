@@ -411,12 +411,17 @@ document.addEventListener('keydown', (e) => {
 document.getElementById('creditsModalClose')?.addEventListener('click', closeCreditsModal);
 document.querySelector('.credits-modal-backdrop')?.addEventListener('click', closeCreditsModal);
 
-// Credits modal: CTA abre planos ou auth conforme o motivo
+// Credits modal: CTA abre auth ou planos conforme o motivo
 document.getElementById('creditsModalPlans')?.addEventListener('click', () => {
   closeCreditsModal();
   const reason = creditsModal?.getAttribute('data-credits-reason');
-  if (reason === 'login' && typeof openAuthModal === 'function') {
-    openAuthModal(window.location.pathname || 'video/');
+  if (reason === 'login') {
+    const returnTo = encodeURIComponent(window.location.pathname || '/video/');
+    if (typeof openAuthModal === 'function') {
+      openAuthModal(window.location.pathname || '/video/');
+    } else {
+      window.location.href = `/auth.html?return=${returnTo}`;
+    }
   } else {
     openPlansModal();
   }
