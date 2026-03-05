@@ -4,7 +4,7 @@
  * Body: { planId, customer, card }
  */
 const PLANS = {
-  start: { amount: 5990, credits: 1500, name: 'Creator' },
+  start: { amount: 990, credits: 1500, name: 'Creator' },  // TESTE R$ 9,90 — voltar para 5990 depois
   pro: { amount: 14990, credits: 4000, name: 'Pro' },
   agency: { amount: 44900, credits: 15000, name: 'Agency' },
 };
