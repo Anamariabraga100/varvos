@@ -180,11 +180,14 @@
       </div>
 
       <!-- Sucesso -->
-      <div id="checkoutSuccess" class="checkout-card hidden">
+      <div id="checkoutSuccess" class="checkout-card success-card hidden">
         <div class="success-icon">✓</div>
         <h1>Pagamento realizado!</h1>
         <p id="successMsg">Seus créditos foram adicionados à conta. Em caso de Pix, pode levar alguns minutos para a confirmação.</p>
-        <a href="video/" class="btn-checkout">Ir para criar vídeo</a>
+        <p id="successRedirectMsg" class="success-redirect-msg">
+          Redirecionando em <span id="successCountdown">5</span> segundos…
+        </p>
+        <a href="video/" class="btn-checkout" id="btnSuccessGoNow">Ir para criar vídeo agora</a>
       </div>
     </main>
   </div>

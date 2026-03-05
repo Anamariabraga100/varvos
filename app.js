@@ -480,22 +480,90 @@ async function refreshCreditsFromSupabase() {
     const userEmail = (user.email || '').trim().toLowerCase();
     if (!userId && !userEmail) return;
     const { data } = userId
-      ? await window.varvosSupabase.from('users').select('id, credits').eq('id', userId).single()
-      : await window.varvosSupabase.from('users').select('id, credits').eq('email', userEmail).single();
-    if (data && data.credits != null) {
-      user.credits = data.credits;
+      ? await window.varvosSupabase.from('users').select('id, credits, plan').eq('id', userId).single()
+      : await window.varvosSupabase.from('users').select('id, credits, plan').eq('email', userEmail).single();
+    if (data) {
+      if (data.credits != null) user.credits = data.credits;
+      if (data.plan != null) user.plan = data.plan;
       if (data.id && !user.id) user.id = data.id;
       localStorage.setItem(AUTH_STORAGE, JSON.stringify(user));
       updateCreditsDisplay();
+      updateHamburgerPlan();
     }
   } catch (_) {}
+}
+
+function getPlanDisplay(planId) {
+  const plans = window.VARVOS_PLANS?.mensais;
+  if (!plans || !planId) return null;
+  const p = plans[planId];
+  return p ? { name: p.name, credits: p.credits, description: p.description } : null;
+}
+
+function updateHamburgerPlan() {
+  const row = document.getElementById('hamburgerPlanRow');
+  const nameEl = document.getElementById('hamburgerPlanName');
+  if (!row || !nameEl) return;
+  try {
+    const raw = localStorage.getItem(AUTH_STORAGE);
+    const user = raw ? JSON.parse(raw) : null;
+    const planId = user?.plan;
+    const plan = getPlanDisplay(planId);
+    if (!plan) {
+      row.classList.add('hidden');
+      return;
+    }
+    row.classList.remove('hidden');
+    nameEl.textContent = plan.name;
+  } catch {
+    row?.classList.add('hidden');
+  }
 }
 
 function openPlansModal() {
   const m = document.getElementById('plansModal');
   if (m) {
+    updatePlansActiveSection();
     m.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
+    // Se tem plano ativo, abre aba Planos Mensais para ver opções de upgrade
+    try {
+      const raw = localStorage.getItem(AUTH_STORAGE);
+      const user = raw ? JSON.parse(raw) : null;
+      if (user?.plan) {
+        document.querySelectorAll('.plans-tab').forEach(t => t.classList.remove('active'));
+        const mensaisTab = document.querySelector('.plans-tab[data-tab="mensais"]');
+        if (mensaisTab) {
+          mensaisTab.classList.add('active');
+          document.getElementById('plansAvulsos')?.classList.add('hidden');
+          document.getElementById('plansMensais')?.classList.remove('hidden');
+        }
+      }
+    } catch (_) {}
+  }
+}
+
+function updatePlansActiveSection() {
+  const section = document.getElementById('plansActiveSection');
+  const nameEl = document.getElementById('plansActiveName');
+  const descEl = document.getElementById('plansActiveDesc');
+  const creditsEl = document.getElementById('plansActiveCredits');
+  if (!section || !nameEl) return;
+  try {
+    const raw = localStorage.getItem(AUTH_STORAGE);
+    const user = raw ? JSON.parse(raw) : null;
+    const planId = user?.plan;
+    const plan = getPlanDisplay(planId);
+    if (!plan) {
+      section.classList.add('hidden');
+      return;
+    }
+    section.classList.remove('hidden');
+    nameEl.textContent = plan.name;
+    descEl.textContent = plan.description || (plan.credits + ' créditos/mês');
+    creditsEl.textContent = String(user?.credits ?? 0);
+  } catch {
+    section?.classList.add('hidden');
   }
 }
 
@@ -542,6 +610,7 @@ function openHamburger() {
   const o = document.getElementById('hamburgerOverlay');
   const b = document.getElementById('hamburgerBtn');
   updateHamburgerUser();
+  updateHamburgerPlan();
   if (o) { o.classList.add('open'); o.setAttribute('aria-hidden', 'false'); }
   if (b) { b.setAttribute('aria-expanded', 'true'); }
   document.body.style.overflow = 'hidden';
@@ -578,6 +647,7 @@ document.getElementById('hamburgerPlans')?.addEventListener('click', () => {
 function logout() {
   localStorage.removeItem(AUTH_STORAGE);
   updateHamburgerUser();
+  updateHamburgerPlan();
 }
 
 document.getElementById('hamburgerLogout')?.addEventListener('click', () => {

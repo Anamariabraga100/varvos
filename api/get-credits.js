@@ -25,7 +25,7 @@ export default async function handler(req, res) {
 
   const { data, error } = await supabase
     .from('users')
-    .select('credits')
+    .select('credits, plan')
     .eq('id', userId)
     .single();
 
@@ -34,7 +34,9 @@ export default async function handler(req, res) {
   }
 
   const credits = data.credits != null ? parseInt(data.credits, 10) : 0;
+  const plan = data.plan && String(data.plan).trim() ? String(data.plan).trim() : null;
   return res.status(200).json({
     credits: Number.isFinite(credits) ? credits : 0,
+    plan,
   });
 }

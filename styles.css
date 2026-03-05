@@ -357,6 +357,16 @@ body {
   background: var(--bg-soft);
 }
 
+.hamburger-plan-row {
+  margin-top: 8px;
+  padding: 10px 12px;
+  background: rgba(34, 197, 94, 0.1);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: var(--text);
+}
+.hamburger-plan-row.hidden { display: none; }
+
 .hamburger-panel .credits-row {
   margin-top: auto;
   padding: 16px 0 0;

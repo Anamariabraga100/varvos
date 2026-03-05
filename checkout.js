@@ -82,6 +82,36 @@
     return window.location.origin + '/api';
   }
 
+  // Redirecionamento automático para /video/ com contagem regressiva (padrão dos grandes players)
+  var successRedirectInterval = null;
+  function startSuccessRedirect() {
+    if (successRedirectInterval) return;
+    var secs = 5;
+    var el = document.getElementById('successCountdown');
+    var msgEl = document.getElementById('successRedirectMsg');
+    var btnEl = document.getElementById('btnSuccessGoNow');
+    if (!el || !msgEl) return;
+    function goNow() {
+      if (successRedirectInterval) clearInterval(successRedirectInterval);
+      successRedirectInterval = null;
+      location.href = '/video/';
+    }
+    btnEl?.addEventListener('click', function (e) {
+      e.preventDefault();
+      goNow();
+    });
+    el.textContent = String(secs);
+    successRedirectInterval = setInterval(function () {
+      secs--;
+      el.textContent = String(secs);
+      if (secs <= 0) {
+        clearInterval(successRedirectInterval);
+        successRedirectInterval = null;
+        goNow();
+      }
+    }, 1000);
+  }
+
   // Sincroniza campo validade MM/AA para exp_date: tokenizecard usa MM-YY (2 dígitos ano)
   function syncExpDateToken(expInputId, tokenElId) {
     var expEl = document.getElementById(expInputId);
@@ -204,6 +234,7 @@
         document.getElementById('checkoutSuccess')?.classList.remove('hidden');
         document.getElementById('checkoutAvulso')?.classList.add('hidden');
         document.getElementById('successMsg').textContent = 'Pagamento aprovado! Seus créditos foram adicionados à conta.';
+        startSuccessRedirect();
       })
       .catch(function (err) { showError(err.message || 'Erro ao processar.'); })
       .finally(function () { if (cardSubmitTimeoutId) { clearTimeout(cardSubmitTimeoutId); cardSubmitTimeoutId = null; } setLoading(btn, false); });
@@ -237,6 +268,7 @@
         document.getElementById('checkoutSuccess')?.classList.remove('hidden');
         document.getElementById('checkoutMensal')?.classList.add('hidden');
         document.getElementById('successMsg').textContent = 'Assinatura ativada! Seus créditos mensais foram creditados. A renovação é automática.';
+        startSuccessRedirect();
       })
       .catch(function (err) { showError(err.message || 'Erro ao processar.'); })
       .finally(function () { if (cardSubmitTimeoutId) { clearTimeout(cardSubmitTimeoutId); cardSubmitTimeoutId = null; } setLoading(btn, false); });
@@ -419,9 +451,7 @@
                       var successMsg = document.getElementById('successMsg');
                       if (successCard) successCard.classList.remove('hidden');
                       if (successMsg) successMsg.textContent = 'Pagamento confirmado! Seus créditos foram adicionados à conta.';
-                      setTimeout(function () {
-                        location.href = '/video/';
-                      }, 2500);
+                      startSuccessRedirect();
                     }
                   })
                   .catch(function () {});
@@ -467,6 +497,7 @@
             document.getElementById('checkoutAvulso')?.classList.add('hidden');
             document.getElementById('successMsg').textContent =
               'Pagamento aprovado! Seus créditos foram adicionados à conta.';
+            startSuccessRedirect();
           }
         })
         .catch(function (err) {

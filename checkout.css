@@ -386,24 +386,62 @@ header {
   margin: 0;
 }
 
+/* Success / Thank you page */
+.success-card {
+  text-align: center;
+  padding: 40px 32px;
+}
+
 .success-icon {
-  width: 56px;
-  height: 56px;
-  margin: 0 auto 20px;
-  background: #10b981;
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 24px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
   color: white;
   border-radius: 50%;
-  font-size: 1.8rem;
+  font-size: 2rem;
   font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.35);
+  animation: successPulse 0.6s ease-out;
 }
 
-.checkout-card .success-icon + h1 { text-align: center; }
+@keyframes successPulse {
+  0% { transform: scale(0.8); opacity: 0.8; }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); opacity: 1; }
+}
 
-.checkout-card .success-icon + h1 + p {
-  text-align: center;
-  color: #6b6b6b;
-  margin-bottom: 24px;
+.success-card h1 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin: 0 0 12px;
+  color: #1a1a1a;
+}
+
+.success-card #successMsg {
+  color: #6b7280;
+  font-size: 1rem;
+  line-height: 1.5;
+  margin: 0 0 28px;
+  max-width: 360px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.success-redirect-msg {
+  font-size: 0.9rem;
+  color: #9ca3af;
+  margin: 0 0 20px;
+}
+
+.success-redirect-msg span {
+  font-weight: 600;
+  color: #10b981;
+}
+
+.success-card .btn-checkout {
+  margin-top: 0;
 }

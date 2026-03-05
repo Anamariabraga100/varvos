@@ -3,6 +3,8 @@
  * POST /api/create-subscription
  * Body: { planId, customer, card }
  */
+import { createClient } from '@supabase/supabase-js';
+
 const PLANS = {
   start: { amount: 990, credits: 1500, name: 'Creator' },  // TESTE R$ 9,90 — voltar para 5990 depois
   pro: { amount: 14990, credits: 4000, name: 'Pro' },
@@ -127,6 +129,16 @@ export default async function handler(req, res) {
         message: data.message,
         details: data.errors,
       });
+    }
+
+    // Persiste plano ativo no Supabase
+    if (userId && process.env.SUPABASE_URL && (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY)) {
+      try {
+        const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY);
+        await supabase.from('users').update({ plan: planId }).eq('id', userId);
+      } catch (e) {
+        console.error('create-subscription: falha ao atualizar plan', e);
+      }
     }
 
     return res.status(200).json(data);

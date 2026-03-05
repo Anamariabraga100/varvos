@@ -175,8 +175,11 @@ export default async function handler(req, res) {
       reference_id: payInsert?.id,
     });
 
-    const { data: u } = await supabase.from('users').select('credits').eq('id', targetUserId).single();
-    await supabase.from('users').update({ credits: (u?.credits || 0) + credits }).eq('id', targetUserId);
+    const planId = metadata.plan_id;
+    const { data: u } = await supabase.from('users').select('credits, plan').eq('id', targetUserId).single();
+    const updateData = { credits: (u?.credits || 0) + credits };
+    if (planId) updateData.plan = planId;
+    await supabase.from('users').update(updateData).eq('id', targetUserId);
 
     return res.status(200).json({ received: true });
   }
