@@ -1137,8 +1137,10 @@ function updateMotionReadyState(forceState) {
 }
 setupFileUpload({ inputId: 'motionCharImageFile', areaId: 'motionCharImageArea', previewId: 'motionCharImagePreview', imgId: 'motionCharImagePreviewImg', removeId: 'motionCharImageRemove', setUrl: (v) => motionCharImageUrl = v, onReady: updateMotionReadyState, uploadFn: (f) => uploadToSupabaseStorage(f, 'images'), onRemove: () => deleteMotionRefsFromStorage([motionCharImageUrl]), uploadStatusLabel: 'image', setUploadStatus: updateMotionReadyState, progressElId: 'motionCharImageProgress', hideProgressUI: true });
 
+const MOTION_REF_MAX_DURATION_SECONDS = 30;
+
 function setupVideoUpload(config) {
-  const { inputId, areaId, previewId, videoId, removeId, setUrl, maxMb = 50, onReady, uploadFn, onRemove, uploadStatusLabel, setUploadStatus, progressElId } = config;
+  const { inputId, areaId, previewId, videoId, removeId, setUrl, maxMb = 50, maxDurationSeconds, onReady, uploadFn, onRemove, uploadStatusLabel, setUploadStatus, progressElId } = config;
   const input = document.getElementById(inputId);
   const area = document.getElementById(areaId);
   const preview = document.getElementById(previewId);
@@ -1179,6 +1181,41 @@ function setupVideoUpload(config) {
     setProgress(true);
     cancelProgress = runSimulatedProgress(progressEl);
     if (uploadStatusLabel && setUploadStatus) setUploadStatus({ uploading: uploadStatusLabel });
+    if (maxDurationSeconds && maxDurationSeconds > 0) {
+      try {
+        await new Promise((resolve, reject) => {
+          const onLoaded = () => {
+            previewVideo.removeEventListener('loadedmetadata', onLoaded);
+            previewVideo.removeEventListener('error', onErr);
+            const d = previewVideo.duration;
+            if (typeof d === 'number' && !isNaN(d) && d > maxDurationSeconds) {
+              reject(new Error(`Vídeo muito longo. O limite é ${maxDurationSeconds} segundos. Seu vídeo tem ${Math.ceil(d)}s. Use um trecho menor.`));
+            } else {
+              resolve();
+            }
+          };
+          const onErr = () => {
+            previewVideo.removeEventListener('loadedmetadata', onLoaded);
+            previewVideo.removeEventListener('error', onErr);
+            resolve();
+          };
+          if (previewVideo.readyState >= 1) onLoaded();
+          else {
+            previewVideo.addEventListener('loadedmetadata', onLoaded, { once: true });
+            previewVideo.addEventListener('error', onErr, { once: true });
+          }
+        });
+      } catch (err) {
+        cancelProgress();
+        preview.classList.add('hidden');
+        area.classList.remove('hidden');
+        previewVideo.src = '';
+        setProgress(false);
+        if (setUploadStatus) setUploadStatus({ error: err.message });
+        else alert(err.message);
+        return;
+      }
+    }
     try {
       const upload = uploadFn || uploadFileToVidgo;
       const url = await upload(file);
@@ -1229,7 +1266,7 @@ function setupVideoUpload(config) {
   });
 }
 
-setupVideoUpload({ inputId: 'motionRefVideoFile', areaId: 'motionRefVideoArea', previewId: 'motionRefVideoPreview', videoId: 'motionRefVideoPreviewVid', removeId: 'motionRefVideoRemove', setUrl: (v) => motionRefVideoUrl = v, maxMb: 100, onReady: updateMotionReadyState, uploadFn: (f) => uploadToSupabaseStorage(f, 'videos'), onRemove: () => deleteMotionRefsFromStorage([motionRefVideoUrl]), uploadStatusLabel: 'video', setUploadStatus: updateMotionReadyState, progressElId: 'motionRefVideoProgress' });
+setupVideoUpload({ inputId: 'motionRefVideoFile', areaId: 'motionRefVideoArea', previewId: 'motionRefVideoPreview', videoId: 'motionRefVideoPreviewVid', removeId: 'motionRefVideoRemove', setUrl: (v) => motionRefVideoUrl = v, maxMb: 100, maxDurationSeconds: MOTION_REF_MAX_DURATION_SECONDS, onReady: updateMotionReadyState, uploadFn: (f) => uploadToSupabaseStorage(f, 'videos'), onRemove: () => deleteMotionRefsFromStorage([motionRefVideoUrl]), uploadStatusLabel: 'video', setUploadStatus: updateMotionReadyState, progressElId: 'motionRefVideoProgress' });
 
 function updateMotionButtonCredits() {
   if (currentMode !== 'motion') return;
@@ -1999,6 +2036,10 @@ generateForm.addEventListener('submit', async (e) => {
     const duration = getMotionRefVideoDuration();
     if (duration <= 0) {
       alert('Aguarde o carregamento do vídeo de referência.');
+      return;
+    }
+    if (duration > MOTION_REF_MAX_DURATION_SECONDS) {
+      alert(`O vídeo de referência tem ${Math.ceil(duration)} segundos. O limite é ${MOTION_REF_MAX_DURATION_SECONDS} segundos. Remova o vídeo e envie um mais curto.`);
       return;
     }
     lastPrompt = document.getElementById('prompt').value.trim() || 'Motion transfer';
