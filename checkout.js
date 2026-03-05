@@ -254,9 +254,11 @@
     document.getElementById('checkoutMensal')?.classList.remove('hidden');
     document.getElementById('mensalPlanId').value = plan.id;
     document.getElementById('mensalTitle').textContent = 'Assinatura — ' + plan.name;
-    var creditsDisplay = (plan.credits * 10).toLocaleString('pt-BR');
+    var creditsDisplay = Number(plan.credits).toLocaleString('pt-BR');
     document.getElementById('mensalPlan').textContent =
       creditsDisplay + ' créditos/mês — R$ ' + (plan.amount / 100).toFixed(2).replace('.', ',') + '/mês';
+    var creditsNumEl = document.getElementById('mensalCreditsNum');
+    if (creditsNumEl) creditsNumEl.textContent = creditsDisplay;
     if (user?.email) document.getElementById('mensalEmail').value = user.email;
     if (user?.name) document.getElementById('mensalName').value = user.name;
   }
