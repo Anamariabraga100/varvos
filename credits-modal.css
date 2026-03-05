@@ -90,54 +90,66 @@
 }
 
 .credits-modal-balance {
-  margin: 0 0 4px;
+  margin: 0 0 16px;
   font-size: 0.95rem;
   color: #4b5563;
 }
 
-.credits-modal-missing {
-  margin: 0 0 16px;
-  font-size: 1rem;
-  font-weight: 600;
-  color: #dc2626;
+/* Hero: quantos créditos faltam — em evidência */
+.credits-modal-missing-wrap {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 8px;
+  margin: 0 0 20px;
+  padding: 16px 24px;
+  background: #fef2f2;
+  border: 2px solid #fecaca;
+  border-radius: 12px;
 }
 
+.credits-modal-missing-label {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #991b1b;
+}
+
+.credits-modal-missing-num {
+  font-size: 2.25rem;
+  font-weight: 800;
+  color: #dc2626;
+  line-height: 1;
+  min-width: 2ch;
+}
+
+/* Garantia: créditos não expiram — em evidência */
 .credits-modal-no-expire {
-  margin: 0 0 20px;
-  font-size: 0.9rem;
-  color: #059669;
+  margin: 0 0 24px;
+  padding: 10px 16px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #047857;
+  background: #ecfdf5;
+  border-radius: 8px;
+  display: inline-block;
 }
 
 .credits-modal-btn {
   display: block;
   width: 100%;
-  padding: 14px 24px;
+  padding: 16px 24px;
   background: #1a1a1a;
   color: white;
   border: none;
   border-radius: 10px;
   font-weight: 600;
-  font-size: 1rem;
+  font-size: 1.1rem;
   font-family: inherit;
   cursor: pointer;
-  margin-bottom: 12px;
   transition: background 0.2s;
 }
 
 .credits-modal-btn:hover {
   background: #333;
   color: white;
-}
-
-.credits-modal-dismiss {
-  background: none;
-  border: none;
-  color: #6b6b6b;
-  font-size: 0.9rem;
-  cursor: pointer;
-  padding: 8px 16px;
-}
-
-.credits-modal-dismiss:hover {
-  color: #1a1a1a;
 }

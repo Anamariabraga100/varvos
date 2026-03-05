@@ -409,7 +409,6 @@ document.addEventListener('keydown', (e) => {
 
 document.getElementById('creditsModalClose')?.addEventListener('click', closeCreditsModal);
 document.querySelector('.credits-modal-backdrop')?.addEventListener('click', closeCreditsModal);
-document.getElementById('creditsModalDismiss')?.addEventListener('click', closeCreditsModal);
 
 // Credits modal: CTA abre planos ou auth conforme o motivo
 document.getElementById('creditsModalPlans')?.addEventListener('click', () => {
@@ -1421,7 +1420,7 @@ function openCreditsModal(opts = {}) {
         : 'Faça login ou cadastre-se para acessar seus créditos e começar a criar vídeos com IA.';
       showEl(breakdownEl, '', false);
       showEl(balanceEl, '', false);
-      showEl(missingEl, '', false);
+      if (missingEl) missingEl.classList.add('hidden');
       if (noExpireEl) noExpireEl.classList.add('hidden');
       btnEl.textContent = 'Entrar ou cadastrar';
     } else if (titleEl && descEl && btnEl) {
@@ -1451,9 +1450,10 @@ function openCreditsModal(opts = {}) {
       }
 
       showEl(balanceEl, `Saldo atual: ${bal} créditos`, cost > 0);
-      showEl(missingEl, `Faltam ${missing} créditos`, cost > 0 && missing > 0);
+      const missingNumEl = document.getElementById('creditsModalMissingNum');
+      if (missingEl) missingEl.classList.toggle('hidden', !(cost > 0 && missing > 0));
+      if (missingNumEl) missingNumEl.textContent = String(missing);
       if (noExpireEl) noExpireEl.classList.remove('hidden');
-      btnEl.textContent = 'Comprar créditos e continuar geração ⚡';
     }
     creditsModal.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
@@ -1731,12 +1731,19 @@ function getCreditsCostForBody(body) {
   return Math.max(CREDITS_PER_SECOND_MOTION, seconds * CREDITS_PER_SECOND_MOTION);
 }
 
+function isLocalhost() {
+  if (typeof window === 'undefined') return false;
+  const h = window.location.hostname || '';
+  return h === 'localhost' || h === '127.0.0.1';
+}
+
 async function generateMedia(body) {
   const cost = getCreditsCostForBody(body);
   const userId = getCurrentUserId();
   const credits = getCredits();
+  const skipAuthOnLocalhost = isLocalhost();
 
-  if (!SKIP_CREDITS) {
+  if (!SKIP_CREDITS && !skipAuthOnLocalhost) {
     if (!userId) {
       openCreditsModal({ needsLogin: true, cost });
       return;
@@ -1786,11 +1793,11 @@ async function generateMedia(body) {
     taskId = await submitTask(body);
     if (!taskId) throw new Error('Nenhum task_id retornado');
 
-    if (!SKIP_CREDITS) {
+    if (!SKIP_CREDITS && !isLocalhost()) {
       const deductRes = await fetch('/api/deduct-credits', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, amount: cost, taskId }),
+        body: JSON.stringify({ userId: getCurrentUserId(), amount: cost, taskId }),
       });
       if (deductRes.ok) {
         creditsDeducted = true;

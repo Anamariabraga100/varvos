@@ -600,11 +600,14 @@
         <p id="creditsModalDesc" class="credits-modal-desc"></p>
         <p id="creditsModalBreakdown" class="credits-modal-breakdown hidden"></p>
         <p id="creditsModalBalance" class="credits-modal-balance hidden"></p>
-        <p id="creditsModalMissing" class="credits-modal-missing hidden"></p>
-        <p id="creditsModalNoExpire" class="credits-modal-no-expire">✨ Créditos não expiram</p>
+        <div id="creditsModalMissing" class="credits-modal-missing-wrap hidden">
+          <span class="credits-modal-missing-label">Faltam</span>
+          <span id="creditsModalMissingNum" class="credits-modal-missing-num">0</span>
+          <span class="credits-modal-missing-label">créditos</span>
+        </div>
+        <p id="creditsModalNoExpire" class="credits-modal-no-expire">✓ Créditos não expiram</p>
       </div>
-      <button type="button" class="credits-modal-btn" id="creditsModalPlans">Comprar créditos e continuar geração ⚡</button>
-      <button type="button" class="credits-modal-dismiss" id="creditsModalDismiss">Gerar depois</button>
+      <button type="button" class="credits-modal-btn" id="creditsModalPlans">Comprar créditos</button>
     </div>
   </div>
 
