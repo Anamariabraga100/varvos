@@ -582,6 +582,27 @@ document.querySelectorAll('.plans-tab').forEach(tab => {
 document.getElementById('plansModalClose')?.addEventListener('click', closePlansModal);
 document.querySelector('.plans-modal-backdrop')?.addEventListener('click', closePlansModal);
 
+// Sync varvos_user a partir da sessão Supabase (ex.: logou por e-mail e varvos_user está incompleto)
+async function syncUserFromSupabaseSession() {
+  try {
+    const raw = localStorage.getItem(AUTH_STORAGE);
+    let user = raw ? JSON.parse(raw) : null;
+    if (user && user.id) return;
+    const sb = window.varvosSupabase;
+    if (!sb?.auth?.getSession) return;
+    const { data } = await sb.auth.getSession();
+    const authUser = data?.session?.user;
+    if (!authUser) return;
+    const sync = window.varvosAuthSupabase?.syncUserFromEmail;
+    const merged = sync ? (await sync(authUser)) : { provider: 'email', email: authUser.email, id: authUser.id };
+    const final = merged || { provider: 'email', email: authUser.email, id: authUser.id };
+    localStorage.setItem(AUTH_STORAGE, JSON.stringify(final));
+    updateCreditsDisplay();
+    updateHamburgerUser();
+  } catch (_) {}
+}
+syncUserFromSupabaseSession();
+
 // Init créditos
 updateCreditsDisplay();
 
@@ -1586,6 +1607,14 @@ function getCurrentUserId() {
   } catch { return null; }
 }
 
+function isLoggedIn() {
+  try {
+    const raw = localStorage.getItem(AUTH_STORAGE);
+    const user = raw ? JSON.parse(raw) : null;
+    return !!(user && (user.email || user.id || user.sub));
+  } catch { return false; }
+}
+
 async function saveActiveTask(taskId, startTime, prompt) {
   const payload = {
     taskId,
@@ -1754,7 +1783,8 @@ async function generateMedia(body) {
   const skipAuthOnLocalhost = isLocalhost();
 
   if (!SKIP_CREDITS) {
-    if (!userId && !skipAuthOnLocalhost) {
+    await syncUserFromSupabaseSession();
+    if (!isLoggedIn() && !skipAuthOnLocalhost) {
       openCreditsModal({ needsLogin: true, cost });
       return;
     }
