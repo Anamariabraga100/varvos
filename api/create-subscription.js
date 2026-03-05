@@ -52,9 +52,9 @@ export default async function handler(req, res) {
   const subCode = `varvos_${planId}_${Date.now()}`;
 
   const billingAddr = card?.billing_address || {
-    line_1: 'N/A',
-    zip_code: '00000000',
-    city: 'N/A',
+    line_1: 'Av Paulista, 1000',
+    zip_code: '01310100',
+    city: 'São Paulo',
     state: 'SP',
     country: 'BR',
   };
@@ -110,8 +110,11 @@ export default async function handler(req, res) {
     const data = await response.json();
 
     if (!response.ok) {
+      const errDetails = data.errors ? (typeof data.errors === 'object' ? JSON.stringify(data.errors, null, 2) : String(data.errors)) : null;
+      const errMsg = errDetails ? `${data.message || 'Erro ao criar assinatura'}\n\nDetalhes:\n${errDetails}` : (data.message || 'Erro ao criar assinatura');
       return res.status(response.status).json({
-        error: data.message || 'Erro ao criar assinatura',
+        error: errMsg,
+        message: data.message,
         details: data.errors,
       });
     }

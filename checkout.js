@@ -217,8 +217,21 @@
       body: JSON.stringify(payload),
     })
       .then(function (r) { return r.text().then(function (text) {
-        try { var d = JSON.parse(text); if (!r.ok) throw new Error(d.error || d.message); return d; }
-        catch (e) { if (text.trim().startsWith('<')) throw new Error('A API não está respondendo.'); throw e; }
+        try {
+          var d = JSON.parse(text);
+          if (!r.ok) {
+            var msg = d.error || d.message || 'Erro ao criar assinatura';
+            if (d.details && typeof d.details === 'object') {
+              var detailStr = Object.entries(d.details).map(function (e) { return e[0] + ': ' + (Array.isArray(e[1]) ? e[1].join(', ') : e[1]); }).join('\n');
+              if (detailStr) msg = msg + '\n\n' + detailStr;
+            }
+            throw new Error(msg);
+          }
+          return d;
+        } catch (e) {
+          if (text.trim().startsWith('<')) throw new Error('A API não está respondendo.');
+          throw e;
+        }
       }); })
       .then(function () {
         document.getElementById('checkoutSuccess')?.classList.remove('hidden');
