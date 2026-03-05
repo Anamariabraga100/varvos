@@ -1,7 +1,8 @@
 /**
- * API: Consultar créditos do usuário diretamente do banco
+ * API: Consultar créditos e plano do usuário
  * GET /api/get-credits?userId=xxx
- * Retorna { credits: number } do Supabase
+ * Retorna { credits: number, plan?: string }
+ * Se users.plan está vazio, infere de pagamentos de assinatura e faz lazy backfill.
  */
 import { createClient } from '@supabase/supabase-js';
 
@@ -11,8 +12,9 @@ export default async function handler(req, res) {
   }
 
   const userId = req.query?.userId;
-  if (!userId) {
-    return res.status(400).json({ error: 'userId é obrigatório' });
+  const userEmail = (req.query?.email || '').trim().toLowerCase();
+  if (!userId && !userEmail) {
+    return res.status(400).json({ error: 'userId ou email é obrigatório' });
   }
 
   const supabaseUrl = process.env.SUPABASE_URL;
@@ -23,18 +25,40 @@ export default async function handler(req, res) {
 
   const supabase = createClient(supabaseUrl, supabaseKey);
 
-  const { data, error } = await supabase
-    .from('users')
-    .select('credits, plan')
-    .eq('id', userId)
-    .single();
+  let userData;
+  if (userId) {
+    const { data, error } = await supabase.from('users').select('id, credits, plan').eq('id', userId).single();
+    if (error || !data) return res.status(404).json({ error: 'Usuário não encontrado' });
+    userData = data;
+  } else {
+    const { data, error } = await supabase.from('users').select('id, credits, plan').eq('email', userEmail).single();
+    if (error || !data) return res.status(404).json({ error: 'Usuário não encontrado' });
+    userData = data;
+  }
+  const resolvedUserId = userData.id;
 
-  if (error || !data) {
-    return res.status(404).json({ error: 'Usuário não encontrado' });
+  let plan = userData.plan && String(userData.plan).trim() ? String(userData.plan).trim() : null;
+
+  // Contas antigas: se users.plan está vazio, tenta inferir do histórico de pagamentos (assinatura)
+  if (!plan) {
+    const { data: lastSubPayment } = await supabase
+      .from('payments')
+      .select('metadata')
+      .eq('user_id', resolvedUserId)
+      .eq('status', 'completed')
+      .contains('metadata', { type: 'assinatura' })
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const planId = lastSubPayment?.metadata?.plan_id;
+    if (planId && String(planId).trim()) {
+      plan = String(planId).trim();
+      // Lazy backfill: atualiza users.plan para não precisar buscar em payments de novo
+      await supabase.from('users').update({ plan }).eq('id', resolvedUserId);
+    }
   }
 
-  const credits = data.credits != null ? parseInt(data.credits, 10) : 0;
-  const plan = data.plan && String(data.plan).trim() ? String(data.plan).trim() : null;
+  const credits = userData.credits != null ? parseInt(userData.credits, 10) : 0;
   return res.status(200).json({
     credits: Number.isFinite(credits) ? credits : 0,
     plan,

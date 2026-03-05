@@ -475,17 +475,31 @@ async function refreshCreditsFromSupabase() {
   try {
     const raw = localStorage.getItem(AUTH_STORAGE);
     const user = raw ? JSON.parse(raw) : null;
-    if (!user || !window.varvosSupabase) return;
+    if (!user) return;
     const userId = user.id;
     const userEmail = (user.email || '').trim().toLowerCase();
     if (!userId && !userEmail) return;
-    const { data } = userId
-      ? await window.varvosSupabase.from('users').select('id, credits, plan').eq('id', userId).single()
-      : await window.varvosSupabase.from('users').select('id, credits, plan').eq('email', userEmail).single();
-    if (data) {
+    let ok = false;
+    // Usa API get-credits: retorna credits + plan e infere plano de contas antigas via payments
+    const qs = userId ? 'userId=' + encodeURIComponent(userId) : 'email=' + encodeURIComponent(userEmail);
+    const r = await fetch(window.location.origin + '/api/get-credits?' + qs);
+    if (r.ok) {
+      const data = await r.json();
       if (data.credits != null) user.credits = data.credits;
       if (data.plan != null) user.plan = data.plan;
-      if (data.id && !user.id) user.id = data.id;
+      ok = true;
+    } else if (window.varvosSupabase) {
+      const { data } = userId
+        ? await window.varvosSupabase.from('users').select('id, credits, plan').eq('id', userId).single()
+        : await window.varvosSupabase.from('users').select('id, credits, plan').eq('email', userEmail).single();
+      if (data) {
+        if (data.credits != null) user.credits = data.credits;
+        if (data.plan != null) user.plan = data.plan;
+        if (data.id && !user.id) user.id = data.id;
+        ok = true;
+      }
+    }
+    if (ok) {
       localStorage.setItem(AUTH_STORAGE, JSON.stringify(user));
       updateCreditsDisplay();
       updateHamburgerPlan();
