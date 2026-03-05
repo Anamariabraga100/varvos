@@ -3,6 +3,7 @@ const KIE_API_BASE = 'https://api.kie.ai';
 const POLL_INTERVAL = 3000;
 const CREDITS_COST_VIDEO = 50;
 const CREDITS_PER_SECOND_MOTION = 8;  // Imitar movimento: 8 créditos por segundo do vídeo
+const SKIP_CREDITS = true;  // true = criar vídeos sem deduzir créditos (para desenvolvimento/teste)
 const STORAGE_KEY = 'varvos_api_key';
 const HISTORY_STORAGE_KEY = 'varvos_history';
 const CREDITS_STORAGE_KEY = 'varvos_credits';
@@ -1659,13 +1660,15 @@ async function generateMedia(body) {
   const userId = getCurrentUserId();
   const credits = getCredits();
 
-  if (!userId) {
-    openCreditsModal();
-    return;
-  }
-  if (credits == null || credits < cost) {
-    openCreditsModal();
-    return;
+  if (!SKIP_CREDITS) {
+    if (!userId) {
+      openCreditsModal();
+      return;
+    }
+    if (credits == null || credits < cost) {
+      openCreditsModal();
+      return;
+    }
   }
 
   btnGenerate.disabled = true;
@@ -1704,16 +1707,18 @@ async function generateMedia(body) {
     taskId = await submitTask(body);
     if (!taskId) throw new Error('Nenhum task_id retornado');
 
-    const deductRes = await fetch('/api/deduct-credits', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId, amount: cost, taskId }),
-    });
-    if (deductRes.ok) {
-      creditsDeducted = true;
-      await refreshCreditsFromSupabase();
-    } else {
-      console.warn('[VARVOS] Deduct credits falhou:', await deductRes.text());
+    if (!SKIP_CREDITS) {
+      const deductRes = await fetch('/api/deduct-credits', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, amount: cost, taskId }),
+      });
+      if (deductRes.ok) {
+        creditsDeducted = true;
+        await refreshCreditsFromSupabase();
+      } else {
+        console.warn('[VARVOS] Deduct credits falhou:', await deductRes.text());
+      }
     }
 
     outputPlaceholder.classList.add('hidden');
