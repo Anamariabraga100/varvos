@@ -1246,8 +1246,8 @@ function buildRequestBody() {
     if (model === 'veo3.1-fast') {
       const aspectRatio = document.getElementById('aspectRatio').value;
       const resolution = document.getElementById('veoResolution')?.value || '720p';
-      // Regra: vídeo sempre em português
-      const promptPt = prompt + ' [IMPORTANTE: Todo o áudio e diálogos em português brasileiro.]';
+      // Regra: vídeo sempre em português; sem legendas/texto na tela (Veo gera incorretamente)
+      const promptPt = prompt + ' [IMPORTANTE: Todo o áudio e diálogos em português brasileiro. Não incluir legendas, texto, subtítulos ou captions na tela.]';
       const input = {
         prompt: promptPt,
         duration: 8,
@@ -1399,21 +1399,61 @@ function openCreditsModal(opts = {}) {
   if (outputPlaceholder) outputPlaceholder.classList.remove('hidden');
   if (creditsModal) {
     const titleEl = document.getElementById('creditsModalTitle');
-    const descEl = creditsModal.querySelector('.credits-modal-desc');
-    const offerEl = creditsModal.querySelector('.credits-modal-offer');
+    const descEl = document.getElementById('creditsModalDesc');
+    const breakdownEl = document.getElementById('creditsModalBreakdown');
+    const balanceEl = document.getElementById('creditsModalBalance');
+    const missingEl = document.getElementById('creditsModalMissing');
+    const noExpireEl = document.getElementById('creditsModalNoExpire');
     const btnEl = document.getElementById('creditsModalPlans');
-    if (opts.needsLogin && titleEl && descEl && offerEl && btnEl) {
+
+    const showEl = (el, text, visible = true) => {
+      if (!el) return;
+      el.textContent = text || '';
+      el.classList.toggle('hidden', !visible || !text);
+    };
+
+    if (opts.needsLogin && titleEl && descEl && btnEl) {
       creditsModal.setAttribute('data-credits-reason', 'login');
       titleEl.textContent = 'Entre para continuar';
-      descEl.textContent = 'Faça login ou cadastre-se para acessar seus créditos e começar a criar vídeos com IA.';
-      offerEl.textContent = 'É grátis criar uma conta. Depois você compra créditos quando precisar.';
+      const cost = opts.cost != null ? opts.cost : null;
+      descEl.textContent = cost != null
+        ? `Para criar esse vídeo você precisa de ${cost} créditos. Faça login ou cadastre-se para continuar.`
+        : 'Faça login ou cadastre-se para acessar seus créditos e começar a criar vídeos com IA.';
+      showEl(breakdownEl, '', false);
+      showEl(balanceEl, '', false);
+      showEl(missingEl, '', false);
+      if (noExpireEl) noExpireEl.classList.add('hidden');
       btnEl.textContent = 'Entrar ou cadastrar';
-    } else if (titleEl && descEl && offerEl && btnEl) {
+    } else if (titleEl && descEl && btnEl) {
       creditsModal.setAttribute('data-credits-reason', 'buy');
-      titleEl.textContent = 'Adicione créditos e volte a criar';
-      descEl.textContent = 'Você precisa de mais créditos para esse vídeo. Compre agora e continue criando em segundos — sem compromisso.';
-      offerEl.textContent = 'Créditos avulsos ou assinatura mensal. Você escolhe o que faz mais sentido pro seu ritmo.';
-      btnEl.textContent = 'Comprar créditos ✨';
+      const cost = opts.cost != null ? opts.cost : 0;
+      const credits = opts.credits != null ? opts.credits : getCredits();
+      const bal = credits != null ? credits : 0;
+      const missing = Math.max(0, cost - bal);
+      const duration = opts.duration;
+      const creditsPerSec = opts.creditsPerSecond;
+      const mode = opts.mode || currentMode;
+
+      titleEl.textContent = 'Adicione créditos para gerar seu vídeo';
+
+      if (duration != null && cost > 0) {
+        descEl.textContent = `Seu vídeo de ${Math.round(duration)} segundos precisa de ${cost} créditos`;
+      } else {
+        descEl.textContent = cost > 0 ? `Seu vídeo precisa de ${cost} créditos` : 'Você precisa de mais créditos para esse vídeo.';
+      }
+
+      if (creditsPerSec != null && duration != null && cost > 0) {
+        showEl(breakdownEl, `Este vídeo custa ${creditsPerSec} créditos por segundo · Duração: ${Math.round(duration)}s · Total: ${cost} créditos`, true);
+      } else if (cost > 0) {
+        showEl(breakdownEl, `Vídeos custam ${cost} créditos cada`, true);
+      } else {
+        showEl(breakdownEl, '', false);
+      }
+
+      showEl(balanceEl, `Saldo atual: ${bal} créditos`, cost > 0);
+      showEl(missingEl, `Faltam ${missing} créditos`, cost > 0 && missing > 0);
+      if (noExpireEl) noExpireEl.classList.remove('hidden');
+      btnEl.textContent = 'Comprar créditos e continuar geração ⚡';
     }
     creditsModal.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
@@ -1508,7 +1548,17 @@ function updateOutputUI(data, cardRefs, startTime) {
     activeTasks.delete(data.task_id);
     const errMsg = (data.error_message || '').toString().trim();
     if (isCreditsError(errMsg)) {
-      openCreditsModal();
+      try {
+        const body = buildRequestBody();
+        const cost = getCreditsCostForBody(body);
+        const credits = getCredits();
+        const isMotion = body?.model === 'kling-2.6/motion-control';
+        const duration = isMotion ? getMotionRefVideoDuration() : (body?.input?.duration ?? 8);
+        const creditsPerSecond = isMotion ? CREDITS_PER_SECOND_MOTION : null;
+        openCreditsModal({ needsLogin: false, cost, credits, duration, creditsPerSecond, mode: currentMode });
+      } catch (_) {
+        openCreditsModal({ needsLogin: false, cost: null, credits: getCredits() });
+      }
       return;
     }
     stopLoadingForCard(cardRefs);
@@ -1688,11 +1738,14 @@ async function generateMedia(body) {
 
   if (!SKIP_CREDITS) {
     if (!userId) {
-      openCreditsModal({ needsLogin: true });
+      openCreditsModal({ needsLogin: true, cost });
       return;
     }
     if (credits == null || credits < cost) {
-      openCreditsModal({ needsLogin: false });
+      const isMotion = body?.model === 'kling-2.6/motion-control';
+      const duration = isMotion ? getMotionRefVideoDuration() : (body?.input?.duration ?? 8);
+      const creditsPerSecond = isMotion ? CREDITS_PER_SECOND_MOTION : null;
+      openCreditsModal({ needsLogin: false, cost, credits, duration, creditsPerSecond, mode: currentMode });
       return;
     }
   }
@@ -1803,7 +1856,17 @@ async function generateMedia(body) {
     }
 
     if (err.isCredits) {
-      openCreditsModal();
+      try {
+        const body = buildRequestBody();
+        const cost = getCreditsCostForBody(body);
+        const credits = getCredits();
+        const isMotion = body?.model === 'kling-2.6/motion-control';
+        const duration = isMotion ? getMotionRefVideoDuration() : (body?.input?.duration ?? 8);
+        const creditsPerSecond = isMotion ? CREDITS_PER_SECOND_MOTION : null;
+        openCreditsModal({ needsLogin: false, cost, credits, duration, creditsPerSecond, mode: currentMode });
+      } catch (_) {
+        openCreditsModal({ needsLogin: false, cost: null, credits: getCredits() });
+      }
     } else if (cardRefs.statusMessage) {
       const msg = (err?.message || '').toString().trim();
       let displayMsg = msg || 'Ocorreu um erro. Tente novamente em alguns minutos.';
@@ -1953,7 +2016,17 @@ async function restoreActiveTask() {
         activeTasks.delete(data.taskId);
         stopLoadingForCard(cardRefs);
         if (err.isCredits) {
-          openCreditsModal();
+          try {
+            const body = buildRequestBody();
+            const cost = getCreditsCostForBody(body);
+            const credits = getCredits();
+            const isMotion = body?.model === 'kling-2.6/motion-control';
+            const duration = isMotion ? getMotionRefVideoDuration() : (body?.input?.duration ?? 8);
+            const creditsPerSecond = isMotion ? CREDITS_PER_SECOND_MOTION : null;
+            openCreditsModal({ needsLogin: false, cost, credits, duration, creditsPerSecond, mode: currentMode });
+          } catch (_) {
+            openCreditsModal({ needsLogin: false, cost: null, credits: getCredits() });
+          }
         } else if (cardRefs.statusMessage) {
           const msg = (err?.message || '').toString().trim();
           cardRefs.statusMessage.textContent = msg || 'Ocorreu um erro. Tente novamente em alguns minutos.';

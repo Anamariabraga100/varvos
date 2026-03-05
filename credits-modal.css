@@ -70,17 +70,42 @@
   color: #1a1a1a;
 }
 
+.credits-modal-content {
+  margin-bottom: 20px;
+}
+
 .credits-modal-desc {
-  margin: 0 0 16px;
-  font-size: 0.95rem;
+  margin: 0 0 12px;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #1a1a1a;
+  line-height: 1.5;
+}
+
+.credits-modal-breakdown {
+  margin: 0 0 12px;
+  font-size: 0.9rem;
   color: #6b6b6b;
   line-height: 1.5;
 }
 
-.credits-modal-offer {
-  margin: 0 0 24px;
+.credits-modal-balance {
+  margin: 0 0 4px;
+  font-size: 0.95rem;
+  color: #4b5563;
+}
+
+.credits-modal-missing {
+  margin: 0 0 16px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #dc2626;
+}
+
+.credits-modal-no-expire {
+  margin: 0 0 20px;
   font-size: 0.9rem;
-  color: #1a1a1a;
+  color: #059669;
 }
 
 .credits-modal-btn {
