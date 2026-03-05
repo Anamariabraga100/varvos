@@ -354,16 +354,17 @@ outputResultsList?.addEventListener('click', (e) => {
 outputResultsList?.addEventListener('click', (e) => {
   const mediaContainer = e.target.closest('.media-container');
   if (!mediaContainer) return;
-  if (e.target.closest('.btn-download')) return;
+  if (e.target.closest('.btn-download, .btn-share-whatsapp')) return;
   const loadingPlaceholder = mediaContainer.querySelector('.loading-placeholder');
   if (loadingPlaceholder && !loadingPlaceholder.classList.contains('hidden')) return;
   const video = mediaContainer.querySelector('.media-output');
   const src = video?.src || video?.getAttribute('src');
   if (!src || src === 'about:blank' || src.length < 10) return;
   const card = mediaContainer.closest('.output-result-card');
+  const downloadBtn = card?.querySelector('.btn-download');
   const aspectRatio = card?.dataset?.aspectRatio || '9:16';
   const prompt = card?.dataset?.prompt || '';
-  openVideoModalForResult(src, mediaContainer.querySelector('.btn-download'), null, aspectRatio, prompt);
+  openVideoModalForResult(src, downloadBtn, null, aspectRatio, prompt);
 });
 
 // Event delegation: histórico — download e clique para abrir vídeo
