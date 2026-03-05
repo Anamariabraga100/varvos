@@ -1278,8 +1278,9 @@ function buildRequestBody() {
 
 async function submitTask(body) {
   const isMotion = body?.model === 'kling-2.6/motion-control';
+  let apiKey = null;
   if (!isMotion) {
-    const apiKey = getApiKey();
+    apiKey = getApiKey();
     if (!apiKey) {
       alert('Configure sua chave API em config.js para começar.');
       return null;
