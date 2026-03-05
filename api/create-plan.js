@@ -7,7 +7,7 @@
  * Rode uma vez para cada plano e adicione os IDs no Vercel.
  */
 const PLANS = {
-  start: { name: 'VARVOS Creator', amount: 990, credits: 1500 },  // TESTE R$ 9,90 — voltar para 5990 depois
+  start: { name: 'VARVOS Creator', amount: 5990, credits: 1500 },  // R$ 59,90/mês
   pro: { name: 'VARVOS Pro', amount: 14990, credits: 4000 },
   agency: { name: 'VARVOS Agency', amount: 44900, credits: 15000 },
 };

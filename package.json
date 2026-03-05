@@ -3,7 +3,8 @@
   "private": true,
   "scripts": {
     "build": "node scripts/build-config.js",
-    "vercel-build": "node scripts/build-config.js"
+    "vercel-build": "node scripts/build-config.js",
+    "criar-plano-creator": "node scripts/create-creator-plan.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.0"

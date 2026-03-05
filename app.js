@@ -538,6 +538,7 @@ function openPlansModal() {
   const m = document.getElementById('plansModal');
   if (m) {
     updatePlansActiveSection();
+    updatePlanCardsActiveState();
     m.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
     // Se tem plano ativo, abre aba Planos Mensais para ver opções de upgrade
@@ -555,6 +556,43 @@ function openPlansModal() {
       }
     } catch (_) {}
   }
+}
+
+function updatePlanCardsActiveState() {
+  const container = document.getElementById('plansMensais');
+  if (!container) return;
+  try {
+    const raw = localStorage.getItem(AUTH_STORAGE);
+    const user = raw ? JSON.parse(raw) : null;
+    const activePlanId = user?.plan;
+    container.querySelectorAll('.plan-card[data-plan-id]').forEach(function (card) {
+      const planId = card.dataset.planId;
+      const ctaSlot = card.querySelector('.plan-cta, .plan-cta-active');
+      let badge = card.querySelector('.plan-badge-ativo');
+      const isActive = planId === activePlanId;
+      if (isActive) {
+        if (!badge) {
+          badge = document.createElement('span');
+          badge.className = 'plan-badge plan-badge-ativo';
+          badge.textContent = 'ATIVO';
+          card.insertBefore(badge, card.firstChild);
+        }
+        badge.classList.remove('hidden');
+        if (ctaSlot && ctaSlot.tagName === 'A') {
+          if (!card.dataset.originalCta) card.dataset.originalCta = ctaSlot.outerHTML;
+          ctaSlot.outerHTML = '<span class="plan-cta plan-cta-active">ATIVO</span>';
+        }
+      } else {
+        if (badge) badge.classList.add('hidden');
+        const activeSpan = card.querySelector('.plan-cta-active');
+        if (activeSpan && card.dataset.originalCta) {
+          const wrap = document.createElement('div');
+          wrap.innerHTML = card.dataset.originalCta;
+          activeSpan.replaceWith(wrap.firstChild);
+        }
+      }
+    });
+  } catch (_) {}
 }
 
 function updatePlansActiveSection() {
@@ -677,6 +715,7 @@ document.querySelectorAll('.plans-tab').forEach(tab => {
     tab.classList.add('active');
     document.getElementById('plansAvulsos')?.classList.toggle('hidden', t !== 'avulsos');
     document.getElementById('plansMensais')?.classList.toggle('hidden', t !== 'mensais');
+    if (t === 'mensais') updatePlanCardsActiveState();
   });
 });
 

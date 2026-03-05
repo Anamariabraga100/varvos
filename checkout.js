@@ -47,15 +47,7 @@
   }
 
   function debugStep(label, content, isError) {
-    const panel = document.getElementById('checkoutDebug');
-    const steps = document.getElementById('checkoutDebugSteps');
-    if (!panel || !steps) return;
-    panel.classList.remove('hidden');
-    const step = document.createElement('div');
-    step.className = 'debug-step' + (isError ? ' error' : '');
-    step.innerHTML = '<strong>' + label + '</strong>' +
-      (content ? '<pre>' + (typeof content === 'string' ? content : JSON.stringify(content, null, 2)) + '</pre>' : '');
-    steps.appendChild(step);
+    // Debug desativado para não exibir dados ao cliente
   }
 
   function clearDebug() {

@@ -46,7 +46,7 @@ window.VARVOS_PLANS = {
     start: {
       id: 'start',
       name: 'Creator',
-      amount: 990,        // R$ 9,90/mês (TESTE — voltar para 5990 depois)
+      amount: 5990,       // R$ 59,90/mês
       credits: 1500,      // 30 vídeos
       description: '30 vídeos/mês (1.500 créditos)',
     },
