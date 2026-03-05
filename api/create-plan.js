@@ -7,9 +7,9 @@
  * Rode uma vez para cada plano e adicione os IDs no Vercel.
  */
 const PLANS = {
-  start: { name: 'VARVOS Start', amount: 5990, credits: 150 },
-  pro: { name: 'VARVOS Pro', amount: 14990, credits: 500 },
-  agency: { name: 'VARVOS Agency', amount: 49700, credits: 2000 },
+  start: { name: 'VARVOS Creator', amount: 5990, credits: 1500 },
+  pro: { name: 'VARVOS Pro', amount: 14990, credits: 4000 },
+  agency: { name: 'VARVOS Agency', amount: 44900, credits: 15000 },
 };
 
 export default async function handler(req, res) {

@@ -4,10 +4,11 @@
  * Body: { planId, paymentMethod: 'pix'|'credit_card', customer, cardToken? }
  */
 const PLANS = {
-  starter: { amount: 1490, credits: 20, name: 'Starter' },
-  popular: { amount: 3990, credits: 60, name: 'Popular' },
-  'pro-avulso': { amount: 7990, credits: 135, name: 'Pro' },
-  escala: { amount: 29700, credits: 600, name: 'Escala' },
+  'boas-vindas': { amount: 1490, credits: 200, name: 'Oferta de boas-vindas' }, // 200 créditos
+  starter: { amount: 1990, credits: 250, name: 'Starter' },
+  popular: { amount: 3990, credits: 650, name: 'Popular' },
+  'pro-avulso': { amount: 7990, credits: 1500, name: 'Pro' },
+  escala: { amount: 29700, credits: 6100, name: 'Escala' },
 };
 
 export default async function handler(req, res) {

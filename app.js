@@ -1399,7 +1399,6 @@ function openCreditsModal(opts = {}) {
   if (creditsModal) {
     const titleEl = document.getElementById('creditsModalTitle');
     const descEl = document.getElementById('creditsModalDesc');
-    const breakdownEl = document.getElementById('creditsModalBreakdown');
     const balanceEl = document.getElementById('creditsModalBalance');
     const missingEl = document.getElementById('creditsModalMissing');
     const noExpireEl = document.getElementById('creditsModalNoExpire');
@@ -1418,10 +1417,13 @@ function openCreditsModal(opts = {}) {
       descEl.textContent = cost != null
         ? `Para criar esse vídeo você precisa de ${cost} créditos. Faça login ou cadastre-se para continuar.`
         : 'Faça login ou cadastre-se para acessar seus créditos e começar a criar vídeos com IA.';
-      showEl(breakdownEl, '', false);
-      showEl(balanceEl, '', false);
+      if (balanceEl) balanceEl.classList.add('hidden');
       if (missingEl) missingEl.classList.add('hidden');
       if (noExpireEl) noExpireEl.classList.add('hidden');
+      const triggerElLogin = document.getElementById('creditsModalTrigger');
+      if (triggerElLogin) triggerElLogin.classList.add('hidden');
+      const offerEl = document.getElementById('creditsModalOffer');
+      if (offerEl) offerEl.classList.add('hidden');
       btnEl.textContent = 'Entrar ou cadastrar';
     } else if (titleEl && descEl && btnEl) {
       creditsModal.setAttribute('data-credits-reason', 'buy');
@@ -1435,25 +1437,17 @@ function openCreditsModal(opts = {}) {
 
       titleEl.textContent = 'Adicione créditos para gerar seu vídeo';
 
-      if (duration != null && cost > 0) {
-        descEl.textContent = `Seu vídeo de ${Math.round(duration)} segundos precisa de ${cost} créditos`;
-      } else {
-        descEl.textContent = cost > 0 ? `Seu vídeo precisa de ${cost} créditos` : 'Você precisa de mais créditos para esse vídeo.';
-      }
-
-      if (creditsPerSec != null && duration != null && cost > 0) {
-        showEl(breakdownEl, `Este vídeo custa ${creditsPerSec} créditos por segundo · Duração: ${Math.round(duration)}s · Total: ${cost} créditos`, true);
-      } else if (cost > 0) {
-        showEl(breakdownEl, `Vídeos custam ${cost} créditos cada`, true);
-      } else {
-        showEl(breakdownEl, '', false);
-      }
-
+      descEl.textContent = 'Seu vídeo está pronto para gerar.';
       showEl(balanceEl, `Saldo atual: ${bal} créditos`, cost > 0);
+
       const missingNumEl = document.getElementById('creditsModalMissingNum');
       if (missingEl) missingEl.classList.toggle('hidden', !(cost > 0 && missing > 0));
       if (missingNumEl) missingNumEl.textContent = String(missing);
       if (noExpireEl) noExpireEl.classList.remove('hidden');
+      const triggerEl = document.getElementById('creditsModalTrigger');
+      if (triggerEl) triggerEl.classList.remove('hidden');
+      const offerEl = document.getElementById('creditsModalOffer');
+      if (offerEl) offerEl.classList.remove('hidden');
     }
     creditsModal.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
@@ -1743,8 +1737,8 @@ async function generateMedia(body) {
   const credits = getCredits();
   const skipAuthOnLocalhost = isLocalhost();
 
-  if (!SKIP_CREDITS && !skipAuthOnLocalhost) {
-    if (!userId) {
+  if (!SKIP_CREDITS) {
+    if (!userId && !skipAuthOnLocalhost) {
       openCreditsModal({ needsLogin: true, cost });
       return;
     }

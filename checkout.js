@@ -2,7 +2,7 @@
  * Checkout VARVOS — Planos avulsos (Pix + Cartão) e mensais (Cartão)
  */
 (function () {
-  const AVULSOS = ['starter', 'popular', 'pro-avulso', 'escala'];
+  const AVULSOS = ['boas-vindas', 'starter', 'popular', 'pro-avulso', 'escala'];
   const MENSAIS = ['start', 'pro', 'agency'];
 
   function getPlan() {

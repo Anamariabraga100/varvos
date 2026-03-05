@@ -396,17 +396,34 @@
       </div>
       <h2 id="creditsModalTitle" class="credits-modal-title">Adicione créditos para gerar seu vídeo</h2>
       <div id="creditsModalContent" class="credits-modal-content">
-        <p id="creditsModalDesc" class="credits-modal-desc"></p>
-        <p id="creditsModalBreakdown" class="credits-modal-breakdown hidden"></p>
+        <p id="creditsModalDesc" class="credits-modal-desc">Seu vídeo está pronto para gerar.</p>
         <p id="creditsModalBalance" class="credits-modal-balance hidden"></p>
         <div id="creditsModalMissing" class="credits-modal-missing-wrap hidden">
-          <span class="credits-modal-missing-label">Faltam</span>
-          <span id="creditsModalMissingNum" class="credits-modal-missing-num">0</span>
-          <span class="credits-modal-missing-label">créditos</span>
+          <div class="credits-modal-missing-row">
+            <span class="credits-modal-missing-label">Faltam apenas</span>
+            <span id="creditsModalMissingNum" class="credits-modal-missing-num">0</span>
+            <span class="credits-modal-missing-label">créditos</span>
+          </div>
+          <span class="credits-modal-missing-sub">para gerar este vídeo</span>
         </div>
-        <p id="creditsModalNoExpire" class="credits-modal-no-expire">✓ Créditos não expiram</p>
+        <div class="credits-modal-trust">
+          <p id="creditsModalNoExpire" class="credits-modal-no-expire">✓ Créditos não expiram</p>
+          <p id="creditsModalTrigger" class="credits-modal-trigger hidden">⚡ Sua configuração será mantida</p>
+        </div>
+        <div id="creditsModalOffer" class="credits-modal-offer-card hidden">
+          <span class="credits-modal-offer-badge">🎁 Oferta de boas-vindas</span>
+          <div class="credits-modal-offer-credits">
+            <span class="credits-modal-offer-base">200 créditos</span>
+          </div>
+          <div class="credits-modal-offer-price">
+            <span class="credits-modal-offer-per-video">≈ R$ 3,73 por vídeo</span>
+            <span class="credits-modal-offer-total">Total: R$ 14,90 — crie até 4 vídeos</span>
+          </div>
+          <p class="credits-modal-offer-cta-hint">⚡ Apenas na primeira compra</p>
+          <a href="/checkout?plano=boas-vindas" class="credits-modal-offer-btn">Ativar oferta</a>
+        </div>
       </div>
-      <button type="button" class="credits-modal-btn" id="creditsModalPlans">Comprar créditos</button>
+      <button type="button" class="credits-modal-btn" id="creditsModalPlans">Ver todos os planos</button>
     </div>
   </div>
 
@@ -454,13 +471,13 @@
           <p class="plan-desc">Melhor custo-benefício</p>
           <div class="plan-credits-block">
             <svg class="plan-credits-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L14 8L20 10L14 12L12 18L10 12L4 10L10 8L12 2Z" stroke-linejoin="round"/></svg>
-            <span class="plan-credits-num">600</span>
+            <span class="plan-credits-num">650</span>
             <span class="plan-credits-label">créditos</span>
           </div>
-          <p class="plan-credits-desc">Possível criar até 12 vídeos</p>
+          <p class="plan-credits-desc">Possível criar até 13 vídeos</p>
           <div class="plan-price-box plan-price-inverted">
-            <span class="plan-per-first">R$ 3,33 por vídeo</span>
-            <span class="plan-current-small">Total: R$ 39,90</span>
+            <span class="plan-per-first">≈ R$ 3,07 por vídeo</span>
+            <span class="plan-current-small">R$ 39,90</span>
           </div>
           <ul class="plan-features">
             <li>Full HD profissional</li>
@@ -475,13 +492,13 @@
           <p class="plan-desc">Para começar</p>
           <div class="plan-credits-block">
             <svg class="plan-credits-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L14 8L20 10L14 12L12 18L10 12L4 10L10 8L12 2Z" stroke-linejoin="round"/></svg>
-            <span class="plan-credits-num">200</span>
+            <span class="plan-credits-num">250</span>
             <span class="plan-credits-label">créditos</span>
           </div>
-          <p class="plan-credits-desc">Possível criar até 4 vídeos</p>
+          <p class="plan-credits-desc">Crie até 5 vídeos</p>
           <div class="plan-price-box plan-price-inverted">
-            <span class="plan-per-first">R$ 3,73 por vídeo</span>
-            <span class="plan-current-small">Total: R$ 14,90</span>
+            <span class="plan-per-first">≈ R$ 3,98 por vídeo</span>
+            <span class="plan-current-small">R$ 19,90</span>
           </div>
           <ul class="plan-features">
             <li>Full HD profissional</li>
@@ -496,13 +513,13 @@
           <p class="plan-desc">Maior eficiência por crédito</p>
           <div class="plan-credits-block">
             <svg class="plan-credits-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L14 8L20 10L14 12L12 18L10 12L4 10L10 8L12 2Z" stroke-linejoin="round"/></svg>
-            <span class="plan-credits-num">1.350</span>
+            <span class="plan-credits-num">1.500</span>
             <span class="plan-credits-label">créditos</span>
           </div>
-          <p class="plan-credits-desc">Possível criar até 27 vídeos</p>
+          <p class="plan-credits-desc">Possível criar até 30 vídeos</p>
           <div class="plan-price-box plan-price-inverted">
-            <span class="plan-per-first">R$ 2,96 por vídeo</span>
-            <span class="plan-current-small">Total: R$ 79,90</span>
+            <span class="plan-per-first">≈ R$ 2,66 por vídeo</span>
+            <span class="plan-current-small">R$ 79,90</span>
           </div>
           <ul class="plan-features">
             <li>Full HD profissional</li>
@@ -519,13 +536,13 @@
           <p class="plan-desc">Para alto volume</p>
           <div class="plan-credits-block">
             <svg class="plan-credits-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L14 8L20 10L14 12L12 18L10 12L4 10L10 8L12 2Z" stroke-linejoin="round"/></svg>
-            <span class="plan-credits-num">6.000</span>
+            <span class="plan-credits-num">6.100</span>
             <span class="plan-credits-label">créditos</span>
           </div>
-          <p class="plan-credits-desc">Possível criar até 120 vídeos</p>
+          <p class="plan-credits-desc">Possível criar até 122 vídeos</p>
           <div class="plan-price-box plan-price-inverted">
-            <span class="plan-per-first">R$ 2,48 por vídeo</span>
-            <span class="plan-current-small">Total: R$ 297,00</span>
+            <span class="plan-per-first">≈ R$ 2,43 por vídeo</span>
+            <span class="plan-current-small">R$ 297,00</span>
           </div>
           <ul class="plan-features">
             <li>Full HD profissional</li>
@@ -547,13 +564,13 @@
           <p class="plan-desc">Melhor custo-benefício</p>
           <div class="plan-credits-block">
             <svg class="plan-credits-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L14 8L20 10L14 12L12 18L10 12L4 10L10 8L12 2Z" stroke-linejoin="round"/></svg>
-            <span class="plan-credits-num">3.780</span>
+            <span class="plan-credits-num">4.000</span>
             <span class="plan-credits-label">créditos/mês</span>
           </div>
-          <p class="plan-credits-desc">Possível criar até 75 vídeos/mês</p>
+          <p class="plan-credits-desc">Possível criar até 80 vídeos/mês</p>
           <div class="plan-price-box plan-price-inverted">
-            <span class="plan-per-first">R$ 1,98 por vídeo</span>
-            <span class="plan-current-small">Total: R$ 149,90/mês</span>
+            <span class="plan-per-first">≈ R$ 1,87 por vídeo</span>
+            <span class="plan-current-small">R$ 149,90/mês</span>
           </div>
           <ul class="plan-features">
             <li>Full HD profissional</li>
@@ -567,17 +584,17 @@
           <span class="plan-guarantee">Garantia de 7 dias</span>
         </div>
         <div class="plan-card plan-card-avulso">
-          <h3 class="plan-name">Start</h3>
+          <h3 class="plan-name">Creator</h3>
           <p class="plan-desc">Para quem está começando</p>
           <div class="plan-credits-block">
             <svg class="plan-credits-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L14 8L20 10L14 12L12 18L10 12L4 10L10 8L12 2Z" stroke-linejoin="round"/></svg>
-            <span class="plan-credits-num">1.360</span>
+            <span class="plan-credits-num">1.500</span>
             <span class="plan-credits-label">créditos/mês</span>
           </div>
-          <p class="plan-credits-desc">Possível criar até 27 vídeos/mês</p>
+          <p class="plan-credits-desc">Possível criar até 30 vídeos/mês</p>
           <div class="plan-price-box plan-price-inverted">
-            <span class="plan-per-first">R$ 2,20 por vídeo</span>
-            <span class="plan-current-small">Total: R$ 59,90/mês</span>
+            <span class="plan-per-first">≈ R$ 2,00 por vídeo</span>
+            <span class="plan-current-small">R$ 59,90/mês</span>
           </div>
           <ul class="plan-features">
             <li>Full HD profissional</li>
@@ -594,13 +611,13 @@
           <p class="plan-desc">Para alto volume</p>
           <div class="plan-credits-block">
             <svg class="plan-credits-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L14 8L20 10L14 12L12 18L10 12L4 10L10 8L12 2Z" stroke-linejoin="round"/></svg>
-            <span class="plan-credits-num">14.120</span>
+            <span class="plan-credits-num">15.000</span>
             <span class="plan-credits-label">créditos/mês</span>
           </div>
-          <p class="plan-credits-desc">Possível criar até 282 vídeos/mês</p>
+          <p class="plan-credits-desc">Possível criar até 300 vídeos/mês</p>
           <div class="plan-price-box plan-price-inverted">
-            <span class="plan-per-first">R$ 1,76 por vídeo</span>
-            <span class="plan-current-small">Total: R$ 497,00/mês</span>
+            <span class="plan-per-first">≈ R$ 1,50 por vídeo</span>
+            <span class="plan-current-small">R$ 449/mês</span>
           </div>
           <ul class="plan-features">
             <li>Full HD profissional</li>
