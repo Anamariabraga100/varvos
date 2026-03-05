@@ -67,7 +67,13 @@ export default async function handler(req, res) {
       email: email.substring(0, 64),
       type: 'individual',
       address: billingAddr,
-      phones: {},
+      phones: {
+        mobile_phone: {
+          country_code: '55',
+          area_code: '11',
+          number: '999999999',
+        },
+      },
     },
     installments: 1,
     code: subCode,
@@ -80,7 +86,11 @@ export default async function handler(req, res) {
   };
 
   if (cardToken) {
-    subscriptionPayload.card = { card_token: cardToken };
+    // Pagar.me Subscriptions API: card_token at root; card only billing_address (like Medium article / Orders pattern)
+    subscriptionPayload.card_token = cardToken;
+    subscriptionPayload.card = {
+      billing_address: billingAddr,
+    };
   } else {
     const { holder_name, number, exp_month, exp_year, cvv } = card;
     if (!holder_name || !number || !exp_month || !exp_year) {

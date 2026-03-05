@@ -82,7 +82,7 @@
     return window.location.origin + '/api';
   }
 
-  // Sincroniza campo validade MM/AA para exp_date (MM-YYYY) para tokenizecard
+  // Sincroniza campo validade MM/AA para exp_date: tokenizecard usa MM-YY (2 dígitos ano)
   function syncExpDateToken(expInputId, tokenElId) {
     var expEl = document.getElementById(expInputId);
     var tokenEl = document.getElementById(tokenElId);
@@ -91,7 +91,7 @@
     if (v.length >= 4) {
       var mm = v.slice(0, 2);
       var yy = v.slice(2, 4);
-      tokenEl.value = mm + '-' + (parseInt(yy, 10) < 50 ? '20' + yy : '19' + yy);
+      tokenEl.value = mm + '-' + yy;
     } else {
       tokenEl.value = (expEl.value || '').replace(/\//g, '-');
     }
@@ -575,7 +575,7 @@
           var raw = this.value.replace(/\D/g, '');
           if (raw.length >= 4) {
             var mm = raw.slice(0, 2), yy = raw.slice(2, 4);
-            tok.value = mm + '-' + (parseInt(yy, 10) < 50 ? '20' + yy : '19' + yy);
+            tok.value = mm + '-' + yy;
           } else {
             tok.value = this.value.replace(/\//g, '-');
           }
