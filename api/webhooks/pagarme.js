@@ -61,12 +61,22 @@ export default async function handler(req, res) {
 
     let targetUserId = userId;
     if (!targetUserId && data?.customer?.email) {
+      const email = String(data.customer.email).trim().toLowerCase();
       const { data: userByEmail } = await supabase
         .from('users')
         .select('id')
-        .eq('email', data.customer.email)
+        .eq('email', email)
         .single();
       targetUserId = userByEmail?.id;
+      if (!targetUserId && email) {
+        const name = (data.customer?.name || email.split('@')[0] || 'Cliente').substring(0, 128);
+        const { data: newUser, error: upsertErr } = await supabase
+          .from('users')
+          .upsert({ email, name }, { onConflict: 'email' })
+          .select('id')
+          .single();
+        if (!upsertErr && newUser?.id) targetUserId = newUser.id;
+      }
     }
 
     if (!targetUserId) {

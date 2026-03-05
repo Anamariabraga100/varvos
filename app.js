@@ -464,10 +464,16 @@ async function refreshCreditsFromSupabase() {
   try {
     const raw = localStorage.getItem(AUTH_STORAGE);
     const user = raw ? JSON.parse(raw) : null;
-    if (!user?.id || !window.varvosSupabase) return;
-    const { data } = await window.varvosSupabase.from('users').select('credits').eq('id', user.id).single();
+    if (!user || !window.varvosSupabase) return;
+    const userId = user.id;
+    const userEmail = (user.email || '').trim().toLowerCase();
+    if (!userId && !userEmail) return;
+    const { data } = userId
+      ? await window.varvosSupabase.from('users').select('id, credits').eq('id', userId).single()
+      : await window.varvosSupabase.from('users').select('id, credits').eq('email', userEmail).single();
     if (data && data.credits != null) {
       user.credits = data.credits;
+      if (data.id && !user.id) user.id = data.id;
       localStorage.setItem(AUTH_STORAGE, JSON.stringify(user));
       updateCreditsDisplay();
     }
