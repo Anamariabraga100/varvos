@@ -411,10 +411,15 @@ document.getElementById('creditsModalClose')?.addEventListener('click', closeCre
 document.querySelector('.credits-modal-backdrop')?.addEventListener('click', closeCreditsModal);
 document.getElementById('creditsModalDismiss')?.addEventListener('click', closeCreditsModal);
 
-// Credits modal: "Ver planos" abre o modal de planos
+// Credits modal: CTA abre planos ou auth conforme o motivo
 document.getElementById('creditsModalPlans')?.addEventListener('click', () => {
   closeCreditsModal();
-  openPlansModal();
+  const reason = creditsModal?.getAttribute('data-credits-reason');
+  if (reason === 'login' && typeof openAuthModal === 'function') {
+    openAuthModal(window.location.pathname || 'video/');
+  } else {
+    openPlansModal();
+  }
 });
 
 // Header: créditos — preferir do usuário (Supabase) quando logado
@@ -1241,8 +1246,8 @@ function buildRequestBody() {
     if (model === 'veo3.1-fast') {
       const aspectRatio = document.getElementById('aspectRatio').value;
       const resolution = document.getElementById('veoResolution')?.value || '720p';
-      // Regra: vídeo sempre em português, independente do prompt
-      const promptPt = prompt + ' [IMPORTANTE: Todo o vídeo, áudio, diálogos e texto devem ser em português brasileiro.]';
+      // Regra: vídeo sempre em português
+      const promptPt = prompt + ' [IMPORTANTE: Todo o áudio e diálogos em português brasileiro.]';
       const input = {
         prompt: promptPt,
         duration: 8,
@@ -1261,7 +1266,8 @@ function buildRequestBody() {
     const aspectRatio = document.getElementById('aspectRatio').value;
     const style = document.getElementById('style').value;
 
-    const input = { prompt, duration, aspect_ratio: aspectRatio };
+    const promptPt = prompt + ' [IMPORTANTE: Áudio e diálogos em português brasileiro.]';
+    const input = { prompt: promptPt, duration, aspect_ratio: aspectRatio };
     if (refImageUrl) input.image_urls = [refImageUrl];
     if (style) input.style = style;
 
@@ -1387,11 +1393,28 @@ function stopLoadingForCard(cardRefs) {
   }
 }
 
-function openCreditsModal() {
+function openCreditsModal(opts = {}) {
   activeTasks.forEach(m => stopLoadingForCard(m.cardRefs));
   if (outputResultsList) outputResultsList.classList.add('hidden');
   if (outputPlaceholder) outputPlaceholder.classList.remove('hidden');
   if (creditsModal) {
+    const titleEl = document.getElementById('creditsModalTitle');
+    const descEl = creditsModal.querySelector('.credits-modal-desc');
+    const offerEl = creditsModal.querySelector('.credits-modal-offer');
+    const btnEl = document.getElementById('creditsModalPlans');
+    if (opts.needsLogin && titleEl && descEl && offerEl && btnEl) {
+      creditsModal.setAttribute('data-credits-reason', 'login');
+      titleEl.textContent = 'Entre para continuar';
+      descEl.textContent = 'Faça login ou cadastre-se para acessar seus créditos e começar a criar vídeos com IA.';
+      offerEl.textContent = 'É grátis criar uma conta. Depois você compra créditos quando precisar.';
+      btnEl.textContent = 'Entrar ou cadastrar';
+    } else if (titleEl && descEl && offerEl && btnEl) {
+      creditsModal.setAttribute('data-credits-reason', 'buy');
+      titleEl.textContent = 'Adicione créditos e volte a criar';
+      descEl.textContent = 'Você precisa de mais créditos para esse vídeo. Compre agora e continue criando em segundos — sem compromisso.';
+      offerEl.textContent = 'Créditos avulsos ou assinatura mensal. Você escolhe o que faz mais sentido pro seu ritmo.';
+      btnEl.textContent = 'Comprar créditos ✨';
+    }
     creditsModal.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
   }
@@ -1665,11 +1688,11 @@ async function generateMedia(body) {
 
   if (!SKIP_CREDITS) {
     if (!userId) {
-      openCreditsModal();
+      openCreditsModal({ needsLogin: true });
       return;
     }
     if (credits == null || credits < cost) {
-      openCreditsModal();
+      openCreditsModal({ needsLogin: false });
       return;
     }
   }
