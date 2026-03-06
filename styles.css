@@ -1879,6 +1879,82 @@ select:focus {
   line-height: 1.4;
 }
 
+/* Preview da imagem embaçada + overlay com textos */
+.loading-placeholder {
+  position: relative;
+  background: rgba(11,15,20,0.97);
+}
+.loading-placeholder-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-size: cover;
+  background-position: center;
+  filter: blur(12px);
+  opacity: 0.5;
+}
+.loading-placeholder-bg.has-image {
+  opacity: 0.6;
+}
+.loading-placeholder-overlay {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  padding: 24px 20px;
+  background: linear-gradient(to bottom, transparent 0%, rgba(11,15,20,0.7) 30%, rgba(11,15,20,0.9) 100%);
+}
+.loading-placeholder-prompt {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  padding: 12px 16px;
+  background: rgba(0,0,0,0.4);
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+.loading-placeholder-prompt.hidden { display: none !important; }
+.loading-prompt-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 0;
+  font-size: 0.85rem;
+  color: rgba(255,255,255,0.8);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: color 0.15s;
+}
+.loading-prompt-toggle:hover { color: white; }
+.loading-prompt-chevron {
+  font-size: 0.7rem;
+  transition: transform 0.2s;
+}
+.loading-placeholder-prompt:has(.loading-prompt-content.collapsed) .loading-prompt-chevron { transform: rotate(-90deg); }
+.loading-prompt-content {
+  max-height: 80px;
+  overflow: hidden;
+  transition: max-height 0.25s ease;
+}
+.loading-prompt-content.collapsed {
+  max-height: 0;
+  overflow: hidden;
+}
+.loading-prompt-text {
+  margin: 0;
+  padding: 8px 0 0;
+  font-size: 0.82rem;
+  color: rgba(255,255,255,0.7);
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
 .loading-message {
   margin: 0;
   font-size: 0.9rem;
@@ -2009,6 +2085,24 @@ select:focus {
 .status-message { font-size: 0.9rem; color: var(--text-muted); margin: 0; }
 .status-message.success { color: var(--success); }
 .status-message.error { color: var(--error); }
+
+.status-retry-wrap { margin-top: 12px; }
+.btn-retry-generation {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 18px;
+  background: var(--btn-bg);
+  border: none;
+  border-radius: 10px;
+  color: white;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-retry-generation:hover { background: var(--btn-hover); }
 
 .btn-download {
   display: inline-flex;

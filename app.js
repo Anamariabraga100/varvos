@@ -97,7 +97,10 @@ function getCardRefs(cardEl) {
     taskProgressEl: cardEl.querySelector('.task-progress'),
     progressFill: cardEl.querySelector('.progress-fill'),
     loadingPlaceholder: cardEl.querySelector('.loading-placeholder'),
+    loadingPlaceholderBg: cardEl.querySelector('.loading-placeholder-bg'),
     loadingTextEl: cardEl.querySelector('.loading-placeholder-text'),
+    loadingPromptWrap: cardEl.querySelector('.loading-placeholder-prompt'),
+    loadingPromptText: cardEl.querySelector('.loading-prompt-text'),
     videoPlayer: cardEl.querySelector('.media-output'),
     imageGallery: cardEl.querySelector('.image-gallery'),
     creationDisclaimer: cardEl.querySelector('.creation-disclaimer'),
@@ -487,7 +490,27 @@ async function triggerDownload(url, filename) {
   }
 }
 
+// Botão "Gerar novamente" quando der erro de alta demanda ou timeout
 outputResultsList?.addEventListener('click', (e) => {
+  const retryBtn = e.target.closest('.btn-retry-generation');
+  if (retryBtn) {
+    e.preventDefault();
+    const card = retryBtn.closest('.output-result-card');
+    const bodyJson = card?.dataset?.retryBody;
+    if (bodyJson) {
+      try {
+        const body = JSON.parse(bodyJson);
+        card.querySelector('.status-retry-wrap')?.remove();
+        card.removeAttribute('data-retry-body');
+        if (card.querySelector('.status-message')) {
+          card.querySelector('.status-message').textContent = '';
+          card.querySelector('.status-message').classList.remove('error');
+        }
+        generateMedia(body);
+      } catch (_) {}
+    }
+    return;
+  }
   const downloadBtn = e.target.closest('.btn-download');
   if (!downloadBtn) return;
   const href = downloadBtn.getAttribute('href');
@@ -500,6 +523,19 @@ outputResultsList?.addEventListener('click', (e) => {
 
 // Clique no vídeo gerado para abrir modal (delegação)
 outputResultsList?.addEventListener('click', (e) => {
+  const loadingToggle = e.target.closest('.loading-prompt-toggle');
+  if (loadingToggle) {
+    e.preventDefault();
+    const wrap = loadingToggle.closest('.loading-placeholder-prompt');
+    const content = wrap?.querySelector('.loading-prompt-content');
+    if (content) {
+      content.classList.toggle('collapsed');
+      loadingToggle.setAttribute('aria-expanded', content.classList.contains('collapsed') ? 'false' : 'true');
+      const label = wrap?.querySelector('.loading-prompt-label');
+      if (label) label.textContent = content.classList.contains('collapsed') ? 'Ver prompt' : 'Ver menos';
+    }
+    return;
+  }
   const toggleBtn = e.target.closest('.result-prompt-toggle');
   if (toggleBtn) {
     e.preventDefault();
@@ -1920,9 +1956,31 @@ async function getTaskStatus(taskId, isMotion = false) {
 
 const STATUS_PT = { not_started: 'Na fila', running: 'Gerando', finished: 'Pronto', failed: 'Falhou' };
 
-function startLoadingForCard(cardRefs, mode) {
+function startLoadingForCard(cardRefs, mode, opts = {}) {
   if (!cardRefs?.loadingPlaceholder) return;
   cardRefs.loadingPlaceholder.classList.remove('hidden');
+  const imgUrl = opts.refImageUrl ?? (mode === 'motion' ? motionCharImageUrl : refImageUrl);
+  const prompt = opts.prompt || lastPrompt || '';
+  const bg = cardRefs.loadingPlaceholderBg;
+  if (bg) {
+    if (imgUrl) {
+      bg.style.backgroundImage = `url(${imgUrl})`;
+      bg.classList.add('has-image');
+    } else {
+      bg.style.backgroundImage = '';
+      bg.classList.remove('has-image');
+    }
+  }
+  const promptWrap = cardRefs.loadingPromptWrap;
+  const promptText = cardRefs.loadingPromptText;
+  if (promptWrap) {
+    promptWrap.classList.toggle('hidden', !prompt);
+    if (promptText) promptText.textContent = prompt;
+    const content = promptWrap?.querySelector('.loading-prompt-content');
+    if (content) content.classList.add('collapsed');
+    const toggle = promptWrap?.querySelector('.loading-prompt-toggle');
+    if (toggle) toggle.setAttribute('aria-expanded', 'false');
+  }
   const phrases = LOADING_PHRASES[mode] || LOADING_PHRASES.video;
   let idx = 0;
   if (cardRefs.loadingTextEl) cardRefs.loadingTextEl.textContent = phrases[0];
@@ -2034,6 +2092,27 @@ function closeCreditsModal() {
 
 function isCreditsError(msg) {
   return msg && /credit|insufficient|saldo|quota|balance|crédito/i.test(msg.toString());
+}
+
+function showGenerationErrorWithRetry(cardRefs, displayMsg, body) {
+  if (!cardRefs?.statusMessage) return;
+  cardRefs.statusMessage.textContent = displayMsg;
+  cardRefs.statusMessage.className = 'status-message error';
+  cardRefs.statusMessage.classList.remove('hidden');
+  cardRefs.card.querySelector('.status-retry-wrap')?.remove();
+  const wrap = document.createElement('div');
+  wrap.className = 'status-retry-wrap';
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'btn-retry-generation';
+  btn.textContent = 'Gerar novamente';
+  wrap.appendChild(btn);
+  cardRefs.statusMessage.insertAdjacentElement('afterend', wrap);
+  try {
+    cardRefs.card.dataset.retryBody = JSON.stringify(body);
+  } catch (_) {
+    cardRefs.card.removeAttribute('data-retry-body');
+  }
 }
 
 function updateOutputUI(data, cardRefs, startTime) {
@@ -2426,6 +2505,8 @@ async function generateMedia(body) {
   if (cardRefs.downloadWarning) cardRefs.downloadWarning.classList.add('hidden');
   if (cardRefs.creationDisclaimer) cardRefs.creationDisclaimer.classList.remove('hidden');
   if (cardRefs.statusMessage) { cardRefs.statusMessage.classList.remove('hidden'); cardRefs.statusMessage.textContent = ''; }
+  cardRefs.card.querySelector('.status-retry-wrap')?.remove();
+  cardRefs.card.removeAttribute('data-retry-body');
   if (cardRefs.resultPromptEl) cardRefs.resultPromptEl.classList.add('hidden');
 
   let taskId = null;
@@ -2465,7 +2546,7 @@ async function generateMedia(body) {
     if (cardRefs.card) cardRefs.card.dataset.aspectRatio = aspectRatio;
     reservedCardIndices.delete(cardIndex);
     activeTasks.set(taskId, { cardRefs, startTime, prompt: lastPrompt, aspectRatio, isMotion: body?.model === 'kling-2.6/motion-control' });
-    startLoadingForCard(cardRefs, currentMode);
+    startLoadingForCard(cardRefs, currentMode, { refImageUrl: currentMode === 'motion' ? motionCharImageUrl : refImageUrl, prompt: lastPrompt });
     document.getElementById('currentResultSection')?.scrollIntoView({ behavior: 'smooth', block: 'end' });
 
     currentTaskId = taskId;
@@ -2519,8 +2600,7 @@ async function generateMedia(body) {
       } else if (!err.isTimeout) {
         displayMsg += ' Tente novamente em alguns minutos.';
       }
-      cardRefs.statusMessage.textContent = displayMsg;
-      cardRefs.statusMessage.className = 'status-message error';
+      showGenerationErrorWithRetry(cardRefs, displayMsg, body);
     }
     const tid = pollTimeouts.get(taskId);
     if (tid) { clearTimeout(tid); pollTimeouts.delete(taskId); }
@@ -2666,7 +2746,7 @@ async function restoreActiveTask() {
 
     cardRefs.card.classList.remove('hidden');
     activeTasks.set(data.taskId, { cardRefs, startTime });
-    startLoadingForCard(cardRefs, data.mode || 'video');
+    startLoadingForCard(cardRefs, data.mode || 'video', { refImageUrl: (data.mode === 'motion' ? motionCharImageUrl : refImageUrl), prompt: data.prompt || lastPrompt });
 
     if (cardRefs.taskStatusEl) cardRefs.taskStatusEl.textContent = 'Enviando...';
     if (cardRefs.taskProgressEl) cardRefs.taskProgressEl.textContent = '0%';
