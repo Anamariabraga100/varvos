@@ -214,6 +214,7 @@ function updateVideoModelUI() {
   const modelSelect = document.getElementById('videoModel');
   const durationSelect = document.getElementById('duration');
   const durationFixed = document.getElementById('durationFixed');
+  const durationWrap = document.getElementById('durationWrap');
   const veoResolutionWrap = document.getElementById('veoResolutionWrap');
   const aspectRatioWrap = document.querySelector('.config-card[data-target="aspectRatio"]');
   const grokDurationWrap = document.getElementById('grokDurationWrap');
@@ -227,6 +228,7 @@ function updateVideoModelUI() {
   selectedModel = modelSelect.value;
   const isVEO = selectedModel === 'veo3.1-fast';
   const isGrok = selectedModel === 'grok-imagine/image-to-video';
+  if (durationWrap) durationWrap.classList.toggle('hidden', isGrok);
   if (durationSelect) durationSelect.classList.toggle('hidden', isVEO || isGrok);
   if (durationFixed) durationFixed.classList.toggle('hidden', !isVEO);
   if (veoResolutionWrap) veoResolutionWrap.classList.toggle('hidden', !isVEO);
@@ -2818,7 +2820,7 @@ generateForm.addEventListener('submit', async (e) => {
     }
     const model = hideVEO3 ? 'sora-2' : (hideModelSelection ? 'veo3.1-fast' : selectedModel);
     if (model === 'grok-imagine/image-to-video' && !refImageUrl) {
-      alert('O Grok Image-to-Video requer uma imagem de referência. Envie uma imagem.');
+      alert('O Grok requer uma imagem de referência. Envie uma imagem.');
       return;
     }
     lastPrompt = prompt;
