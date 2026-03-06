@@ -9,6 +9,7 @@ import { createClient } from '@supabase/supabase-js';
 function isValidAmount(n) {
   if (n === 50) return true;  // vídeo
   if (n === 100) return true;  // vídeo 4K
+  if ([15, 30, 45, 60].includes(n)) return true;  // grok image-to-video
   // motion: 720p=8/seg, 1080p=11/seg — aceita 8–1200
   if (n >= 8 && n <= 1200 && Number.isInteger(n)) return true;
   return false;

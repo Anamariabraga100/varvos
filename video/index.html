@@ -143,6 +143,7 @@
                   <select id="videoModel" name="video_model" class="config-card-select">
                     <option value="veo3.1-fast" selected>VEO 3.1 Fast</option>
                     <option value="sora-2">Sora 2</option>
+                    <option value="grok-imagine/image-to-video">Grok Image-to-Video</option>
                   </select>
                 </div>
               </div>
@@ -192,12 +193,56 @@
                   </select>
                 </div>
               </div>
+              <div class="config-card hidden" id="grokDurationWrap" data-target="grokDuration">
+                <div class="config-card-row">
+                  <span class="config-card-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
+                  <div class="config-card-content">
+                    <span class="config-card-label">Duração</span>
+                    <span class="config-card-value" id="grokDurationDisplay">6 segundos</span>
+                  </div>
+                  <span class="config-card-chevron">›</span>
+                  <select id="grokDuration" name="grok_duration" class="config-card-select">
+                    <option value="6" selected>6 segundos</option>
+                    <option value="10">10 segundos</option>
+                    <option value="15">15 segundos</option>
+                  </select>
+                </div>
+              </div>
+              <div class="config-card hidden" id="grokResolutionWrap" data-target="grokResolution">
+                <div class="config-card-row">
+                  <span class="config-card-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></span>
+                  <div class="config-card-content">
+                    <span class="config-card-label">Resolução</span>
+                    <span class="config-card-value" id="grokResolutionDisplay">480p</span>
+                  </div>
+                  <span class="config-card-chevron">›</span>
+                  <select id="grokResolution" name="grok_resolution" class="config-card-select">
+                    <option value="480p" selected>480p</option>
+                    <option value="720p">720p</option>
+                  </select>
+                </div>
+              </div>
+              <div class="config-card hidden" id="grokModeWrap" data-target="grokMode">
+                <div class="config-card-row">
+                  <span class="config-card-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L11 13"/><path d="M22 2L15 22L11 13L2 9L22 2Z"/></svg></span>
+                  <div class="config-card-content">
+                    <span class="config-card-label">Estilo</span>
+                    <span class="config-card-value" id="grokModeDisplay">Normal</span>
+                  </div>
+                  <span class="config-card-chevron">›</span>
+                  <select id="grokMode" name="grok_mode" class="config-card-select">
+                    <option value="normal" selected>Normal</option>
+                    <option value="fun">Fun</option>
+                    <option value="spicy">Spicy</option>
+                  </select>
+                </div>
+              </div>
             </div>
             </div>
 
             <!-- Imagem de Referência (opcional) — visível como no print -->
             <div id="configRefWrap" class="config-ref-wrap">
-              <label class="config-ref-label">Imagem de Referência <span class="config-ref-optional">(opcional)</span></label>
+              <label class="config-ref-label">Imagem de Referência <span class="config-ref-optional" id="configRefOptional">(opcional)</span><span class="config-ref-required hidden" id="configRefRequired">(obrigatório para Grok)</span></label>
               <div class="file-upload file-upload-compact" id="imageRefUpload">
                 <input type="file" id="imageRefFile" accept="image/jpeg,image/png,image/webp" hidden>
                 <div class="file-upload-area" id="imageRefArea">

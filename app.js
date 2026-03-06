@@ -215,17 +215,29 @@ function updateVideoModelUI() {
   const durationSelect = document.getElementById('duration');
   const durationFixed = document.getElementById('durationFixed');
   const veoResolutionWrap = document.getElementById('veoResolutionWrap');
+  const aspectRatioWrap = document.querySelector('.config-card[data-target="aspectRatio"]');
+  const grokDurationWrap = document.getElementById('grokDurationWrap');
+  const grokResolutionWrap = document.getElementById('grokResolutionWrap');
+  const grokModeWrap = document.getElementById('grokModeWrap');
+  const configRefOptional = document.getElementById('configRefOptional');
+  const configRefRequired = document.getElementById('configRefRequired');
   const noticeVeo = document.getElementById('modelNoticeVeo');
   const noticeSora = document.getElementById('modelNoticeSora');
   if (!modelSelect) return;
   selectedModel = modelSelect.value;
   const isVEO = selectedModel === 'veo3.1-fast';
-  if (durationSelect) durationSelect.classList.toggle('hidden', isVEO);
+  const isGrok = selectedModel === 'grok-imagine/image-to-video';
+  if (durationSelect) durationSelect.classList.toggle('hidden', isVEO || isGrok);
   if (durationFixed) durationFixed.classList.toggle('hidden', !isVEO);
-  /* Resolução só para VEO (Sora 2 gera nativamente em 720p) */
   if (veoResolutionWrap) veoResolutionWrap.classList.toggle('hidden', !isVEO);
+  if (aspectRatioWrap) aspectRatioWrap.classList.toggle('hidden', isGrok);
+  if (grokDurationWrap) grokDurationWrap.classList.toggle('hidden', !isGrok);
+  if (grokResolutionWrap) grokResolutionWrap.classList.toggle('hidden', !isGrok);
+  if (grokModeWrap) grokModeWrap.classList.toggle('hidden', !isGrok);
+  if (configRefOptional) configRefOptional.classList.toggle('hidden', isGrok);
+  if (configRefRequired) configRefRequired.classList.toggle('hidden', !isGrok);
   if (noticeVeo) noticeVeo.classList.toggle('hidden', !isVEO);
-  if (noticeSora) noticeSora.classList.toggle('hidden', isVEO);
+  if (noticeSora) noticeSora.classList.toggle('hidden', isVEO && !isGrok);
   if (typeof syncConfigCardDisplays === 'function') syncConfigCardDisplays();
 }
 document.getElementById('videoModel')?.addEventListener('change', updateVideoModelUI);
@@ -302,16 +314,25 @@ function syncConfigCardDisplays() {
   const aspectSel = document.getElementById('aspectRatio');
   const durationSel = document.getElementById('duration');
   const resSel = document.getElementById('veoResolution');
+  const grokDurationSel = document.getElementById('grokDuration');
+  const grokResolutionSel = document.getElementById('grokResolution');
+  const grokModeSel = document.getElementById('grokMode');
   const modelDisp = document.getElementById('videoModelDisplay');
   const aspectDisp = document.getElementById('aspectRatioDisplay');
   const durationDisp = document.getElementById('durationDisplay');
   const resDisp = document.getElementById('veoResolutionDisplay');
+  const grokDurationDisp = document.getElementById('grokDurationDisplay');
+  const grokResolutionDisp = document.getElementById('grokResolutionDisplay');
+  const grokModeDisp = document.getElementById('grokModeDisplay');
   if (modelSel && modelDisp) modelDisp.textContent = modelSel.selectedOptions[0]?.text || modelSel.value;
   if (aspectSel && aspectDisp) aspectDisp.textContent = aspectSel.selectedOptions[0]?.text || aspectSel.value;
   if (durationSel && durationDisp) {
     durationDisp.textContent = modelSel?.value === 'veo3.1-fast' ? '8 segundos' : (durationSel.selectedOptions[0]?.text || durationSel.value + ' segundos');
   }
   if (resSel && resDisp) resDisp.textContent = resSel.selectedOptions[0]?.text || resSel.value;
+  if (grokDurationSel && grokDurationDisp) grokDurationDisp.textContent = grokDurationSel.selectedOptions[0]?.text || grokDurationSel.value + ' segundos';
+  if (grokResolutionSel && grokResolutionDisp) grokResolutionDisp.textContent = grokResolutionSel.selectedOptions[0]?.text || grokResolutionSel.value;
+  if (grokModeSel && grokModeDisp) grokModeDisp.textContent = grokModeSel.selectedOptions[0]?.text || grokModeSel.value;
 }
 document.getElementById('videoModel')?.addEventListener('change', () => {
   syncConfigCardDisplays();
@@ -323,6 +344,15 @@ document.getElementById('veoResolution')?.addEventListener('change', () => {
   syncConfigCardDisplays();
   if (currentMode === 'video') updateGenerateButtonLabel(true);
 });
+document.getElementById('grokDuration')?.addEventListener('change', () => {
+  syncConfigCardDisplays();
+  if (currentMode === 'video') updateGenerateButtonLabel(true);
+});
+document.getElementById('grokResolution')?.addEventListener('change', () => {
+  syncConfigCardDisplays();
+  if (currentMode === 'video') updateGenerateButtonLabel(true);
+});
+document.getElementById('grokMode')?.addEventListener('change', syncConfigCardDisplays);
 if (document.getElementById('videoModel')) syncConfigCardDisplays();
 
 // Sincroniza displays dos config cards — Imitar Movimento
@@ -1126,13 +1156,19 @@ function applyMode(mode) {
         cost = '—';
         hasValue = false;
       }
-    } else if (currentMode === 'video') {
-      const model = document.getElementById('videoModel')?.value || 'veo3.1-fast';
+  } else if (currentMode === 'video') {
+    const model = document.getElementById('videoModel')?.value || 'veo3.1-fast';
+    if (model === 'grok-imagine/image-to-video') {
+      const duration = document.getElementById('grokDuration')?.value || '6';
+      const resolution = document.getElementById('grokResolution')?.value || '480p';
+      cost = getCreditsCostForBody({ model, input: { duration, resolution } });
+    } else {
       const resolution = document.getElementById('veoResolution')?.value || '720p';
       cost = getCreditsCostForBody({ model, input: { resolution } });
-    } else if (currentMode === 'image') {
-      cost = CREDITS_COST_VIDEO;
     }
+  } else if (currentMode === 'image') {
+    cost = CREDITS_COST_VIDEO;
+  }
     btnText.textContent = hasValue ? `${labels[currentMode] || 'Gerar'} · ${cost} créditos` : labels[currentMode] || 'Gerar';
   }
   const btnCredits = document.querySelector('.btn-credits');
@@ -1596,7 +1632,11 @@ function setupFileUpload(config) {
 // Initialize file uploads
 function updateRefImageReadyState() {
   const btn = document.getElementById('btnGenerate');
-  if (btn && currentMode === 'video') btn.disabled = refImageUploading;
+  if (btn && currentMode === 'video') {
+    const model = document.getElementById('videoModel')?.value || 'veo3.1-fast';
+    const grokNeedsImage = model === 'grok-imagine/image-to-video' && !refImageUrl;
+    btn.disabled = refImageUploading || grokNeedsImage;
+  }
 }
 setupFileUpload({
   inputId: 'imageRefFile',
@@ -1795,8 +1835,14 @@ function updateGenerateButtonLabel(showCredits = true) {
     }
   } else if (currentMode === 'video') {
     const model = document.getElementById('videoModel')?.value || 'veo3.1-fast';
-    const resolution = document.getElementById('veoResolution')?.value || '720p';
-    cost = getCreditsCostForBody({ model, input: { resolution } });
+    if (model === 'grok-imagine/image-to-video') {
+      const duration = document.getElementById('grokDuration')?.value || '6';
+      const resolution = document.getElementById('grokResolution')?.value || '480p';
+      cost = getCreditsCostForBody({ model, input: { duration, resolution } });
+    } else {
+      const resolution = document.getElementById('veoResolution')?.value || '720p';
+      cost = getCreditsCostForBody({ model, input: { resolution } });
+    }
   } else if (currentMode === 'image') {
     cost = CREDITS_COST_VIDEO;
   }
@@ -1845,6 +1891,20 @@ function buildRequestBody() {
       return { model: 'veo3.1-fast', input };
     }
 
+    if (model === 'grok-imagine/image-to-video') {
+      const duration = document.getElementById('grokDuration')?.value || '6';
+      const resolution = document.getElementById('grokResolution')?.value || '480p';
+      const mode = document.getElementById('grokMode')?.value || 'normal';
+      const input = {
+        image_urls: refImageUrl ? [refImageUrl] : [],
+        prompt: prompt || '',
+        mode,
+        duration,
+        resolution
+      };
+      return { model: 'grok-imagine/image-to-video', input };
+    }
+
     const duration = parseInt(document.getElementById('duration').value, 10);
     const aspectRatio = document.getElementById('aspectRatio').value;
     const style = document.getElementById('style')?.value;
@@ -1869,8 +1929,9 @@ function buildRequestBody() {
 
 async function submitTask(body) {
   const isMotion = body?.model === 'kling-2.6/motion-control';
+  const isGrokImageToVideo = body?.model === 'grok-imagine/image-to-video';
   let apiKey = null;
-  if (!isMotion) {
+  if (!isMotion && !isGrokImageToVideo) {
     apiKey = getApiKey();
     if (!apiKey) {
       alert('Configure sua chave API em config.js para começar.');
@@ -1878,7 +1939,7 @@ async function submitTask(body) {
     }
   }
 
-  if (isMotion) {
+  if (isMotion || isGrokImageToVideo) {
     const res = await fetch('/api/kie/create-task', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -1921,8 +1982,8 @@ async function submitTask(body) {
   return data?.data?.task_id || null;
 }
 
-async function getTaskStatus(taskId, isMotion = false) {
-  if (isMotion) {
+async function getTaskStatus(taskId, isMotion = false, isGrokImageToVideo = false) {
+  if (isMotion || isGrokImageToVideo) {
     const res = await fetch(`/api/kie/record-info?taskId=${encodeURIComponent(taskId)}`);
     const data = await res.json();
     if (data?.code !== 200) throw new Error(data?.msg || `Erro ${res.status}`);
@@ -2410,11 +2471,11 @@ async function getStoredActiveTasks() {
   return list;
 }
 
-async function pollUntilComplete(taskId, cardRefs, startTime, isMotion = false) {
+async function pollUntilComplete(taskId, cardRefs, startTime, isMotion = false, isGrokImageToVideo = false) {
   return new Promise((resolve, reject) => {
     const check = async () => {
       try {
-        const data = await getTaskStatus(taskId, isMotion);
+        const data = await getTaskStatus(taskId, isMotion, isGrokImageToVideo);
         updateOutputUI(data, cardRefs, startTime);
 
         if (data.status === 'finished') {
@@ -2497,8 +2558,22 @@ function getCreditsPerSecondMotion(resolution) {
   return (resolution === '1080p') ? CREDITS_PER_SECOND_MOTION_1080 : CREDITS_PER_SECOND_MOTION_720;
 }
 
+// Grok Image-to-Video: 6s 480p=15, 6s 720p=30, 10s 480p=30, 10s 720p=45, 15s 480p=45, 15s 720p=60
+const GROK_CREDITS = {
+  '6_480p': 15, '6_720p': 30,
+  '10_480p': 30, '10_720p': 45,
+  '15_480p': 45, '15_720p': 60
+};
+
 function getCreditsCostForBody(body) {
   const isMotion = body?.model === 'kling-2.6/motion-control';
+  const isGrok = body?.model === 'grok-imagine/image-to-video';
+  if (isGrok) {
+    const duration = String(body?.input?.duration || document.getElementById('grokDuration')?.value || '6');
+    const resolution = (body?.input?.resolution || document.getElementById('grokResolution')?.value || '480p').replace('p', 'p');
+    const key = `${duration}_${resolution}`;
+    return GROK_CREDITS[key] ?? 60;
+  }
   if (!isMotion) {
     // veo3.1-fast em 4K custa o dobro
     if (body?.model === 'veo3.1-fast' && (body?.input?.resolution === '4k' || body?.input?.resolution === '4K')) {
@@ -2635,7 +2710,9 @@ async function generateMedia(body) {
     if (cardRefs.progressFill) cardRefs.progressFill.style.width = '0%';
     if (cardRefs.statusMessage) cardRefs.statusMessage.textContent = '';
 
-    const aspectRatio = (currentMode === 'motion' ? document.getElementById('motionFormat') : document.getElementById('aspectRatio'))?.value || '9:16';
+    const aspectRatio = (body?.model === 'grok-imagine/image-to-video')
+      ? '9:16'
+      : ((currentMode === 'motion' ? document.getElementById('motionFormat') : document.getElementById('aspectRatio'))?.value || '9:16');
     if (cardRefs.card) cardRefs.card.dataset.aspectRatio = aspectRatio;
     reservedCardIndices.delete(cardIndex);
     activeTasks.set(taskId, { cardRefs, startTime, prompt: lastPrompt, aspectRatio, isMotion: body?.model === 'kling-2.6/motion-control' });
@@ -2650,7 +2727,8 @@ async function generateMedia(body) {
     if (currentMode === 'video') updateRefImageReadyState(); else btnGenerate.disabled = false;
 
     const isMotion = body?.model === 'kling-2.6/motion-control';
-    const result = await pollUntilComplete(taskId, cardRefs, startTime, isMotion);
+    const isGrokImageToVideo = body?.model === 'grok-imagine/image-to-video';
+    const result = await pollUntilComplete(taskId, cardRefs, startTime, isMotion, isGrokImageToVideo);
     const tid = pollTimeouts.get(taskId);
     if (tid) { clearTimeout(tid); pollTimeouts.delete(taskId); }
     if (isMotion) deleteMotionRefsFromStorage();
@@ -2736,6 +2814,11 @@ generateForm.addEventListener('submit', async (e) => {
     const preview = document.getElementById('imageRefPreview');
     if (preview && !preview.classList.contains('hidden') && !refImageUrl) {
       alert('Aguarde o upload da imagem terminar antes de gerar.');
+      return;
+    }
+    const model = hideVEO3 ? 'sora-2' : (hideModelSelection ? 'veo3.1-fast' : selectedModel);
+    if (model === 'grok-imagine/image-to-video' && !refImageUrl) {
+      alert('O Grok Image-to-Video requer uma imagem de referência. Envie uma imagem.');
       return;
     }
     lastPrompt = prompt;
