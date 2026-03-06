@@ -118,13 +118,10 @@
 .auth-modal #googleAuthContainerModal {
   width: 100%;
   min-width: 0;
-  max-width: 100%;
-  overflow: hidden;
-}
-
-.auth-modal #googleAuthContainerModal > div {
-  width: 100% !important;
-  max-width: 100% !important;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .auth-modal .auth-options.hidden {
