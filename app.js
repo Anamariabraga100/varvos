@@ -209,7 +209,6 @@ function updateVideoModelUI() {
   const durationSelect = document.getElementById('duration');
   const durationFixed = document.getElementById('durationFixed');
   const veoResolutionWrap = document.getElementById('veoResolutionWrap');
-  const styleField = document.getElementById('styleField');
   const noticeVeo = document.getElementById('modelNoticeVeo');
   const noticeSora = document.getElementById('modelNoticeSora');
   if (!modelSelect) return;
@@ -217,8 +216,8 @@ function updateVideoModelUI() {
   const isVEO = selectedModel === 'veo3.1-fast';
   if (durationSelect) durationSelect.classList.toggle('hidden', isVEO);
   if (durationFixed) durationFixed.classList.toggle('hidden', !isVEO);
+  /* Resolução só para VEO (Sora 2 gera nativamente em 720p) */
   if (veoResolutionWrap) veoResolutionWrap.classList.toggle('hidden', !isVEO);
-  if (styleField) styleField.classList.toggle('hidden', isVEO);
   if (noticeVeo) noticeVeo.classList.toggle('hidden', !isVEO);
   if (noticeSora) noticeSora.classList.toggle('hidden', isVEO);
   if (typeof syncConfigCardDisplays === 'function') syncConfigCardDisplays();
@@ -283,19 +282,40 @@ function syncConfigCardDisplays() {
   const modelSel = document.getElementById('videoModel');
   const aspectSel = document.getElementById('aspectRatio');
   const durationSel = document.getElementById('duration');
+  const resSel = document.getElementById('veoResolution');
   const modelDisp = document.getElementById('videoModelDisplay');
   const aspectDisp = document.getElementById('aspectRatioDisplay');
   const durationDisp = document.getElementById('durationDisplay');
+  const resDisp = document.getElementById('veoResolutionDisplay');
   if (modelSel && modelDisp) modelDisp.textContent = modelSel.selectedOptions[0]?.text || modelSel.value;
   if (aspectSel && aspectDisp) aspectDisp.textContent = aspectSel.selectedOptions[0]?.text || aspectSel.value;
   if (durationSel && durationDisp) {
     durationDisp.textContent = modelSel?.value === 'veo3.1-fast' ? '8 segundos' : (durationSel.selectedOptions[0]?.text || durationSel.value + ' segundos');
   }
+  if (resSel && resDisp) resDisp.textContent = resSel.selectedOptions[0]?.text || resSel.value;
 }
 document.getElementById('videoModel')?.addEventListener('change', syncConfigCardDisplays);
 document.getElementById('aspectRatio')?.addEventListener('change', syncConfigCardDisplays);
 document.getElementById('duration')?.addEventListener('change', syncConfigCardDisplays);
+document.getElementById('veoResolution')?.addEventListener('change', syncConfigCardDisplays);
 if (document.getElementById('videoModel')) syncConfigCardDisplays();
+
+// Sincroniza displays dos config cards — Imitar Movimento
+function syncMotionConfigDisplays() {
+  const formatSel = document.getElementById('motionFormat');
+  const orientSel = document.getElementById('motionOrientation');
+  const resSel = document.getElementById('motionResolution');
+  const formatDisp = document.getElementById('motionFormatDisplay');
+  const orientDisp = document.getElementById('motionOrientationDisplay');
+  const resDisp = document.getElementById('motionResolutionDisplay');
+  if (formatSel && formatDisp) formatDisp.textContent = formatSel.selectedOptions[0]?.text || formatSel.value;
+  if (orientSel && orientDisp) orientDisp.textContent = orientSel.selectedOptions[0]?.text || orientSel.value;
+  if (resSel && resDisp) resDisp.textContent = resSel.selectedOptions[0]?.text || resSel.value;
+}
+document.getElementById('motionFormat')?.addEventListener('change', () => { syncMotionConfigDisplays(); updateMotionButtonCredits(); });
+document.getElementById('motionOrientation')?.addEventListener('change', syncMotionConfigDisplays);
+document.getElementById('motionResolution')?.addEventListener('change', () => { syncMotionConfigDisplays(); updateMotionButtonCredits(); });
+if (document.getElementById('motionFormat')) syncMotionConfigDisplays();
 
 // Modal vídeo ampliado - Biblioteca de IA
 const videoModal = document.getElementById('videoModal');
@@ -521,9 +541,9 @@ historyList?.addEventListener('click', (e) => {
 
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
-    const hamburger = document.getElementById('hamburgerOverlay');
+    const userDropdown = document.getElementById('userMenuDropdown');
     const plans = document.getElementById('plansModal');
-    if (hamburger?.classList.contains('open')) closeHamburger();
+    if (userDropdown && !userDropdown.classList.contains('hidden')) closeUserMenu();
     else if (plans && !plans.classList.contains('hidden')) closePlansModal();
     else if (videoModal && !videoModal.classList.contains('hidden')) closeVideoModal();
     else if (creditsModal && !creditsModal.classList.contains('hidden')) closeCreditsModal();
@@ -565,7 +585,7 @@ function getCredits() {
 function updateCreditsDisplay() {
   const n = getCredits();
   const txt = n != null ? String(n) : '0';
-  document.querySelectorAll('#headerCredits, #hamburgerCredits').forEach(el => { if (el) el.textContent = txt; });
+  document.querySelectorAll('#headerCredits, #userMenuCredits').forEach(el => { if (el) el.textContent = txt; });
 }
 
 function animateCreditsDecrease(amount) {
@@ -613,7 +633,7 @@ async function refreshCreditsFromSupabase() {
     if (ok) {
       localStorage.setItem(AUTH_STORAGE, JSON.stringify(user));
       updateCreditsDisplay();
-      updateHamburgerPlan();
+      updateUserMenuPlan();
     }
   } catch (_) {}
 }
@@ -625,9 +645,9 @@ function getPlanDisplay(planId) {
   return p ? { name: p.name, credits: p.credits, description: p.description } : null;
 }
 
-function updateHamburgerPlan() {
-  const row = document.getElementById('hamburgerPlanRow');
-  const nameEl = document.getElementById('hamburgerPlanName');
+function updateUserMenuPlan() {
+  const row = document.getElementById('userMenuPlanRow');
+  const nameEl = document.getElementById('userMenuPlanName');
   if (!row || !nameEl) return;
   try {
     const raw = localStorage.getItem(AUTH_STORAGE);
@@ -767,84 +787,109 @@ function closePlansModal() {
   }
 }
 
-function updateHamburgerUser() {
-  const block = document.getElementById('hamburgerUser');
-  const nameEl = document.getElementById('hamburgerUserName');
-  const avatarEl = document.getElementById('hamburgerUserAvatar');
-  const initialEl = document.getElementById('hamburgerUserInitial');
-  const wrap = block?.querySelector('.hamburger-user-avatar-wrap');
-  if (!block || !nameEl) return;
+function updateUserMenu() {
+  const wrap = document.getElementById('userMenuWrap');
+  const avatarImg = document.getElementById('userAvatarImg');
+  const avatarInitial = document.getElementById('userAvatarInitial');
+  const userBlock = document.getElementById('userMenuUser');
+  const nameEl = document.getElementById('userMenuName');
+  const emailEl = document.getElementById('userMenuEmail');
+  const menuAvatar = document.getElementById('userMenuAvatar');
+  const menuInitial = document.getElementById('userMenuInitial');
+  const logoutBtn = document.getElementById('userMenuLogout');
+  const loginLink = document.getElementById('userMenuLogin');
+  if (!wrap || !userBlock) return;
   try {
     const raw = localStorage.getItem(AUTH_STORAGE);
     const user = raw ? JSON.parse(raw) : null;
     if (!user || !user.email) {
-      block.classList.add('hidden');
+      wrap.classList.remove('has-avatar', 'has-initial');
+      userBlock.classList.add('hidden');
+      if (logoutBtn) logoutBtn.classList.add('hidden');
+      if (loginLink) loginLink.classList.remove('hidden');
       return;
     }
-    block.classList.remove('hidden');
     const name = user.name || user.email?.split('@')[0] || 'Usuário';
-    nameEl.textContent = name;
-    if (user.picture && avatarEl && wrap) {
-      avatarEl.src = user.picture;
-      avatarEl.alt = name;
-      wrap.classList.add('has-img');
-    } else if (initialEl && wrap) {
-      initialEl.textContent = (name.charAt(0) || '?').toUpperCase();
-      wrap.classList.remove('has-img');
-      if (avatarEl) avatarEl.removeAttribute('src');
+    const email = user.email || '';
+    userBlock.classList.remove('hidden');
+    if (logoutBtn) logoutBtn.classList.remove('hidden');
+    if (loginLink) loginLink.classList.add('hidden');
+    if (nameEl) nameEl.textContent = name;
+    if (emailEl) emailEl.textContent = email;
+    if (user.picture) {
+      if (avatarImg) { avatarImg.src = user.picture; avatarImg.alt = name; }
+      if (menuAvatar) { menuAvatar.src = user.picture; menuAvatar.alt = name; }
+      wrap.classList.add('has-avatar');
+      wrap.classList.remove('has-initial');
+      userBlock.classList.add('has-img');
+      if (avatarInitial) avatarInitial.textContent = '';
+      if (menuInitial) menuInitial.textContent = '';
+    } else {
+      const letter = (name.charAt(0) || '?').toUpperCase();
+      if (avatarInitial) avatarInitial.textContent = letter;
+      if (menuInitial) menuInitial.textContent = letter;
+      wrap.classList.add('has-initial');
+      wrap.classList.remove('has-avatar');
+      userBlock.classList.remove('has-img');
+      if (avatarImg) avatarImg.removeAttribute('src');
+      if (menuAvatar) menuAvatar.removeAttribute('src');
     }
   } catch {
-    block.classList.add('hidden');
+    wrap.classList.remove('has-avatar', 'has-initial');
+    userBlock.classList.add('hidden');
   }
 }
 
-function openHamburger() {
-  const o = document.getElementById('hamburgerOverlay');
-  const b = document.getElementById('hamburgerBtn');
-  updateHamburgerUser();
-  updateHamburgerPlan();
-  if (o) { o.classList.add('open'); o.setAttribute('aria-hidden', 'false'); }
-  if (b) { b.setAttribute('aria-expanded', 'true'); }
-  document.body.style.overflow = 'hidden';
+function openUserMenu() {
+  const dropdown = document.getElementById('userMenuDropdown');
+  const btn = document.getElementById('userMenuBtn');
+  updateUserMenu();
+  updateUserMenuPlan();
+  if (dropdown) dropdown.classList.remove('hidden');
+  if (btn) btn.setAttribute('aria-expanded', 'true');
 }
 
-function closeHamburger() {
-  const o = document.getElementById('hamburgerOverlay');
-  const b = document.getElementById('hamburgerBtn');
-  if (o) { o.classList.remove('open'); o.setAttribute('aria-hidden', 'true'); }
-  if (b) { b.setAttribute('aria-expanded', 'false'); }
-  document.body.style.overflow = '';
+function closeUserMenu() {
+  const dropdown = document.getElementById('userMenuDropdown');
+  const btn = document.getElementById('userMenuBtn');
+  if (dropdown) dropdown.classList.add('hidden');
+  if (btn) btn.setAttribute('aria-expanded', 'false');
 }
 
 document.getElementById('btnAddCredits')?.addEventListener('click', () => { openPlansModal(); });
-document.getElementById('hamburgerBtn')?.addEventListener('click', () => {
-  const o = document.getElementById('hamburgerOverlay');
-  if (o?.classList.contains('open')) closeHamburger();
-  else openHamburger();
+document.getElementById('userMenuBtn')?.addEventListener('click', (e) => {
+  e.stopPropagation();
+  const dropdown = document.getElementById('userMenuDropdown');
+  if (dropdown?.classList.contains('hidden')) openUserMenu();
+  else closeUserMenu();
 });
 
-document.getElementById('hamburgerOverlay')?.addEventListener('click', (e) => {
-  if (e.target.id === 'hamburgerOverlay') closeHamburger();
+document.addEventListener('click', (e) => {
+  const wrap = document.getElementById('userMenuWrap');
+  const dropdown = document.getElementById('userMenuDropdown');
+  if (wrap && dropdown && !dropdown.classList.contains('hidden') && !wrap.contains(e.target)) {
+    closeUserMenu();
+  }
 });
 
-document.querySelectorAll('.hamburger-close').forEach(a => {
-  a.addEventListener('click', () => { closeHamburger(); });
+document.querySelectorAll('.user-menu-close').forEach(a => {
+  a.addEventListener('click', () => { closeUserMenu(); });
 });
 
-document.getElementById('hamburgerPlans')?.addEventListener('click', () => {
-  closeHamburger();
+document.getElementById('userMenuPlans')?.addEventListener('click', () => {
+  closeUserMenu();
   openPlansModal();
 });
 
 function logout() {
   localStorage.removeItem(AUTH_STORAGE);
-  updateHamburgerUser();
-  updateHamburgerPlan();
+  updateUserMenu();
+  updateUserMenuPlan();
 }
 
-document.getElementById('hamburgerLogout')?.addEventListener('click', () => {
+document.getElementById('userMenuLogout')?.addEventListener('click', () => {
   logout();
-  closeHamburger();
+  closeUserMenu();
 });
 
 // Plans modal: tabs e fechar
@@ -880,13 +925,15 @@ async function syncUserFromSupabaseSession() {
     const final = merged || { provider: 'email', email: authUser.email, id: authUser.id };
     localStorage.setItem(AUTH_STORAGE, JSON.stringify(final));
     updateCreditsDisplay();
-    updateHamburgerUser();
+    updateUserMenu();
   } catch (_) {}
 }
 syncUserFromSupabaseSession();
 
-// Init créditos
+// Init créditos e menu do usuário
 updateCreditsDisplay();
+updateUserMenu();
+updateUserMenuPlan();
 
 // Atualiza créditos do Supabase (ex.: após admin editar) — ao carregar e ao focar na janela
 refreshCreditsFromSupabase();
@@ -940,8 +987,6 @@ function applyMode(mode) {
   if (configMain) configMain.classList.toggle('hidden', currentMode !== 'video');
   const configRef = document.getElementById('configRefWrap');
   if (configRef) configRef.classList.toggle('hidden', currentMode !== 'video');
-  const configAdv = document.querySelector('.config-advanced-mini');
-  if (configAdv) configAdv.classList.toggle('hidden', currentMode !== 'video');
   const promptBlock = document.getElementById('createPromptBlock');
   if (promptBlock) promptBlock.classList.toggle('hidden', currentMode === 'motion');
   const promptSuggestionsVideo = document.getElementById('promptSuggestionsVideo');
@@ -1584,7 +1629,6 @@ function updateGenerateButtonLabel(showCredits = true) {
   btnText.textContent = hasValue ? `${labels[currentMode] || 'Gerar'} · ${cost} créditos` : labels[currentMode] || 'Gerar';
 }
 document.getElementById('motionRefVideoPreviewVid')?.addEventListener('loadedmetadata', updateMotionButtonCredits);
-document.getElementById('motionResolution')?.addEventListener('change', updateMotionButtonCredits);
 
 // Build request body from form
 function buildRequestBody() {
@@ -1628,10 +1672,12 @@ function buildRequestBody() {
 
     const duration = parseInt(document.getElementById('duration').value, 10);
     const aspectRatio = document.getElementById('aspectRatio').value;
-    const style = document.getElementById('style').value;
+    const style = document.getElementById('style')?.value;
+    /* Sora 2 gera nativamente em 720p */
+    const resolution = '720p';
 
     const promptPt = prompt + ' [IMPORTANTE: Áudio e diálogos em português brasileiro.]';
-    const input = { prompt: promptPt, duration, aspect_ratio: aspectRatio };
+    const input = { prompt: promptPt, duration, aspect_ratio: aspectRatio, resolution };
     if (refImageUrl) input.image_urls = [refImageUrl];
     if (style) input.style = style;
 

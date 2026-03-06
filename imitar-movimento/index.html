@@ -39,9 +39,41 @@
           </span>
           <button type="button" class="btn-add-credits" id="btnAddCredits" title="Comprar créditos" aria-label="Comprar créditos">+</button>
         </div>
-        <button type="button" class="hamburger-btn" id="hamburgerBtn" aria-label="Menu" aria-expanded="false">
-          <span></span><span></span><span></span>
-        </button>
+        <div class="user-menu-wrap" id="userMenuWrap">
+          <button type="button" class="user-avatar-btn" id="userMenuBtn" aria-label="Menu da conta" aria-expanded="false" aria-haspopup="true">
+            <span class="user-avatar-inner" id="userAvatarInner">
+              <img id="userAvatarImg" class="user-avatar-img" alt="" src="">
+              <span id="userAvatarInitial" class="user-avatar-initial"></span>
+              <svg class="user-avatar-fallback" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </span>
+          </button>
+          <div id="userMenuDropdown" class="user-menu-dropdown hidden" role="menu">
+            <div id="userMenuUser" class="user-menu-user hidden">
+              <div class="user-menu-avatar-wrap">
+                <img id="userMenuAvatar" class="user-menu-avatar" alt="" src="">
+                <span id="userMenuInitial" class="user-menu-initial"></span>
+              </div>
+              <div class="user-menu-user-info">
+                <span id="userMenuName" class="user-menu-name"></span>
+                <span id="userMenuEmail" class="user-menu-email"></span>
+              </div>
+            </div>
+            <a href="../video/" class="user-menu-item user-menu-close">🎬 Criar vídeo</a>
+            <a href="." class="user-menu-item user-menu-close">✨ Imitar movimento</a>
+            <a href="#seus-videos" class="user-menu-item user-menu-close">📁 Seus vídeos</a>
+            <button type="button" class="user-menu-item" id="userMenuPlans">💰 Comprar créditos</button>
+            <a href="../auth.html" class="user-menu-item" id="userMenuConfig">⚙️ Configurações / Suporte</a>
+            <a href="../auth.html" class="user-menu-item" id="userMenuAccount">⚙️ Gerenciar conta</a>
+            <div id="userMenuPlanRow" class="user-menu-plan-row hidden">
+              📋 Plano: <strong id="userMenuPlanName">—</strong>
+            </div>
+            <div class="user-menu-credits-row">
+              💳 <span id="userMenuCredits">—</span> créditos disponíveis
+            </div>
+            <button type="button" class="user-menu-item user-menu-logout hidden" id="userMenuLogout">Sair</button>
+            <a href="../auth.html?return=imitar-movimento/" class="user-menu-item user-menu-login" id="userMenuLogin">Entrar</a>
+          </div>
+        </div>
       </div>
     </header>
 
@@ -134,7 +166,7 @@
                 </div>
               </div>
               </div>
-              <label class="checkbox-label checkbox-compact">
+              <label class="checkbox-label checkbox-compact hidden" aria-hidden="true">
                 <input type="checkbox" id="watermark" name="watermark">
                 <span>Marca d'água</span>
               </label>
@@ -260,32 +292,55 @@
                 </div>
               </div>
             </div>
-            <div class="field-row">
-              <div class="field">
-                <label for="motionFormat">Formato</label>
-                <select id="motionFormat" name="motion_format">
-                  <option value="9:16" selected>Reels (TikTok, Stories)</option>
-                  <option value="16:9">YouTube (16:9)</option>
-                  <option value="1:1">Destaque (1:1)</option>
-                </select>
+            <p class="field-hint-small motion-orientation-hint">Imagem: usa a pose da foto. Vídeo: usa a pose do vídeo de referência.</p>
+            <div id="motionReadyState" class="motion-ready-state" aria-live="polite"></div>
+
+            <!-- Cards Formato, Orientação, Resolução — logo acima do botão -->
+            <div class="config-main-options config-above-btn motion-config-cards mode-fields">
+              <div class="config-card" data-target="motionFormat">
+                <div class="config-card-row">
+                  <span class="config-card-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18"/></svg></span>
+                  <div class="config-card-content">
+                    <span class="config-card-label">Formato</span>
+                    <span class="config-card-value" id="motionFormatDisplay">9:16 Reels</span>
+                  </div>
+                  <span class="config-card-chevron">›</span>
+                  <select id="motionFormat" name="motion_format" class="config-card-select">
+                    <option value="9:16" selected>9:16 Reels</option>
+                    <option value="16:9">16:9 YouTube</option>
+                    <option value="1:1">1:1 Destaque</option>
+                  </select>
+                </div>
               </div>
-              <div class="field">
-                <label for="motionOrientation">Orientação do personagem</label>
-                <select id="motionOrientation" name="motion_orientation">
-                  <option value="image">Imagem</option>
-                  <option value="video" selected>Vídeo</option>
-                </select>
-                <p class="field-hint-small">Imagem: usa a pose da foto. Vídeo: usa a pose do vídeo de referência.</p>
+              <div class="config-card" data-target="motionOrientation">
+                <div class="config-card-row">
+                  <span class="config-card-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+                  <div class="config-card-content">
+                    <span class="config-card-label">Origem da pose</span>
+                    <span class="config-card-value" id="motionOrientationDisplay">Vídeo</span>
+                  </div>
+                  <span class="config-card-chevron">›</span>
+                  <select id="motionOrientation" name="motion_orientation" class="config-card-select">
+                    <option value="image">Imagem</option>
+                    <option value="video" selected>Vídeo</option>
+                  </select>
+                </div>
               </div>
-              <div class="field">
-                <label for="motionResolution">Resolução</label>
-                <select id="motionResolution" name="motion_resolution">
-                  <option value="720p">720p (padrão)</option>
-                  <option value="1080p">1080p (alta qualidade)</option>
-                </select>
+              <div class="config-card" data-target="motionResolution">
+                <div class="config-card-row">
+                  <span class="config-card-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></span>
+                  <div class="config-card-content">
+                    <span class="config-card-label">Resolução</span>
+                    <span class="config-card-value" id="motionResolutionDisplay">720p</span>
+                  </div>
+                  <span class="config-card-chevron">›</span>
+                  <select id="motionResolution" name="motion_resolution" class="config-card-select">
+                    <option value="720p" selected>720p</option>
+                    <option value="1080p">1080p</option>
+                  </select>
+                </div>
               </div>
             </div>
-            <div id="motionReadyState" class="motion-ready-state" aria-live="polite"></div>
           </div>
 
             <div class="prompt-actions prompt-actions-close">
@@ -413,33 +468,6 @@
         </div>
       </section>
     </main>
-  </div>
-
-  <!-- Menu hambúrguer -->
-  <div id="hamburgerOverlay" class="hamburger-overlay" aria-hidden="true">
-    <div class="hamburger-panel">
-      <div id="hamburgerUser" class="hamburger-user hidden">
-        <div class="hamburger-user-avatar-wrap">
-          <img id="hamburgerUserAvatar" class="hamburger-user-avatar" alt="" src="">
-          <span id="hamburgerUserInitial" class="hamburger-user-initial"></span>
-        </div>
-        <div class="hamburger-user-info">
-          <span id="hamburgerUserName" class="hamburger-user-name"></span>
-          <span class="hamburger-user-badge">Conectado</span>
-        </div>
-        <button type="button" class="hamburger-logout" id="hamburgerLogout" title="Sair da conta">Sair</button>
-      </div>
-      <a href="../video/">🎬 Criar vídeo</a>
-      <a href=".">✨ Imitar movimento</a>
-      <a href="#seus-videos" class="hamburger-close">📁 Seus vídeos</a>
-      <button type="button" class="hamburger-item" id="hamburgerPlans">💰 Planos e créditos</button>
-      <div id="hamburgerPlanRow" class="hamburger-plan-row hidden">
-        📋 Plano ativo: <strong id="hamburgerPlanName">—</strong>
-      </div>
-      <div class="credits-row">
-        💳 <span id="hamburgerCredits">—</span> créditos disponíveis
-      </div>
-    </div>
   </div>
 
   <!-- Modal de planos -->
