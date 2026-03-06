@@ -15,9 +15,9 @@ window.VARVOS_PLANS = {
     starter: {
       id: 'starter',
       name: 'Starter',
-      amount: 1990,      // R$ 19,90
-      credits: 25,       // 250 créditos
-      description: '5 vídeos (250 créditos)',
+      amount: 1490,      // R$ 14,90
+      credits: 200,      // 200 créditos
+      description: '4 vídeos (200 créditos)',
     },
     popular: {
       id: 'popular',

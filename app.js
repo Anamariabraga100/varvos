@@ -535,9 +535,34 @@ function updateHamburgerPlan() {
   }
 }
 
+let plansModalTimerInterval = null;
+
+function startPlansModalTimer() {
+  const el = document.getElementById('plansModalTimerCountdown');
+  if (!el) return;
+  const minutes = 15;
+  let remaining = minutes * 60;
+  const tick = () => {
+    if (remaining <= 0) {
+      if (plansModalTimerInterval) clearInterval(plansModalTimerInterval);
+      plansModalTimerInterval = null;
+      el.textContent = '0:00';
+      return;
+    }
+    const m = Math.floor(remaining / 60);
+    const s = remaining % 60;
+    el.textContent = m + ':' + String(s).padStart(2, '0');
+    remaining--;
+  };
+  tick();
+  if (plansModalTimerInterval) clearInterval(plansModalTimerInterval);
+  plansModalTimerInterval = setInterval(tick, 1000);
+}
+
 function openPlansModal() {
   const m = document.getElementById('plansModal');
   if (m) {
+    startPlansModalTimer();
     updatePlansActiveSection();
     updatePlanCardsActiveState();
     m.classList.remove('hidden');
@@ -625,6 +650,10 @@ function closePlansModal() {
   if (m) {
     m.classList.add('hidden');
     document.body.style.overflow = '';
+    if (plansModalTimerInterval) {
+      clearInterval(plansModalTimerInterval);
+      plansModalTimerInterval = null;
+    }
   }
 }
 
@@ -716,6 +745,8 @@ document.querySelectorAll('.plans-tab').forEach(tab => {
     tab.classList.add('active');
     document.getElementById('plansAvulsos')?.classList.toggle('hidden', t !== 'avulsos');
     document.getElementById('plansMensais')?.classList.toggle('hidden', t !== 'mensais');
+    const note = document.getElementById('plansModalCreditNote');
+    if (note) note.classList.toggle('hidden', t !== 'avulsos');
     if (t === 'mensais') updatePlanCardsActiveState();
   });
 });
@@ -2013,15 +2044,11 @@ async function generateMedia(body) {
   if (!SKIP_CREDITS) {
     await syncUserFromSupabaseSession();
     if (!isLoggedIn() && !skipAuthOnLocalhost) {
-      openCreditsModal({ needsLogin: true, cost });
+      openPlansModal();
       return;
     }
     if (credits == null || credits < cost) {
-      const isMotion = body?.model === 'kling-2.6/motion-control';
-      const duration = isMotion ? getMotionRefVideoDuration() : (body?.input?.duration ?? 8);
-      const resolution = body?.input?.mode || document.getElementById('motionResolution')?.value || '720p';
-      const creditsPerSecond = isMotion ? getCreditsPerSecondMotion(resolution) : null;
-      openCreditsModal({ needsLogin: false, cost, credits, duration, creditsPerSecond, mode: currentMode });
+      openPlansModal();
       return;
     }
   }
@@ -2132,18 +2159,7 @@ async function generateMedia(body) {
     }
 
     if (err.isCredits) {
-      try {
-        const body = buildRequestBody();
-        const cost = getCreditsCostForBody(body);
-        const credits = getCredits();
-        const isMotion = body?.model === 'kling-2.6/motion-control';
-        const duration = isMotion ? getMotionRefVideoDuration() : (body?.input?.duration ?? 8);
-        const resolution = body?.input?.mode || document.getElementById('motionResolution')?.value || '720p';
-        const creditsPerSecond = isMotion ? getCreditsPerSecondMotion(resolution) : null;
-        openCreditsModal({ needsLogin: false, cost, credits, duration, creditsPerSecond, mode: currentMode });
-      } catch (_) {
-        openCreditsModal({ needsLogin: false, cost: null, credits: getCredits() });
-      }
+      openPlansModal();
     } else if (cardRefs.statusMessage) {
       let displayMsg = err.isTimeout
         ? 'O processamento demorou mais de 15 minutos e foi cancelado.'
@@ -2318,18 +2334,7 @@ async function restoreActiveTask() {
           } catch (_) {}
         }
         if (err.isCredits) {
-          try {
-            const body = buildRequestBody();
-            const cost = getCreditsCostForBody(body);
-            const credits = getCredits();
-            const isMotion = body?.model === 'kling-2.6/motion-control';
-            const duration = isMotion ? getMotionRefVideoDuration() : (body?.input?.duration ?? 8);
-            const resolution = body?.input?.mode || document.getElementById('motionResolution')?.value || '720p';
-            const creditsPerSecond = isMotion ? getCreditsPerSecondMotion(resolution) : null;
-            openCreditsModal({ needsLogin: false, cost, credits, duration, creditsPerSecond, mode: currentMode });
-          } catch (_) {
-            openCreditsModal({ needsLogin: false, cost: null, credits: getCredits() });
-          }
+          openPlansModal();
         } else if (cardRefs.statusMessage) {
           let msg = err.isTimeout
             ? 'O processamento demorou mais de 15 minutos e foi cancelado.'

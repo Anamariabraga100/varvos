@@ -487,9 +487,15 @@
   <div id="plansModal" class="plans-modal hidden" role="dialog" aria-modal="true" aria-labelledby="plansModalTitle">
     <div class="plans-modal-backdrop"></div>
     <div class="plans-modal-card">
+      <div class="plans-modal-timer" id="plansModalTimer">
+        <span class="plans-modal-timer-icon">◎</span>
+        <span class="plans-modal-timer-text">Oferta expira em:</span>
+        <span class="plans-modal-timer-countdown" id="plansModalTimerCountdown">14:59</span>
+      </div>
       <button type="button" class="plans-modal-close" id="plansModalClose" aria-label="Fechar">×</button>
       <h2 id="plansModalTitle" class="plans-modal-title">Escolha seu plano</h2>
       <p class="plans-modal-sub">Créditos avulsos ou assinatura mensal. Flexível para o seu fluxo.</p>
+      <p id="plansModalCreditNote" class="plans-modal-credit-note">Pagamento único via Pix ou cartão</p>
 
       <div id="plansActiveSection" class="plans-active-section hidden">
         <div class="plans-active-card">
@@ -505,174 +511,193 @@
 
       <div class="plans-tabs">
         <button type="button" class="plans-tab active" data-tab="avulsos">Comprar créditos</button>
-        <button type="button" class="plans-tab" data-tab="mensais">Planos Mensais</button>
+        <button type="button" class="plans-tab plans-tab-mensais" data-tab="mensais">
+          Planos Mensais
+          <span class="plans-tab-badge">50% off</span>
+        </button>
       </div>
 
       <div id="plansAvulsos" class="plans-tab-content">
-        <div class="plan-card plan-card-avulso plan-featured">
-          <span class="plan-badge plan-badge-popular">MAIS ESCOLHIDO</span>
+        <div class="plan-card plan-card-avulso plan-card-starter">
+          <span class="plan-banner-starter">SOMENTE HOJE</span>
+          <h3 class="plan-name">Starter</h3>
+          <p class="plan-desc">Para começar</p>
+          <div class="plan-videos-badge">
+            <svg class="plan-videos-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+            <span class="plan-videos-main">4 vídeos</span>
+            <span class="plan-videos-credits">(200 créditos)</span>
+          </div>
+          <div class="plan-price-box plan-price-inverted">
+            <span class="plan-per-first">≈ R$ 3,73 por vídeo</span>
+            <span class="plan-old-total">De R$ 18,90</span>
+            <span class="plan-current-small">R$ 14,90</span>
+          </div>
+          <ul class="plan-features">
+            <li>Full HD profissional</li>
+            <li>Sem marca d'água — 100% seus</li>
+            <li>Movimento realista com IA</li>
+            <li>Vídeos de 8 ou 15 segundos</li>
+            <li>Imitar movimento: até 30 segundos</li>
+          </ul>
+          <a href="/checkout?plano=starter" class="plan-cta plan-cta-outline">Garantir minha Oferta</a>
+          <span class="plan-guarantee">Garantia de 7 dias</span>
+        </div>
+        <div class="plan-card plan-card-avulso">
           <h3 class="plan-name">Popular</h3>
           <p class="plan-desc">Melhor custo-benefício</p>
-          <div class="plan-credits-block">
-            <svg class="plan-credits-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L14 8L20 10L14 12L12 18L10 12L4 10L10 8L12 2Z" stroke-linejoin="round"/></svg>
-            <span class="plan-credits-num">650</span>
-            <span class="plan-credits-label">créditos</span>
+          <div class="plan-videos-badge">
+            <svg class="plan-videos-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+            <span class="plan-videos-main">13 vídeos</span>
+            <span class="plan-videos-credits">(650 créditos)</span>
           </div>
-          <p class="plan-credits-desc">Possível criar até 13 vídeos</p>
           <div class="plan-price-box plan-price-inverted">
             <span class="plan-per-first">≈ R$ 3,07 por vídeo</span>
+            <span class="plan-old-total">De R$ 49,90</span>
             <span class="plan-current-small">R$ 39,90</span>
           </div>
           <ul class="plan-features">
             <li>Full HD profissional</li>
             <li>Sem marca d'água — 100% seus</li>
             <li>Movimento realista com IA</li>
+            <li>Vídeos de 8 ou 15 segundos</li>
+            <li>Imitar movimento: até 30 segundos</li>
           </ul>
-          <a href="/checkout?plano=popular" class="plan-cta">Comprar créditos</a>
+          <a href="/checkout?plano=popular" class="plan-cta">Quero esse</a>
           <span class="plan-guarantee">Garantia de 7 dias</span>
         </div>
-        <div class="plan-card plan-card-avulso">
-          <h3 class="plan-name">Starter</h3>
-          <p class="plan-desc">Para começar</p>
-          <div class="plan-credits-block">
-            <svg class="plan-credits-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L14 8L20 10L14 12L12 18L10 12L4 10L10 8L12 2Z" stroke-linejoin="round"/></svg>
-            <span class="plan-credits-num">250</span>
-            <span class="plan-credits-label">créditos</span>
-          </div>
-          <p class="plan-credits-desc">Crie até 5 vídeos</p>
-          <div class="plan-price-box plan-price-inverted">
-            <span class="plan-per-first">≈ R$ 3,98 por vídeo</span>
-            <span class="plan-current-small">R$ 19,90</span>
-          </div>
-          <ul class="plan-features">
-            <li>Full HD profissional</li>
-            <li>Sem marca d'água — 100% seus</li>
-            <li>Movimento realista com IA</li>
-          </ul>
-          <a href="/checkout?plano=starter" class="plan-cta plan-cta-outline">Comprar créditos</a>
-          <span class="plan-guarantee">Garantia de 7 dias</span>
-        </div>
-        <div class="plan-card plan-card-avulso">
+        <div class="plan-card plan-card-avulso plan-card-pro">
           <h3 class="plan-name">Pro</h3>
           <p class="plan-desc">Maior eficiência por crédito</p>
-          <div class="plan-credits-block">
-            <svg class="plan-credits-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L14 8L20 10L14 12L12 18L10 12L4 10L10 8L12 2Z" stroke-linejoin="round"/></svg>
-            <span class="plan-credits-num">1.500</span>
-            <span class="plan-credits-label">créditos</span>
+          <div class="plan-videos-badge">
+            <svg class="plan-videos-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+            <span class="plan-videos-main">30 vídeos</span>
+            <span class="plan-videos-credits">(1.500 créditos)</span>
           </div>
-          <p class="plan-credits-desc">Possível criar até 30 vídeos</p>
           <div class="plan-price-box plan-price-inverted">
             <span class="plan-per-first">≈ R$ 2,66 por vídeo</span>
+            <span class="plan-old-total">De R$ 99,90</span>
             <span class="plan-current-small">R$ 79,90</span>
           </div>
           <ul class="plan-features">
             <li>Full HD profissional</li>
             <li>Sem marca d'água — 100% seus</li>
             <li>Movimento realista com IA</li>
+            <li>Vídeos de 8 ou 15 segundos</li>
+            <li>Imitar movimento: até 30 segundos</li>
             <li>Geração 2x mais rápida</li>
             <li>Prioridade na fila</li>
           </ul>
-          <a href="/checkout?plano=pro-avulso" class="plan-cta plan-cta-outline">Comprar créditos</a>
+          <a href="/checkout?plano=pro-avulso" class="plan-cta">Quero esse</a>
           <span class="plan-guarantee">Garantia de 7 dias</span>
         </div>
-        <div class="plan-card plan-card-avulso">
+        <div class="plan-card plan-card-avulso plan-card-escala">
+          <span class="plan-badge-escala">Melhor custo por vídeo</span>
           <h3 class="plan-name">Escala</h3>
           <p class="plan-desc">Para alto volume</p>
-          <div class="plan-credits-block">
-            <svg class="plan-credits-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L14 8L20 10L14 12L12 18L10 12L4 10L10 8L12 2Z" stroke-linejoin="round"/></svg>
-            <span class="plan-credits-num">6.100</span>
-            <span class="plan-credits-label">créditos</span>
+          <div class="plan-videos-badge">
+            <svg class="plan-videos-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+            <span class="plan-videos-main">122 vídeos</span>
+            <span class="plan-videos-credits">(6.100 créditos)</span>
           </div>
-          <p class="plan-credits-desc">Possível criar até 122 vídeos</p>
           <div class="plan-price-box plan-price-inverted">
             <span class="plan-per-first">≈ R$ 2,43 por vídeo</span>
+            <span class="plan-old-total">De R$ 367,00</span>
             <span class="plan-current-small">R$ 297,00</span>
           </div>
           <ul class="plan-features">
             <li>Full HD profissional</li>
             <li>Sem marca d'água — 100% seus</li>
             <li>Movimento realista com IA</li>
+            <li>Vídeos de 8 ou 15 segundos</li>
+            <li>Imitar movimento: até 30 segundos</li>
             <li>Geração 2x mais rápida</li>
             <li>Prioridade máxima na fila</li>
             <li>Suporte prioritário</li>
           </ul>
-          <a href="/checkout?plano=escala" class="plan-cta plan-cta-outline">Comprar créditos</a>
+          <a href="/checkout?plano=escala" class="plan-cta">Quero esse</a>
           <span class="plan-guarantee">Garantia de 7 dias</span>
         </div>
       </div>
 
       <div id="plansMensais" class="plans-tab-content hidden">
-        <div class="plan-card plan-card-avulso plan-featured" data-plan-id="pro">
-          <span class="plan-badge">Plano mais escolhido</span>
-          <h3 class="plan-name">Pro</h3>
-          <p class="plan-desc">Melhor custo-benefício</p>
-          <div class="plan-credits-block">
-            <svg class="plan-credits-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L14 8L20 10L14 12L12 18L10 12L4 10L10 8L12 2Z" stroke-linejoin="round"/></svg>
-            <span class="plan-credits-num">4.000</span>
-            <span class="plan-credits-label">créditos/mês</span>
-          </div>
-          <p class="plan-credits-desc">Possível criar até 80 vídeos/mês</p>
-          <div class="plan-price-box plan-price-inverted">
-            <span class="plan-per-first">≈ R$ 1,87 por vídeo</span>
-            <span class="plan-current-small">R$ 149,90/mês</span>
-          </div>
-          <ul class="plan-features">
-            <li>Full HD profissional</li>
-            <li>Sem marca d'água — 100% seus</li>
-            <li>Movimento realista com IA</li>
-            <li>Geração 2x mais rápida</li>
-            <li>Renovação automática</li>
-            <li>Prioridade máxima na fila</li>
-          </ul>
-          <a href="/checkout?plano=pro" class="plan-cta">Ativar plano Pro</a>
-          <span class="plan-guarantee">Garantia de 7 dias</span>
-        </div>
-        <div class="plan-card plan-card-avulso" data-plan-id="start">
+        <div class="plan-card plan-card-avulso plan-card-creator" data-plan-id="start">
+          <span class="plan-banner-mensal">50% OFF</span>
           <h3 class="plan-name">Creator</h3>
           <p class="plan-desc">Para quem está começando</p>
-          <div class="plan-credits-block">
-            <svg class="plan-credits-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L14 8L20 10L14 12L12 18L10 12L4 10L10 8L12 2Z" stroke-linejoin="round"/></svg>
-            <span class="plan-credits-num">1.500</span>
-            <span class="plan-credits-label">créditos/mês</span>
+          <div class="plan-videos-badge">
+            <svg class="plan-videos-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+            <span class="plan-videos-main">30 vídeos/mês</span>
+            <span class="plan-videos-credits">(1.500 créditos)</span>
           </div>
-          <p class="plan-credits-desc">Possível criar até 30 vídeos/mês</p>
           <div class="plan-price-box plan-price-inverted">
             <span class="plan-per-first">≈ R$ 2,00 por vídeo</span>
+            <span class="plan-old-total">De R$ 119,80/mês</span>
             <span class="plan-current-small">R$ 59,90/mês</span>
           </div>
           <ul class="plan-features">
             <li>Full HD profissional</li>
             <li>Sem marca d'água — 100% seus</li>
             <li>Movimento realista com IA</li>
+            <li>Vídeos de 8 ou 15 segundos</li>
+            <li>Imitar movimento: até 30 segundos</li>
             <li>Geração 2x mais rápida</li>
             <li>Renovação automática</li>
           </ul>
-          <a href="/checkout?plano=start" class="plan-cta plan-cta-outline">Ativar plano</a>
+          <a href="/checkout?plano=start" class="plan-cta plan-cta-green">Garantir minha Oferta</a>
           <span class="plan-guarantee">Garantia de 7 dias</span>
         </div>
-        <div class="plan-card plan-card-avulso" data-plan-id="agency">
+        <div class="plan-card plan-card-avulso" data-plan-id="pro">
+          <h3 class="plan-name">Pro</h3>
+          <p class="plan-desc">Melhor custo-benefício</p>
+          <div class="plan-videos-badge">
+            <svg class="plan-videos-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+            <span class="plan-videos-main">80 vídeos/mês</span>
+            <span class="plan-videos-credits">(4.000 créditos)</span>
+          </div>
+          <div class="plan-price-box plan-price-inverted">
+            <span class="plan-per-first">≈ R$ 1,87 por vídeo</span>
+            <span class="plan-old-total">De R$ 179,90/mês</span>
+            <span class="plan-current-small">R$ 149,90/mês</span>
+          </div>
+          <ul class="plan-features">
+            <li>Full HD profissional</li>
+            <li>Sem marca d'água — 100% seus</li>
+            <li>Movimento realista com IA</li>
+            <li>Vídeos de 8 ou 15 segundos</li>
+            <li>Imitar movimento: até 30 segundos</li>
+            <li>Geração 2x mais rápida</li>
+            <li>Renovação automática</li>
+            <li>Prioridade máxima na fila</li>
+          </ul>
+          <a href="/checkout?plano=pro" class="plan-cta">Quero meu plano</a>
+          <span class="plan-guarantee">Garantia de 7 dias</span>
+        </div>
+        <div class="plan-card plan-card-avulso plan-card-agency" data-plan-id="agency">
+          <span class="plan-badge-agency">Melhor custo por vídeo</span>
           <h3 class="plan-name">Agency</h3>
           <p class="plan-desc">Para alto volume</p>
-          <div class="plan-credits-block">
-            <svg class="plan-credits-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L14 8L20 10L14 12L12 18L10 12L4 10L10 8L12 2Z" stroke-linejoin="round"/></svg>
-            <span class="plan-credits-num">15.000</span>
-            <span class="plan-credits-label">créditos/mês</span>
+          <div class="plan-videos-badge">
+            <svg class="plan-videos-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+            <span class="plan-videos-main">300 vídeos/mês</span>
+            <span class="plan-videos-credits">(15.000 créditos)</span>
           </div>
-          <p class="plan-credits-desc">Possível criar até 300 vídeos/mês</p>
           <div class="plan-price-box plan-price-inverted">
             <span class="plan-per-first">≈ R$ 1,50 por vídeo</span>
+            <span class="plan-old-total">De R$ 549/mês</span>
             <span class="plan-current-small">R$ 449/mês</span>
           </div>
           <ul class="plan-features">
             <li>Full HD profissional</li>
             <li>Sem marca d'água — 100% seus</li>
             <li>Movimento realista com IA</li>
+            <li>Vídeos de 8 ou 15 segundos</li>
+            <li>Imitar movimento: até 30 segundos</li>
             <li>Geração 2x mais rápida</li>
             <li>Prioridade máxima na fila</li>
             <li>Suporte prioritário via WhatsApp</li>
             <li>Renovação automática</li>
           </ul>
-          <a href="/checkout?plano=agency" class="plan-cta plan-cta-outline">Ativar plano</a>
+          <a href="/checkout?plano=agency" class="plan-cta">Quero meu plano</a>
           <span class="plan-guarantee">Garantia de 7 dias</span>
         </div>
       </div>

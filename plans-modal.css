@@ -6,8 +6,8 @@
   align-items: flex-start;
   justify-content: center;
   padding: max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom));
-  background: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(6px);
+  background: rgba(17, 24, 39, 0.5);
+  backdrop-filter: blur(8px);
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
@@ -22,6 +22,37 @@
   cursor: pointer;
 }
 
+/* Timer: oferta expira em (gradient vermelho-laranja) */
+.plans-modal-timer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 16px;
+  margin: -28px -20px 16px -20px;
+  background: linear-gradient(90deg, #dc2626 0%, #ea580c 50%, #f59e0b 100%);
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border-radius: 14px 14px 0 0;
+}
+
+.plans-modal-timer-icon {
+  font-size: 1.1rem;
+  opacity: 0.95;
+}
+
+.plans-modal-timer-text {
+  opacity: 0.95;
+}
+
+.plans-modal-timer-countdown {
+  font-weight: 800;
+  font-size: 1.2rem;
+  color: #fef3c7;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
 .plans-modal-card {
   position: relative;
   width: 100%;
@@ -30,9 +61,9 @@
   max-height: calc(100vh - 24px);
   max-height: calc(100dvh - 24px);
   overflow-y: auto;
-  background: var(--bg-card, #fff);
-  border-radius: 14px;
-  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.12);
+  background: #fafafa;
+  border-radius: 16px;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
   padding: 28px 20px;
   margin: auto;
   -webkit-overflow-scrolling: touch;
@@ -62,15 +93,40 @@
 
 .plans-modal-title {
   margin: 0 0 4px;
-  font-size: 1.35rem;
-  font-weight: 600;
-  color: var(--text, #111827);
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #111827;
 }
 
 .plans-modal-sub {
-  margin: 0 0 14px;
+  margin: 0 0 4px;
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+.plans-modal-credit-note {
+  margin: 0 0 16px;
   font-size: 0.85rem;
-  color: var(--text-muted, #6b7280);
+  font-weight: 600;
+  color: #059669;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.plans-modal-credit-note::before {
+  content: '✓';
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  background: rgba(5, 150, 105, 0.15);
+  border-radius: 50%;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+.plans-modal-credit-note.hidden {
+  display: none;
 }
 
 .plans-active-section {
@@ -125,25 +181,30 @@
 
 .plans-tab {
   flex: 1;
-  padding: 10px 12px;
-  background: var(--bg-soft, #f3f4f6);
-  border: 1px solid var(--border, #e5e7eb);
-  border-radius: 8px;
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: #1a1a1a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px 14px;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #475569;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .plans-tab:hover {
-  color: #1a1a1a;
+  background: #e2e8f0;
+  color: #111827;
 }
 
 .plans-tab.active {
-  background: #1a1a1a;
+  background: #111827;
   color: #fff !important;
-  border-color: #1a1a1a;
+  border-color: #111827;
 }
 
 .plans-tab-content {
@@ -156,12 +217,30 @@
   display: none;
 }
 
+.plans-tab-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  background: linear-gradient(135deg, #ea580c 0%, #f59e0b 100%);
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.plans-tab-mensais.active .plans-tab-badge {
+  background: rgba(255,255,255,0.25);
+  color: #fff;
+}
+
 .plan-card {
-  background: var(--bg-card, #fff);
-  border: 1px solid var(--border, #e5e7eb);
+  background: #fff;
+  border: 1px solid #e5e7eb;
   border-radius: 12px;
   padding: 16px;
   position: relative;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .plan-card.plan-featured {
@@ -273,31 +352,31 @@
   display: block;
   width: 100%;
   padding: 14px 24px;
-  background: var(--text, #111827);
+  background: #111827;
   color: #fff;
   border-radius: 10px;
   font-weight: 600;
   font-size: 1rem;
   text-align: center;
   text-decoration: none;
-  transition: background 0.2s;
+  transition: all 0.2s;
 }
 
 .plan-cta:hover {
-  background: var(--btn-hover, #1f2937);
+  background: #1f2937;
   color: #fff;
 }
 
 .plan-cta-outline {
-  background: transparent;
-  color: var(--text, #111827);
-  border: 2px solid var(--border, #e5e7eb);
+  background: #374151;
+  color: #fff;
+  border: 2px solid #374151;
 }
 
 .plan-cta-outline:hover {
-  background: var(--bg-soft, #f3f4f6);
-  border-color: var(--text, #111827);
-  color: var(--text, #111827);
+  background: #4b5563;
+  border-color: #4b5563;
+  color: #fff;
 }
 
 .plan-guarantee {
@@ -349,14 +428,14 @@
 
 .plan-card-avulso .plan-credits-icon {
   flex-shrink: 0;
-  color: var(--text, #1a1a1a);
+  color: #059669;
   opacity: 0.9;
 }
 
 .plan-card-avulso .plan-credits-num {
   font-size: 1.5rem;
   font-weight: 700;
-  color: var(--text, #1a1a1a);
+  color: #047857;
   letter-spacing: -0.02em;
   line-height: 1.1;
 }
@@ -364,22 +443,54 @@
 .plan-card-avulso .plan-credits-label {
   font-size: 0.9rem;
   font-weight: 500;
-  color: var(--text, #1a1a1a);
+  color: #059669;
 }
 
 .plan-card-avulso .plan-credits-desc {
   margin: 0 0 8px;
-  font-size: 0.82rem;
-  color: var(--text, #4a4a4a);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #111827;
+  letter-spacing: -0.01em;
+}
+
+/* Badge destaque quantidade de vídeos — fundo verde claro, formato pill */
+.plan-videos-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 18px;
+  margin: 0 0 12px;
+  background: rgba(16, 185, 129, 0.12);
+  border-radius: 999px;
+}
+
+.plan-videos-icon {
+  flex-shrink: 0;
+  color: #059669;
+}
+
+.plan-videos-main {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #047857;
+}
+
+.plan-videos-credits {
+  font-size: 0.9rem;
   font-weight: 500;
+  color: #059669;
+  opacity: 0.9;
 }
 
 .plan-card-avulso .plan-price-box {
   width: 100%;
-  padding: 10px 12px;
-  background: var(--bg-soft, #f5f5f5);
-  border-radius: 8px;
-  margin-bottom: 10px;
+  padding: 12px 14px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  margin-bottom: 12px;
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -402,13 +513,25 @@
 .plan-card-avulso .plan-price-inverted .plan-per-first {
   font-size: 1.35rem;
   font-weight: 700;
-  color: var(--text, #1a1a1a);
+  color: #111827;
+}
+
+.plan-card-avulso .plan-price-inverted .plan-old-total {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-muted, #6b7280);
+  text-decoration: line-through;
 }
 
 .plan-card-avulso .plan-price-inverted .plan-current-small {
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: #4a4a4a;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.plan-card-starter .plan-price-inverted .plan-current-small {
+  color: #059669;
+  font-size: 1.15rem;
 }
 
 .plan-card-avulso .plan-features {
@@ -429,7 +552,7 @@
   position: absolute;
   left: 0;
   top: 2px;
-  color: #22c55e;
+  color: #059669;
   font-weight: 700;
   font-size: 0.9em;
   width: 1em;
@@ -443,9 +566,138 @@
   letter-spacing: 0.04em;
 }
 
+/* Banner SOMENTE HOJE no Starter — estende até o contorno */
+.plan-banner-starter {
+  display: block;
+  width: calc(100% + 24px);
+  margin: -14px -12px 14px -12px;
+  padding: 10px 16px;
+  background: linear-gradient(90deg, #dc2626 0%, #ea580c 50%, #f59e0b 100%);
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-align: center;
+  border-radius: 14px 14px 0 0;
+  box-shadow: 0 2px 8px rgba(234, 88, 12, 0.3);
+}
+
+/* Card Starter: destaque especial + borda que combina com o banner */
+.plan-card-starter {
+  border: 2px solid rgba(234, 88, 12, 0.5);
+  border-radius: 14px;
+  box-shadow: 0 4px 20px rgba(234, 88, 12, 0.12);
+  background: #fff;
+}
+
+.plan-card-starter .plan-price-box {
+  background: rgba(16, 185, 129, 0.06);
+  border-color: rgba(16, 185, 129, 0.2);
+}
+
+/* Botão CTA Starter: verde para conversão */
+#plansAvulsos .plan-card:first-child .plan-cta,
+#plansAvulsos .plan-card:first-child .plan-cta-outline {
+  background: #10b981;
+  border-color: #10b981;
+  color: #fff;
+}
+
+#plansAvulsos .plan-card:first-child .plan-cta:hover,
+#plansAvulsos .plan-card:first-child .plan-cta-outline:hover {
+  background: #059669;
+  border-color: #059669;
+  color: #fff;
+}
+
+/* Planos mensais: banner 50% OFF + destaque no Creator */
+.plan-banner-mensal {
+  display: block;
+  width: calc(100% + 24px);
+  margin: -14px -12px 14px -12px;
+  padding: 10px 16px;
+  background: linear-gradient(90deg, #dc2626 0%, #ea580c 50%, #f59e0b 100%);
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-align: center;
+  border-radius: 14px 14px 0 0;
+  box-shadow: 0 2px 8px rgba(234, 88, 12, 0.3);
+}
+
+.plan-card-creator {
+  border: 2px solid rgba(234, 88, 12, 0.5);
+  border-radius: 14px;
+  box-shadow: 0 4px 20px rgba(234, 88, 12, 0.12);
+}
+
+.plan-card-creator .plan-price-box {
+  background: rgba(16, 185, 129, 0.06);
+  border-color: rgba(16, 185, 129, 0.2);
+}
+
+.plan-card-creator .plan-price-inverted .plan-current-small {
+  color: #059669;
+  font-size: 1.15rem;
+}
+
+/* Escala e Agency: melhor custo por vídeo — destaque especial */
+.plan-card-escala,
+.plan-card-agency {
+  border: 2px solid rgba(5, 150, 105, 0.4);
+  border-radius: 14px;
+  box-shadow: 0 4px 20px rgba(5, 150, 105, 0.12);
+  background: linear-gradient(180deg, #fff 0%, rgba(16, 185, 129, 0.03) 100%);
+}
+
+.plan-card-escala .plan-price-box,
+.plan-card-agency .plan-price-box {
+  background: rgba(16, 185, 129, 0.06);
+  border-color: rgba(16, 185, 129, 0.25);
+}
+
+.plan-card-escala .plan-price-inverted .plan-per-first,
+.plan-card-agency .plan-price-inverted .plan-per-first {
+  color: #047857;
+  font-weight: 800;
+}
+
+.plan-badge-escala,
+.plan-badge-agency {
+  display: inline-block;
+  margin-bottom: 6px;
+  padding: 5px 12px;
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  border-radius: 999px;
+}
+
+.plan-cta-green {
+  background: #10b981 !important;
+  border-color: #10b981 !important;
+  color: #fff !important;
+}
+
+.plan-cta-green:hover {
+  background: #059669 !important;
+  border-color: #059669 !important;
+  color: #fff !important;
+}
+
 .plan-card-avulso .plan-guarantee {
-  margin-top: 8px;
-  font-size: 0.75rem;
+  margin-top: 10px;
+  font-size: 0.8rem;
+  color: #059669;
+  font-weight: 500;
+}
+
+.plan-badge-popular {
+  background: #111827 !important;
+  color: #fff;
 }
 
 /* Esquema unificado dos cards (mensais) */
@@ -514,10 +766,23 @@
   color: var(--text, #1a1a1a);
 }
 
-.plan-card-schema .plan-price-inverted .plan-current-small {
+.plan-card-schema .plan-price-inverted .plan-old-total {
   font-size: 0.9rem;
   font-weight: 500;
-  color: #4a4a4a;
+  color: var(--text-muted, #6b7280);
+  text-decoration: line-through;
+}
+
+.plan-card-schema .plan-price-inverted .plan-current-small {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text, #1a1a1a);
+}
+
+.plan-card-schema .plan-credits-desc {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #111827;
 }
 
 .plan-card-schema .plan-features {
@@ -527,10 +792,36 @@
 }
 
 .plan-card-schema .plan-features li::before {
-  color: #22c55e;
+  color: #059669;
+}
+
+/* Tela cheia no mobile */
+@media (max-width: 768px) {
+  .plans-modal {
+    padding: 0;
+    align-items: stretch;
+  }
+
+  .plans-modal-card {
+    max-width: none;
+    width: 100%;
+    min-height: 100vh;
+    min-height: 100dvh;
+    border-radius: 0;
+    max-height: none;
+  }
+
+  .plans-modal-timer {
+    border-radius: 0;
+  }
 }
 
 @media (max-height: 700px) {
+  .plans-modal-timer {
+    margin: -28px -20px 14px -20px;
+    padding: 10px 16px;
+  }
+
   .plans-modal-card {
     padding: 20px 16px;
     max-height: calc(100dvh - 20px);

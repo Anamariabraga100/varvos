@@ -62,6 +62,13 @@ header {
   color: #6b6b6b;
 }
 
+.precos-credit-note {
+  margin: 16px 0 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #059669;
+}
+
 .precos-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -83,6 +90,46 @@ header {
 .preco-destaque {
   border-color: #1a1a1a;
   box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+}
+
+/* Escala e Agency: melhor custo por vídeo */
+.preco-escala,
+.preco-agency {
+  border: 2px solid rgba(5, 150, 105, 0.5);
+  box-shadow: 0 4px 24px rgba(5, 150, 105, 0.15);
+}
+
+.preco-escala .preco-por,
+.preco-agency .preco-por {
+  color: #047857;
+  font-weight: 700;
+}
+
+.preco-badge-escala,
+.preco-badge-agency {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+  color: #fff !important;
+  padding: 6px 14px;
+  border-radius: 999px;
+}
+
+.preco-banner-starter {
+  display: block;
+  width: calc(100% + 56px);
+  margin: -28px -28px 16px -28px;
+  padding: 10px 16px;
+  background: linear-gradient(90deg, #dc2626 0%, #ea580c 50%, #f59e0b 100%);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-align: center;
+  border-radius: 16px 16px 0 0;
+}
+
+.preco-starter {
+  border: 2px solid #374151;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
 }
 
 .preco-badge {
@@ -115,6 +162,36 @@ header {
   align-items: center;
   gap: 10px;
   margin: 0 0 4px;
+}
+
+/* Badge destaque quantidade de vídeos */
+.preco-videos-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px 22px;
+  margin: 0 0 20px;
+  background: rgba(16, 185, 129, 0.12);
+  border-radius: 999px;
+}
+
+.preco-videos-icon {
+  flex-shrink: 0;
+  color: #059669;
+}
+
+.preco-videos-main {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #047857;
+}
+
+.preco-videos-credits {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #059669;
+  opacity: 0.9;
 }
 
 .preco-creditos-icon {
