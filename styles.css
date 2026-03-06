@@ -2607,3 +2607,24 @@ select:focus {
   transition: background 0.2s;
 }
 .support-modal-btn:hover { background: var(--btn-hover); }
+
+/* Toast: vídeo sendo gerado — não sair da página */
+.generation-toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 3000;
+  padding: 14px 24px;
+  background: var(--text);
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 500;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  animation: generation-toast-in 0.25s ease-out;
+}
+@keyframes generation-toast-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(12px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}

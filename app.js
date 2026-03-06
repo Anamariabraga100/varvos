@@ -1090,6 +1090,29 @@ document.querySelectorAll('.mode-btn').forEach(btn => {
   }
 });
 
+// Impedir navegação quando há vídeo/imagem sendo gerado — manter quadro de progresso visível
+document.querySelectorAll('.mode-segmented').forEach(seg => {
+  seg.addEventListener('click', (e) => {
+    const link = e.target?.closest?.('a.mode-seg-item');
+    if (!link || !link.href || activeTasks.size === 0) return;
+    const targetPath = new URL(link.href, window.location.origin).pathname;
+    const currentPath = (window.location.pathname || '/').replace(/\/$/, '') || '/';
+    const targetNorm = (targetPath || '/').replace(/\/$/, '') || '/';
+    const wouldLeave = targetNorm !== currentPath;
+    if (!wouldLeave) return;
+    e.preventDefault();
+    const n = activeTasks.size;
+    const msg = n === 1 ? 'Seu vídeo está sendo gerado. Acompanhe o progresso abaixo.' : `${n} vídeos estão sendo gerados. Acompanhe o progresso abaixo.`;
+    const toast = document.createElement('div');
+    toast.className = 'generation-toast';
+    toast.textContent = msg;
+    toast.setAttribute('role', 'status');
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3500);
+    document.getElementById('currentResultSection')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+});
+
 // Load API key from config or localStorage
 function getApiKey() {
   if (window.VARVOS_CONFIG?.apiKey) return window.VARVOS_CONFIG.apiKey;
@@ -1865,9 +1888,7 @@ async function userHasPurchased() {
 }
 
 function openCreditsModal(opts = {}) {
-  activeTasks.forEach(m => stopLoadingForCard(m.cardRefs));
-  if (outputResultsList) outputResultsList.classList.add('hidden');
-  if (outputPlaceholder) outputPlaceholder.classList.remove('hidden');
+  // Nunca esconder o quadro de resultados — manter sempre visível até terminar ou timeout 15 min
   if (creditsModal) {
     const titleEl = document.getElementById('creditsModalTitle');
     const descEl = document.getElementById('creditsModalDesc');
@@ -2034,6 +2055,11 @@ function updateOutputUI(data, cardRefs, startTime) {
     activeTasks.delete(data.task_id);
     const errMsg = (data.error_message || '').toString().trim();
     if (isCreditsError(errMsg)) {
+      stopLoadingForCard(cardRefs);
+      if (statusMessage) {
+        statusMessage.textContent = 'Créditos insuficientes. Adicione créditos para tentar novamente.';
+        statusMessage.className = 'status-message error';
+      }
       try {
         const body = buildRequestBody();
         const cost = getCreditsCostForBody(body);
@@ -2042,9 +2068,9 @@ function updateOutputUI(data, cardRefs, startTime) {
         const duration = isMotion ? getMotionRefVideoDuration() : (body?.input?.duration ?? 8);
         const resolution = body?.input?.mode || document.getElementById('motionResolution')?.value || '720p';
         const creditsPerSecond = isMotion ? getCreditsPerSecondMotion(resolution) : null;
-        openCreditsModal({ needsLogin: false, cost, credits, duration, creditsPerSecond, mode: currentMode });
+        openCreditsModal({ needsLogin: false, cost, credits, duration, creditsPerSecond, mode: currentMode, keepResultsVisible: true });
       } catch (_) {
-        openCreditsModal({ needsLogin: false, cost: null, credits: getCredits() });
+        openCreditsModal({ needsLogin: false, cost: null, credits: getCredits(), keepResultsVisible: true });
       }
       return;
     }
