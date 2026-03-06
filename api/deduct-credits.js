@@ -1,8 +1,7 @@
 /**
  * API: Deduzir créditos ao iniciar geração (vídeo ou imitar movimento)
  * POST /api/deduct-credits
- * Body: { userId, amount, taskId }
- * Vídeo: 50 créditos | Imitar movimento: 8 créditos/segundo (8–400, múltiplo de 8)
+ * Body: { userId?, email?, amount, taskId } — userId ou email obrigatório
  */
 import { createClient } from '@supabase/supabase-js';
 
@@ -19,12 +18,13 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Método não permitido' });
   }
 
-  const { userId, amount, taskId } = req.body || {};
+  const { userId, email, amount, taskId } = req.body || {};
   const amountNum = parseInt(amount, 10);
+  const userEmail = (email || '').trim().toLowerCase();
 
-  if (!userId || !taskId || isNaN(amountNum) || !isValidAmount(amountNum)) {
+  if ((!userId && !userEmail) || !taskId || isNaN(amountNum) || !isValidAmount(amountNum)) {
     return res.status(400).json({
-      error: 'userId, taskId e amount válidos são obrigatórios (vídeo: 50 ou 100 para 4K | motion: 8–1200)',
+      error: 'userId ou email, taskId e amount válidos são obrigatórios (vídeo: 50 ou 100 | motion: 8–1200)',
     });
   }
 
@@ -36,15 +36,17 @@ export default async function handler(req, res) {
 
   const supabase = createClient(supabaseUrl, supabaseKey);
 
-  const { data: userRow, error: fetchErr } = await supabase
-    .from('users')
-    .select('credits')
-    .eq('id', userId)
-    .single();
-
-  if (fetchErr || !userRow) {
-    return res.status(404).json({ error: 'Usuário não encontrado' });
+  let userRow;
+  if (userId) {
+    const { data, error } = await supabase.from('users').select('id, credits').eq('id', userId).single();
+    if (error || !data) return res.status(404).json({ error: 'Usuário não encontrado' });
+    userRow = data;
+  } else {
+    const { data, error } = await supabase.from('users').select('id, credits').eq('email', userEmail).single();
+    if (error || !data) return res.status(404).json({ error: 'Usuário não encontrado' });
+    userRow = data;
   }
+  const resolvedUserId = userRow.id;
 
   const currentCredits = userRow.credits ?? 0;
   if (currentCredits < amountNum) {
@@ -59,7 +61,7 @@ export default async function handler(req, res) {
   const { error: updateErr } = await supabase
     .from('users')
     .update({ credits: newCredits })
-    .eq('id', userId);
+    .eq('id', resolvedUserId);
 
   if (updateErr) {
     console.error('deduct-credits update:', updateErr);
@@ -68,7 +70,7 @@ export default async function handler(req, res) {
 
   const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(taskId));
   await supabase.from('credit_logs').insert({
-    user_id: userId,
+    user_id: resolvedUserId,
     amount: -amountNum,
     type: 'usage',
     reference_id: isUuid ? taskId : null,
@@ -77,5 +79,6 @@ export default async function handler(req, res) {
   return res.status(200).json({
     ok: true,
     credits: newCredits,
+    userId: resolvedUserId,
   });
 }

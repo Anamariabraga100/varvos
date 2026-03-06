@@ -2254,6 +2254,31 @@ function getCurrentUserId() {
   } catch { return null; }
 }
 
+function getCurrentUserEmail() {
+  try {
+    const raw = localStorage.getItem(AUTH_STORAGE);
+    const user = raw ? JSON.parse(raw) : null;
+    return (user && user.email) ? String(user.email).trim().toLowerCase() : null;
+  } catch { return null; }
+}
+
+function getCurrentUserEmail() {
+  try {
+    const raw = localStorage.getItem(AUTH_STORAGE);
+    const user = raw ? JSON.parse(raw) : null;
+    return (user && user.email) ? String(user.email).trim().toLowerCase() : null;
+  } catch { return null; }
+}
+
+function getCurrentUserEmail() {
+  try {
+    const raw = localStorage.getItem(AUTH_STORAGE);
+    const user = raw ? JSON.parse(raw) : null;
+    const email = (user && user.email) ? String(user.email).trim().toLowerCase() : '';
+    return email || null;
+  } catch { return null; }
+}
+
 function isLoggedIn() {
   try {
     const raw = localStorage.getItem(AUTH_STORAGE);
@@ -2561,18 +2586,38 @@ async function generateMedia(body) {
     // Motion refs: apagar do Storage logo após envio — API já recebeu as URLs, não precisa armazenar
     if (body?.model === 'kling-2.6/motion-control') deleteMotionRefsFromStorage();
 
-    if (!SKIP_CREDITS && !isLocalhost()) {
+    if (!SKIP_CREDITS) {
+      const uid = getCurrentUserId();
+      const userRaw = localStorage.getItem(AUTH_STORAGE);
+      const user = userRaw ? JSON.parse(userRaw) : null;
+      const userEmail = (user?.email || '').trim().toLowerCase();
       const deductRes = await fetch('/api/deduct-credits', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: getCurrentUserId(), amount: cost, taskId }),
+        body: JSON.stringify({ userId: uid || undefined, email: userEmail || undefined, amount: cost, taskId }),
       });
       if (deductRes.ok) {
         creditsDeducted = true;
+        try {
+          const data = await deductRes.json();
+          if (data.credits != null && user) {
+            user.credits = data.credits;
+            if (data.userId && !user.id) user.id = data.userId;
+            localStorage.setItem(AUTH_STORAGE, JSON.stringify(user));
+            updateCreditsDisplay();
+          }
+        } catch (_) {}
         await refreshCreditsFromSupabase();
         animateCreditsDecrease(cost);
       } else {
-        console.warn('[VARVOS] Deduct credits falhou:', await deductRes.text());
+        const errText = await deductRes.text();
+        console.warn('[VARVOS] Deduct credits falhou:', errText);
+        const msg = errText.includes('insuficientes') ? 'Créditos insuficientes.' : 'Não foi possível debitar os créditos. Faça login novamente e tente.';
+        if (cardRefs?.statusMessage) {
+          cardRefs.statusMessage.textContent = msg;
+          cardRefs.statusMessage.className = 'status-message error';
+          cardRefs.statusMessage.classList.remove('hidden');
+        }
       }
     }
 
