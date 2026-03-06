@@ -134,11 +134,11 @@ document.querySelectorAll('.chip, .suggestion-theme-box').forEach(btn => {
 
 // Placeholder animado — digita e apaga exemplos em quase transparente
 const PROMPT_EXAMPLES = [
-  'Uma mulher pedindo um produto no mercado sorrindo, luz natural, ambiente acolhedor',
-  'Vendedor animado apresentando produto à câmera, gestos expressivos, pitch de vendas em português',
-  'Unboxing estilo UGC com reação autêntica de surpresa ao abrir a caixa do produto',
-  'Depoimento antes e depois em split screen mostrando resultado real do uso do produto',
-  'Personal trainer na academia falando sobre treino, ambiente fitness, energia alta'
+  'Mulher no mercado sorrindo com produto, luz natural, ambiente acolhedor',
+  'Vendedor animado apresentando produto à câmera, gestos expressivos, pitch de vendas',
+  'Unboxing com reação de surpresa ao abrir a caixa do produto',
+  'Antes e depois em split screen mostrando resultado do uso do produto',
+  'Personal trainer na academia falando sobre treino, ambiente fitness'
 ];
 let promptExampleIndex = 0;
 let promptExampleCharIndex = 0;
