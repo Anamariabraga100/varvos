@@ -489,6 +489,97 @@
   opacity: 0.9;
 }
 
+.plan-models-hint {
+  margin: 6px 0 8px;
+  font-size: 0.8rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+/* FAQ abaixo dos cards — visual aprimorado */
+.plans-faq {
+  margin-top: 24px;
+  padding: 20px 16px;
+  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  width: 100%;
+}
+.plans-faq-title {
+  margin: 0 0 16px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #111827;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.plans-faq-title::before {
+  content: '?';
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 700;
+  border-radius: 50%;
+}
+.plans-faq-item {
+  margin-bottom: 10px;
+  padding: 0;
+  background: #fff;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+.plans-faq-item:last-child {
+  margin-bottom: 0;
+}
+.plans-faq-item[open] {
+  border-color: #10b981;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.12);
+}
+.plans-faq-item summary {
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #111827;
+  padding: 14px 16px;
+  padding-right: 40px;
+  position: relative;
+  list-style: none;
+  transition: background 0.2s;
+}
+.plans-faq-item summary::-webkit-details-marker { display: none; }
+.plans-faq-item summary::after {
+  content: '›';
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%) rotate(90deg);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #059669;
+  transition: transform 0.2s;
+}
+.plans-faq-item[open] summary::after {
+  transform: translateY(-50%) rotate(-90deg);
+}
+.plans-faq-item summary:hover {
+  background: #f8fafc;
+}
+.plans-faq-item p {
+  margin: 0;
+  padding: 0 16px 14px;
+  font-size: 0.88rem;
+  color: #4b5563;
+  line-height: 1.5;
+}
+
 .plan-card-avulso .plan-price-box {
   width: 100%;
   padding: 12px 14px;
@@ -587,15 +678,25 @@
   box-shadow: 0 2px 8px rgba(234, 88, 12, 0.3);
 }
 
-/* Card Starter: destaque especial + borda que combina com o banner */
-.plan-card-starter {
-  border: 2px solid rgba(234, 88, 12, 0.5);
+/* Todos os cards: estilo unificado — limpo, sem headers */
+.plan-card-starter,
+.plan-card-popular,
+.plan-card-pro,
+.plan-card-escala,
+.plan-card-creator,
+.plan-card-agency {
+  border: 1px solid #e5e7eb;
   border-radius: 14px;
-  box-shadow: 0 4px 20px rgba(234, 88, 12, 0.12);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
   background: #fff;
 }
 
-.plan-card-starter .plan-price-box {
+.plan-card-starter .plan-price-box,
+.plan-card-popular .plan-price-box,
+.plan-card-pro .plan-price-box,
+.plan-card-escala .plan-price-box,
+.plan-card-creator .plan-price-box,
+.plan-card-agency .plan-price-box {
   background: rgba(16, 185, 129, 0.06);
   border-color: rgba(16, 185, 129, 0.2);
 }
@@ -615,9 +716,38 @@
   color: #fff;
 }
 
-/* Planos mensais: banner 50% OFF + destaque no Creator */
+/* Banners visíveis — headers com cores diferentes por card */
+.plan-banner {
+  display: block !important;
+  width: calc(100% + 24px);
+  margin: -14px -12px 14px -12px;
+  padding: 10px 16px;
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-align: center;
+  border-radius: 14px 14px 0 0;
+}
+/* Laranja: Starter, Popular, Pro, Creator */
+.plan-banner-starter,
+.plan-banner-creator,
+.plan-banner-popular,
+.plan-banner-pro,
+.plan-banner-pro-mensal {
+  background: linear-gradient(90deg, #dc2626 0%, #ea580c 50%, #f59e0b 100%);
+  box-shadow: 0 2px 8px rgba(234, 88, 12, 0.3);
+}
+/* Azul: Escala e Agency (último de cada aba — destaque) */
+.plan-banner-escala,
+.plan-banner-agency {
+  background: linear-gradient(90deg, #1d4ed8 0%, #2563eb 50%, #3b82f6 100%);
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+}
+
+/* Planos mensais: banner 50% OFF (oculto) */
 .plan-banner-mensal {
-  display: block;
+  display: none;
   width: calc(100% + 24px);
   margin: -14px -12px 14px -12px;
   padding: 10px 16px;
@@ -631,76 +761,13 @@
   box-shadow: 0 2px 8px rgba(234, 88, 12, 0.3);
 }
 
-.plan-card-creator {
-  border: 2px solid rgba(234, 88, 12, 0.5);
-  border-radius: 14px;
-  box-shadow: 0 4px 20px rgba(234, 88, 12, 0.12);
-}
-
-.plan-card-creator .plan-price-box {
-  background: rgba(16, 185, 129, 0.06);
-  border-color: rgba(16, 185, 129, 0.2);
-}
-
+/* Creator: mesmo estilo unificado dos demais */
 .plan-card-creator .plan-price-inverted .plan-current-small {
   color: #059669;
   font-size: 1.15rem;
 }
 
-/* Escala e Agency: melhor custo por vídeo — destaque em preto */
-.plan-card-escala,
-.plan-card-agency {
-  border: 2px solid #1a1a1a;
-  border-radius: 14px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  background: #fff;
-}
-
-.plan-card-escala .plan-price-box,
-.plan-card-agency .plan-price-box {
-  background: #f8fafc;
-  border-color: #e2e8f0;
-}
-
-.plan-card-escala .plan-price-inverted .plan-per-first,
-.plan-card-agency .plan-price-inverted .plan-per-first {
-  color: #111827;
-  font-weight: 800;
-}
-
-.plan-badge-escala,
-.plan-badge-agency {
-  display: inline-block;
-  margin-bottom: 6px;
-  padding: 5px 12px;
-  background: #111827;
-  color: #fff;
-  font-size: 0.65rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  border-radius: 999px;
-}
-
-.plan-card-escala .plan-videos-badge,
-.plan-card-agency .plan-videos-badge {
-  background: rgba(0, 0, 0, 0.06);
-}
-.plan-card-escala .plan-videos-icon,
-.plan-card-agency .plan-videos-icon {
-  color: #111827;
-}
-.plan-card-escala .plan-videos-main,
-.plan-card-agency .plan-videos-main {
-  color: #111827;
-}
-.plan-card-escala .plan-videos-credits,
-.plan-card-agency .plan-videos-credits {
-  color: #374151;
-}
-.plan-card-escala .plan-features li::before,
-.plan-card-agency .plan-features li::before {
-  color: #111827;
-}
+/* Escala e Agency: mesmo estilo dos demais (sem cinza/preto) */
 
 .plan-cta-green {
   background: #10b981 !important;
@@ -721,14 +788,33 @@
   font-weight: 500;
 }
 
-.plan-card-escala .plan-guarantee,
-.plan-card-agency .plan-guarantee {
-  color: #374151;
+
+.plan-badge-popular,
+.plan-badge-pro {
+  display: inline-block;
+  margin-bottom: 6px;
+  padding: 5px 12px;
+  background: #111827 !important;
+  color: #fff !important;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  border-radius: 999px;
 }
 
-.plan-badge-popular {
-  background: #111827 !important;
-  color: #fff;
+/* Popular, Pro, Escala, Agency: mesmo estilo unificado dos demais */
+.plan-badge-escala,
+.plan-badge-agency {
+  display: inline-block;
+  margin-bottom: 6px;
+  padding: 6px 14px;
+  background: linear-gradient(135deg, #111827 0%, #374151 100%) !important;
+  color: #fff !important;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  border-radius: 999px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
 
 /* Esquema unificado dos cards (mensais) */
