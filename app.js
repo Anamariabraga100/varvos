@@ -2182,6 +2182,7 @@ function translateApiError(msg) {
     [/content policy|safety|blocked|bloqueado/i, 'O conteúdo foi bloqueado pelas políticas de segurança.'],
     [/invalid image|image.*not supported/i, 'Imagem inválida ou não suportada. Use PNG, JPG ou WEBP.'],
     [/task failed|generation failed|geração falhou/i, 'A geração falhou. Tente novamente.'],
+    [/task not found|tarefa não encontrada|task.*not found/i, 'Tarefa não encontrada. A geração pode ter expirado ou a conexão foi interrompida. Tente gerar novamente.'],
   ];
   for (const [pattern, translated] of map) {
     if (pattern.test(msg)) return translated;
@@ -2376,11 +2377,12 @@ function isLoggedIn() {
   } catch { return false; }
 }
 
-async function saveActiveTask(taskId, startTime, prompt, cost) {
+async function saveActiveTask(taskId, startTime, prompt, cost, model) {
   const payload = {
     taskId,
     startTime: startTime || Date.now(),
     mode: currentMode,
+    model: model || (currentMode === 'motion' ? 'kling-2.6/motion-control' : 'veo3.1-fast'),
     prompt: prompt || '',
     cost: cost
   };
@@ -2408,6 +2410,7 @@ async function saveActiveTask(taskId, startTime, prompt, cost) {
         user_id: userId,
         task_id: taskId,
         mode: currentMode,
+        model: payload.model || null,
         prompt: prompt || '',
         cost: cost != null ? cost : null,
         started_at: new Date(payload.startTime).toISOString()
@@ -2457,7 +2460,7 @@ async function getStoredActiveTasks() {
   if (userId && sb) {
     try {
       const { data } = await sb.from('user_active_task_items')
-        .select('task_id, started_at, mode, prompt, cost')
+        .select('task_id, started_at, mode, model, prompt, cost')
         .eq('user_id', userId)
         .order('started_at', { ascending: false })
         .limit(5);
@@ -2467,6 +2470,7 @@ async function getStoredActiveTasks() {
             taskId: row.task_id,
             startTime: row.started_at ? new Date(row.started_at).getTime() : Date.now(),
             mode: row.mode || 'video',
+            model: row.model,
             prompt: row.prompt || '',
             cost: row.cost != null ? row.cost : undefined
           });
@@ -2483,7 +2487,7 @@ async function getStoredActiveTasks() {
         const d = JSON.parse(stored);
         const tasks = Array.isArray(d.tasks) ? d.tasks : (d.taskId ? [{ taskId: d.taskId, startTime: d.startTime || Date.now(), mode: d.mode || 'video', prompt: d.prompt || '', cost: d.cost }] : []);
         for (const t of tasks) {
-          const entry = { taskId: t.taskId, startTime: t.startTime || Date.now(), mode: t.mode || 'video', prompt: t.prompt || '', cost: t.cost != null ? t.cost : undefined };
+          const entry = { taskId: t.taskId, startTime: t.startTime || Date.now(), mode: t.mode || 'video', model: t.model, prompt: t.prompt || '', cost: t.cost != null ? t.cost : undefined };
           const existing = byId.get(t.taskId);
           if (!existing || entry.startTime > existing.startTime) byId.set(t.taskId, entry);
         }
@@ -2744,7 +2748,7 @@ async function generateMedia(body) {
     document.getElementById('currentResultSection')?.scrollIntoView({ behavior: 'smooth', block: 'end' });
 
     currentTaskId = taskId;
-    saveActiveTask(taskId, startTime, lastPrompt, cost);
+    saveActiveTask(taskId, startTime, lastPrompt, cost, body?.model);
     updateOutputUI({ status: 'not_started', progress: 0 }, cardRefs, startTime);
 
     updateGenerateButtonLabel(true);
@@ -2910,8 +2914,9 @@ async function syncCompletedTasks() {
   for (const data of tasks) {
     const taskId = data.taskId;
     const isMotion = data.mode === 'motion';
+    const isGrokImageToVideo = data.model === 'grok-imagine/image-to-video';
     try {
-      const result = await getTaskStatus(taskId, isMotion);
+      const result = await getTaskStatus(taskId, isMotion, isGrokImageToVideo);
       if (result?.status === 'finished' && result?.files?.length) {
         const ar = result.files[0]?.file_type === 'video'
           ? (document.getElementById('aspectRatio')?.value || document.getElementById('motionFormat')?.value || '9:16')
@@ -2950,7 +2955,8 @@ function restoreTaskToCard(data, cardIndex) {
   if (cardRefs.progressFill) cardRefs.progressFill.style.width = '0%';
 
   const isMotion = data.mode === 'motion';
-  pollUntilComplete(data.taskId, cardRefs, startTime, isMotion)
+  const isGrokImageToVideo = data.model === 'grok-imagine/image-to-video';
+  pollUntilComplete(data.taskId, cardRefs, startTime, isMotion, isGrokImageToVideo)
     .then((result) => {
       const tid = pollTimeouts.get(data.taskId);
       if (tid) { clearTimeout(tid); pollTimeouts.delete(data.taskId); }
