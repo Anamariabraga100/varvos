@@ -543,7 +543,9 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
     const userDropdown = document.getElementById('userMenuDropdown');
     const plans = document.getElementById('plansModal');
+    const support = document.getElementById('supportModal');
     if (userDropdown && !userDropdown.classList.contains('hidden')) closeUserMenu();
+    else if (support && !support.classList.contains('hidden')) closeSupportModal();
     else if (plans && !plans.classList.contains('hidden')) closePlansModal();
     else if (videoModal && !videoModal.classList.contains('hidden')) closeVideoModal();
     else if (creditsModal && !creditsModal.classList.contains('hidden')) closeCreditsModal();
@@ -885,11 +887,52 @@ function logout() {
   localStorage.removeItem(AUTH_STORAGE);
   updateUserMenu();
   updateUserMenuPlan();
+  window.location.href = '/';
 }
 
 document.getElementById('userMenuLogout')?.addEventListener('click', () => {
   logout();
   closeUserMenu();
+});
+
+document.getElementById('userMenuSupport')?.addEventListener('click', () => {
+  closeUserMenu();
+  openSupportModal();
+});
+
+// Modal Suporte
+function openSupportModal() {
+  const m = document.getElementById('supportModal');
+  if (!m) return;
+  try {
+    const user = JSON.parse(localStorage.getItem(AUTH_STORAGE) || '{}');
+    const emailEl = document.getElementById('supportEmail');
+    const nameEl = document.getElementById('supportName');
+    if (emailEl && user?.email) emailEl.value = user.email;
+    if (nameEl && user?.name) nameEl.value = user.name;
+  } catch (_) {}
+  m.classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeSupportModal() {
+  const m = document.getElementById('supportModal');
+  if (m) m.classList.add('hidden');
+  document.body.style.overflow = '';
+}
+
+document.getElementById('supportModalClose')?.addEventListener('click', closeSupportModal);
+document.querySelector('.support-modal-backdrop')?.addEventListener('click', closeSupportModal);
+
+document.getElementById('supportForm')?.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const name = document.getElementById('supportName')?.value || '';
+  const email = document.getElementById('supportEmail')?.value || '';
+  const msg = document.getElementById('supportMessage')?.value || '';
+  const subject = encodeURIComponent('Suporte VARVOS');
+  const body = encodeURIComponent(`Nome: ${name}\nE-mail: ${email}\n\nMensagem:\n${msg}`);
+  window.location.href = `mailto:contato@varvos.com?subject=${subject}&body=${body}`;
+  closeSupportModal();
 });
 
 // Plans modal: tabs e fechar

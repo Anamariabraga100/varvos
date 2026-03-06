@@ -65,9 +65,9 @@ async function handleGoogleCredential(response) {
 function initGoogleButtonInModal() {
   if (!clientId || !container) return;
   container.innerHTML = '';
-  var w = container.parentElement && container.parentElement.offsetWidth > 0
-    ? container.parentElement.offsetWidth
-    : 360;
+  var parent = container.closest('.auth-modal-content');
+  var parentW = (parent && parent.offsetWidth > 0) ? parent.offsetWidth : 380;
+  var w = Math.min(Math.max(parentW - 60, 280), 360);
   google.accounts.id.initialize({
     client_id: clientId,
     callback: handleGoogleCredential,

@@ -92,6 +92,7 @@ function initLandingHamburger() {
     localStorage.removeItem(AUTH_STORAGE);
     toggleLandingHamburger(false);
     updateLandingAuthUI();
+    window.location.href = '/';
   });
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && overlay?.classList.contains('open')) {

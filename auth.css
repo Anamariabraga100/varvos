@@ -113,6 +113,17 @@ body {
   gap: 12px;
 }
 
+#googleAuthContainer {
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+#googleAuthContainer > div {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
 .auth-options.hidden {
   display: none;
 }

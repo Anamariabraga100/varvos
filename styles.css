@@ -2529,3 +2529,81 @@ select:focus {
   background: #f0f0f0;
   color: #111;
 }
+
+/* Modal Suporte */
+.support-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  overflow-y: auto;
+}
+.support-modal.hidden { display: none !important; }
+.support-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  cursor: pointer;
+}
+.support-modal-card {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  margin: auto;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.12);
+  padding: 28px 24px;
+}
+.support-modal-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: #6b6b6b;
+  font-size: 1.5rem;
+  cursor: pointer;
+  border-radius: 8px;
+}
+.support-modal-close:hover { background: #f3f4f6; color: #1a1a1a; }
+.support-modal-title { margin: 0 0 8px; font-size: 1.25rem; font-weight: 600; color: #1a1a1a; }
+.support-modal-sub { margin: 0 0 20px; font-size: 0.9rem; color: var(--text-muted); line-height: 1.5; }
+.support-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.support-form label { font-size: 0.9rem; font-weight: 500; color: var(--text); }
+.support-form input,
+.support-form textarea {
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 1rem;
+  background: var(--bg-card);
+}
+.support-form textarea { resize: vertical; min-height: 100px; }
+.support-modal-btn {
+  padding: 14px 20px;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 10px;
+  border: none;
+  background: var(--btn-bg);
+  color: white;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.2s;
+}
+.support-modal-btn:hover { background: var(--btn-hover); }
