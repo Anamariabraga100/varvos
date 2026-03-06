@@ -132,6 +132,7 @@ async function loadDashboard() {
     setStat('statRecurring', '—');
     setStat('statNewPurchases', '—');
     setStat('statPayingToday', '—');
+    setStat('statRepeatBuyersToday', '—');
     document.getElementById('usersTableBody').innerHTML = '<tr><td colspan="5">Supabase não configurado (config.js)</td></tr>';
     document.getElementById('paymentsTableBody').innerHTML = '<tr><td colspan="6">Supabase não configurado</td></tr>';
     return;
@@ -163,6 +164,9 @@ async function loadDashboard() {
     const recurring = paymentsPeriod.filter(p => (p.metadata?.type || '').toLowerCase() === 'assinatura').length;
     const newPurchases = paymentsPeriod.filter(p => (p.metadata?.type || '').toLowerCase() === 'avulso' || !p.metadata?.type).length;
     const payingToday = new Set(paymentsToday.map(p => p.user_id)).size;
+    const countByUserToday = {};
+    paymentsToday.forEach(p => { countByUserToday[p.user_id] = (countByUserToday[p.user_id] || 0) + 1; });
+    const multiPurchaseToday = Object.values(countByUserToday).filter(c => c >= 2).length;
 
     setStat('statTotalUsers', totalUsers);
     setStat('statTotalRevenue', totalRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
@@ -171,6 +175,7 @@ async function loadDashboard() {
     setStat('statRecurring', recurring);
     setStat('statNewPurchases', newPurchases);
     setStat('statPayingToday', payingToday);
+    setStat('statRepeatBuyersToday', multiPurchaseToday);
 
     const tbody = document.getElementById('usersTableBody');
     tbody.innerHTML = users.length ? users.slice(0, 20).map(u => `
@@ -219,10 +224,10 @@ async function loadDashboard() {
       const sc = statusClass(p.status);
       return `
         <tr>
-          <td>${escapeHtml(u?.email || p.user_id)}</td>
           <td><strong>R$ ${Number(p.amount || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong></td>
           <td><span class="type-badge type-${(p.metadata?.type || 'avulso').toLowerCase()}">${escapeHtml(paymentTypeLabel(p))}</span></td>
           <td><span class="status-badge ${sc}">${escapeHtml(p.status || '—')}</span></td>
+          <td>${escapeHtml(u?.email || p.user_id)}</td>
           <td>${escapeHtml(p.gateway || '—')}</td>
           <td>${formatDate(p.created_at)}</td>
         </tr>

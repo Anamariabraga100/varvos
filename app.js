@@ -529,6 +529,11 @@ outputResultsList?.addEventListener('click', (e) => {
     e.preventDefault();
     const card = closeBtn.closest('.output-result-card');
     if (card) {
+      const taskId = Array.from(activeTasks.entries()).find(([, m]) => m.cardRefs?.card === card)?.[0];
+      if (taskId) {
+        activeTasks.delete(taskId);
+        clearActiveTask(taskId).catch(() => {});
+      }
       card.classList.add('hidden');
       const video = card.querySelector('.media-output');
       if (video) { video.src = ''; video.style.display = 'none'; }
@@ -1368,10 +1373,12 @@ async function addToHistorySupabase(entry) {
 
 async function addToHistory(data, prompt, aspectRatio) {
   if (data.status !== 'finished' || !data.files?.length) return;
+  const tid = data.task_id;
+  if (historyCache.some(e => e.task_id === tid)) return;
   const ar = aspectRatio || document.getElementById('aspectRatio')?.value || '9:16';
   const entry = {
-    id: data.task_id + '-' + Date.now(),
-    task_id: data.task_id,
+    id: tid + '-' + Date.now(),
+    task_id: tid,
     created_time: data.created_time || new Date().toISOString(),
     prompt: prompt || '',
     mode: data.files[0].file_type === 'video' ? 'video' : 'image',
