@@ -522,8 +522,24 @@ async function triggerDownload(url, filename) {
   }
 }
 
-// Botão "Gerar novamente" quando der erro de alta demanda ou timeout
+// Botão "Fechar" para ocultar o resultado da tela
 outputResultsList?.addEventListener('click', (e) => {
+  const closeBtn = e.target.closest('.btn-close-result');
+  if (closeBtn) {
+    e.preventDefault();
+    const card = closeBtn.closest('.output-result-card');
+    if (card) {
+      card.classList.add('hidden');
+      const video = card.querySelector('.media-output');
+      if (video) { video.src = ''; video.style.display = 'none'; }
+      const visibleCards = outputResultsList?.querySelectorAll('.output-result-card:not(.hidden)');
+      if (outputPlaceholder && (!visibleCards || visibleCards.length === 0)) {
+        outputPlaceholder.classList.remove('hidden');
+        outputResultsList?.classList.add('hidden');
+      }
+    }
+    return;
+  }
   const retryBtn = e.target.closest('.btn-retry-generation');
   if (retryBtn) {
     e.preventDefault();

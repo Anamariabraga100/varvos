@@ -2177,6 +2177,22 @@ select:focus {
 }
 .btn-share-whatsapp:hover { color: white; }
 
+.btn-close-result {
+  padding: 10px 16px;
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--text-muted, #6b7280);
+  background: transparent;
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.btn-close-result:hover {
+  background: #f3f4f6;
+  color: var(--text, #111827);
+}
+
 .btn-share-facebook {
   background: #1877f2;
   color: white;
