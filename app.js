@@ -1732,6 +1732,7 @@ function buildRequestBody() {
         input.image_urls = [refImageUrl];
         // Modo reference: imagem guia personagem/objeto/estilo (não frame)
         input.generation_type = 'reference';
+        input.generate_type = 'reference'; // alias usado pelo playground Vidgo
       }
       return { model: 'veo3.1-fast', input };
     }
