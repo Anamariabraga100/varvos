@@ -8,10 +8,12 @@ Adicione no Vercel (Settings → Environment Variables) ou em `.env.local`:
 AWS_ACCESS_KEY_ID=SEU_ACCESS_KEY
 AWS_SECRET_ACCESS_KEY=SEU_SECRET_KEY
 AWS_REGION=eu-north-1
-SES_FROM_EMAIL=no-reply@varvos.com
+EMAIL_FROM=no-reply@varvos.com
 SITE_URL=https://www.varvos.com
 SUPABASE_SERVICE_ROLE_KEY=sua-service-role-key
 ```
+
+**Remetentes preparados** (apenas @varvos.com): `no-reply@varvos.com`, `support@varvos.com`, `billing@varvos.com`
 
 ## Verificação do domínio no SES
 
@@ -32,13 +34,21 @@ SUPABASE_SERVICE_ROLE_KEY=sua-service-role-key
 ## Uso programático
 
 ```javascript
-import { sendEmail } from './services/emailService.js';
+import { sendEmail, EMAIL_SENDERS } from './services/emailService.js';
 
 const result = await sendEmail({
   to: 'usuario@email.com',
   subject: 'Assunto',
   html: '<h1>Conteúdo HTML</h1>',
   text: 'Versão texto puro'
+});
+
+// Remetente alternativo (opcional)
+await sendEmail({
+  to: 'cliente@email.com',
+  subject: 'Suporte',
+  html: '<p>...</p>',
+  from: EMAIL_SENDERS.SUPPORT  // support@varvos.com
 });
 
 if (result.success) {
