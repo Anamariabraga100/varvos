@@ -369,7 +369,18 @@ document.getElementById('btnPasswordSubmit')?.addEventListener('click', async ()
   } catch (e) {
     console.error('auth:', e);
     if (errorsEl) {
-      errorsEl.textContent = e?.message?.includes('Invalid') ? 'Senha incorreta.' : (e?.message || 'Erro ao fazer login.');
+      const msg = (e?.message || '').toLowerCase();
+      let text = 'Erro ao fazer login.';
+      if (msg.includes('invalid api key') || msg.includes('api key')) {
+        text = 'Configuração temporária. Tente novamente em alguns minutos.';
+      } else if (msg.includes('invalid') && (msg.includes('password') || msg.includes('senha') || msg.includes('credentials'))) {
+        text = 'Senha incorreta.';
+      } else if (msg.includes('invalid')) {
+        text = 'Senha incorreta.';
+      } else if (e?.message) {
+        text = e.message;
+      }
+      errorsEl.textContent = text;
       errorsEl.classList.remove('hidden');
     }
   } finally {
