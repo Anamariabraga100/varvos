@@ -4,6 +4,8 @@
  * URL: https://seu-dominio.vercel.app/api/webhooks/pagarme
  */
 import { createClient } from '@supabase/supabase-js';
+import { sendEmail } from '../../services/emailService.js';
+import { paymentConfirmedEmail } from '../../templates/emailTemplates.js';
 
 export default async function handler(req, res) {
   if (req.method === 'GET') {
@@ -109,9 +111,26 @@ export default async function handler(req, res) {
     });
     if (logErr) console.error('credit_logs insert:', logErr);
 
-    const { data: userRow } = await supabase.from('users').select('credits').eq('id', targetUserId).single();
+    const { data: userRow } = await supabase.from('users').select('credits, email, name').eq('id', targetUserId).single();
     const newCredits = (userRow?.credits || 0) + credits;
     await supabase.from('users').update({ credits: newCredits }).eq('id', targetUserId);
+
+    const customerEmail = data?.customer?.email || userRow?.email;
+    if (customerEmail) {
+      try {
+        const { subject, html, text } = paymentConfirmedEmail({
+          name: data?.customer?.name || userRow?.name,
+          amount,
+          credits,
+          planName: planId,
+          isSubscription: false,
+        });
+        const result = await sendEmail({ to: customerEmail, subject, html, text });
+        if (!result.success) console.warn('[webhook] E-mail confirmação não enviado:', result.error);
+      } catch (e) {
+        console.warn('[webhook] E-mail confirmação:', e?.message || e);
+      }
+    }
 
     return res.status(200).json({ received: true });
   }
@@ -176,10 +195,27 @@ export default async function handler(req, res) {
     });
 
     const planId = metadata.plan_id;
-    const { data: u } = await supabase.from('users').select('credits, plan').eq('id', targetUserId).single();
+    const { data: u } = await supabase.from('users').select('credits, plan, email, name').eq('id', targetUserId).single();
     const updateData = { credits: (u?.credits || 0) + credits };
     if (planId) updateData.plan = planId;
     await supabase.from('users').update(updateData).eq('id', targetUserId);
+
+    const customerEmail = invoice?.customer?.email || data?.customer?.email || u?.email;
+    if (customerEmail) {
+      try {
+        const { subject, html, text } = paymentConfirmedEmail({
+          name: invoice?.customer?.name || data?.customer?.name || u?.name,
+          amount,
+          credits,
+          planName: planId,
+          isSubscription: true,
+        });
+        const result = await sendEmail({ to: customerEmail, subject, html, text });
+        if (!result.success) console.warn('[webhook] E-mail confirmação assinatura não enviado:', result.error);
+      } catch (e) {
+        console.warn('[webhook] E-mail confirmação assinatura:', e?.message || e);
+      }
+    }
 
     return res.status(200).json({ received: true });
   }

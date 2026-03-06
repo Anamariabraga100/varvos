@@ -73,6 +73,17 @@
           <button type="button" class="auth-back" id="btnBack">← Voltar</button>
         </form>
 
+        <div id="recoveryForm" class="auth-email-form hidden">
+          <h2 class="auth-title" style="font-size:20px;margin-bottom:8px;">Definir nova senha</h2>
+          <p class="auth-subtitle" style="margin-bottom:16px;">Digite sua nova senha abaixo.</p>
+          <label for="recoveryPassword">Nova senha</label>
+          <input type="password" id="recoveryPassword" placeholder="Mínimo 8 caracteres" autocomplete="new-password">
+          <label for="recoveryPasswordConfirm">Confirmar senha</label>
+          <input type="password" id="recoveryPasswordConfirm" placeholder="Repita a senha" autocomplete="new-password">
+          <p class="auth-errors hidden" id="recoveryErrors"></p>
+          <button type="button" class="auth-btn auth-btn-submit" id="btnRecoverySubmit">Salvar nova senha</button>
+        </div>
+
         <p class="auth-legal">
           Ao continuar, você concorda com os <a href="politicas.html">Termos e Políticas</a>.
         </p>

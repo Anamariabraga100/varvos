@@ -58,6 +58,11 @@ async function handleGoogleCredential(response) {
     } catch {}
   }
   localStorage.setItem(AUTH_STORAGE, JSON.stringify(user));
+  fetch('/api/send-welcome-email', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: user.email, name: user.name || '' })
+  }).catch(() => {});
   closeAuthModal();
   window.location.href = getReturnTo();
 }
@@ -233,6 +238,7 @@ document.getElementById('btnEmailContinue')?.addEventListener('click', async () 
 
     const sub = document.getElementById('authSubtitle');
     const hint = document.getElementById('passwordStepHint');
+    const forgotLink = document.getElementById('btnForgotPassword');
     if (exists) {
       if (sub) sub.innerHTML = 'Entre na sua <strong>conta</strong>';
       if (hint) { hint.textContent = 'Digite sua senha para entrar.'; hint.classList.remove('hidden'); }
@@ -240,6 +246,7 @@ document.getElementById('btnEmailContinue')?.addEventListener('click', async () 
       passwordInput.placeholder = 'Digite sua senha';
       confirmWrap?.classList.add('hidden');
       if (submitBtn) submitBtn.textContent = 'Entrar';
+      if (forgotLink) forgotLink.classList.remove('hidden');
     } else {
       if (sub) sub.innerHTML = 'Crie uma conta <strong>gratuita</strong>';
       if (hint) { hint.textContent = 'Crie uma senha com no mínimo 8 caracteres.'; hint.classList.remove('hidden'); }
@@ -247,6 +254,7 @@ document.getElementById('btnEmailContinue')?.addEventListener('click', async () 
       passwordInput.placeholder = 'Mínimo 8 caracteres';
       confirmWrap?.classList.remove('hidden');
       if (submitBtn) submitBtn.textContent = 'Criar conta';
+      if (forgotLink) forgotLink.classList.add('hidden');
     }
     passwordStep?.classList.remove('hidden');
     document.getElementById('authErrorsStep2')?.classList.add('hidden');
@@ -255,6 +263,48 @@ document.getElementById('btnEmailContinue')?.addEventListener('click', async () 
     if (errorsEl) { errorsEl.textContent = 'Não foi possível verificar o e-mail. Tente novamente.'; errorsEl.classList.remove('hidden'); }
   } finally {
     if (btn) { btn.disabled = false; btn.textContent = origText || 'Continuar'; }
+  }
+});
+
+document.getElementById('btnForgotPassword')?.addEventListener('click', async (e) => {
+  e.preventDefault();
+  const email = document.getElementById('email')?.value?.trim();
+  const errorsEl = document.getElementById('authErrorsStep2');
+  if (!email || !email.includes('@')) {
+    if (errorsEl) { errorsEl.textContent = 'Digite um e-mail válido.'; errorsEl.classList.remove('hidden'); }
+    return;
+  }
+  if (errorsEl) errorsEl.classList.add('hidden');
+  const link = e.target.closest('a') || e.target;
+  const origText = link.textContent;
+  if (link) { link.style.pointerEvents = 'none'; link.textContent = 'Enviando...'; }
+  try {
+    const res = await fetch('/api/request-password-reset', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+    const json = await res.json().catch(() => ({}));
+    if (res.ok) {
+      if (errorsEl) {
+        errorsEl.textContent = 'Enviamos um link para seu e-mail. Verifique sua caixa de entrada.';
+        errorsEl.classList.remove('hidden');
+        errorsEl.classList.remove('error');
+      }
+      if (link) link.textContent = 'E-mail enviado';
+    } else {
+      if (errorsEl) {
+        errorsEl.textContent = json.error || 'Não foi possível enviar. Tente novamente.';
+        errorsEl.classList.remove('hidden');
+      }
+      if (link) { link.style.pointerEvents = ''; link.textContent = origText; }
+    }
+  } catch (err) {
+    if (errorsEl) {
+      errorsEl.textContent = 'Erro de conexão. Tente novamente.';
+      errorsEl.classList.remove('hidden');
+    }
+    if (link) { link.style.pointerEvents = ''; link.textContent = origText; }
   }
 });
 
@@ -300,6 +350,11 @@ document.getElementById('btnPasswordSubmit')?.addEventListener('click', async ()
       if (data?.user) {
         const user = await (window.varvosAuthSupabase?.syncUserFromEmail(data.user) || Promise.resolve(null));
         localStorage.setItem(AUTH_STORAGE, JSON.stringify(user || { provider: 'email', email: data.user.email }));
+        fetch('/api/send-welcome-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: data.user.email, name: user?.name || '' })
+        }).catch(() => {});
       }
     } else {
       const { data, error } = await sb.auth.signInWithPassword({ email, password });

@@ -148,6 +148,22 @@ export default async function handler(req, res) {
       const pixCode = (pixCodeRaw && String(pixCodeRaw).length > 50) ? pixCodeRaw : null;
       if (pixCode) {
         data._pix = { code: pixCode, qr_url: tx.qr_code_url || gw.qr_code_url };
+        // E-mail: pagamento gerado (PIX)
+        try {
+          const { sendEmail } = await import('../services/emailService.js');
+          const { paymentGeneratedEmail } = await import('../templates/emailTemplates.js');
+          const amount = (plan.amount || 0) / 100;
+          const { subject, html, text } = paymentGeneratedEmail({
+            name: customer.name,
+            amount,
+            credits: plan.credits,
+            pixCode,
+            pixQrUrl: tx.qr_code_url || gw.qr_code_url,
+          });
+          await sendEmail({ to: email, subject, html, text });
+        } catch (e) {
+          console.warn('[create-order] E-mail não enviado:', e?.message || e);
+        }
       } else if (charge.status === 'failed' && gw?.errors?.length) {
         data._pix = { error: gw.errors.map(function (e) { return e.message; }).join('. ') };
       }

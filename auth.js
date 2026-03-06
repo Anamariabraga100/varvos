@@ -2,6 +2,52 @@ const AUTH_STORAGE = 'varvos_user';
 const REDIRECT_URL = 'video/';
 
 const clientId = window.VARVOS_CONFIG?.googleClientId;
+
+// Fluxo de redefinição de senha (link no e-mail)
+(function initRecovery() {
+  const hash = window.location.hash || '';
+  if (!hash.includes('type=recovery') && !hash.includes('recovery')) return;
+
+  const sb = window.varvosSupabase;
+  if (!sb) return;
+
+  const authOptions = document.getElementById('authOptions');
+  const emailForm = document.getElementById('emailForm');
+  const recoveryForm = document.getElementById('recoveryForm');
+  if (!recoveryForm || !authOptions) return;
+
+  authOptions.classList.add('hidden');
+  if (emailForm) emailForm.classList.add('hidden');
+  recoveryForm.classList.remove('hidden');
+  document.querySelector('.auth-title').textContent = 'Redefinir senha';
+
+  document.getElementById('btnRecoverySubmit')?.addEventListener('click', async () => {
+    const pwd = document.getElementById('recoveryPassword')?.value || '';
+    const pwdConfirm = document.getElementById('recoveryPasswordConfirm')?.value || '';
+    const errEl = document.getElementById('recoveryErrors');
+    const btn = document.getElementById('btnRecoverySubmit');
+
+    if (pwd.length < 8) {
+      if (errEl) { errEl.textContent = 'Use 8 caracteres ou mais.'; errEl.classList.remove('hidden'); }
+      return;
+    }
+    if (pwd !== pwdConfirm) {
+      if (errEl) { errEl.textContent = 'As senhas não conferem.'; errEl.classList.remove('hidden'); }
+      return;
+    }
+    if (errEl) errEl.classList.add('hidden');
+    if (btn) { btn.disabled = true; btn.textContent = 'Salvando...'; }
+
+    try {
+      const { error } = await sb.auth.updateUser({ password: pwd });
+      if (error) throw error;
+      window.location.href = '/video/';
+    } catch (e) {
+      if (errEl) { errEl.textContent = e?.message || 'Erro ao redefinir.'; errEl.classList.remove('hidden'); }
+      if (btn) { btn.disabled = false; btn.textContent = 'Redefinir senha'; }
+    }
+  });
+})();
 const container = document.getElementById('googleAuthContainer');
 const btnGoogle = document.getElementById('btnGoogle');
 
