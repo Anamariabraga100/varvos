@@ -2167,6 +2167,28 @@ function isCreditsError(msg) {
   return msg && /credit|insufficient|saldo|quota|balance|crédito/i.test(msg.toString());
 }
 
+/** Traduz mensagens de erro da API para português. Retorna a mensagem original se já estiver em PT ou não houver mapeamento. */
+function translateApiError(msg) {
+  if (!msg || typeof msg !== 'string') return '';
+  const s = msg.trim().toLowerCase();
+  const map = [
+    [/insufficient.*balance|saldo insuficiente/i, 'Créditos insuficientes. Adicione créditos para tentar novamente.'],
+    [/rate limit|too many requests|muitas requisições/i, 'Muitas requisições. Aguarde um momento e tente novamente.'],
+    [/invalid request|invalid parameter|parâmetro inválido/i, 'Requisição inválida. Verifique os dados e tente novamente.'],
+    [/authentication failed|401|unauthorized/i, 'Falha na autenticação. Verifique sua conexão.'],
+    [/internal server error|500|erro interno/i, 'Erro interno do servidor. Tente novamente em alguns minutos.'],
+    [/timeout|timed out|tempo esgotado/i, 'O processamento demorou muito. Tente novamente.'],
+    [/failed to fetch|network error|connection refused/i, 'Erro de conexão. Verifique sua internet e tente novamente.'],
+    [/content policy|safety|blocked|bloqueado/i, 'O conteúdo foi bloqueado pelas políticas de segurança.'],
+    [/invalid image|image.*not supported/i, 'Imagem inválida ou não suportada. Use PNG, JPG ou WEBP.'],
+    [/task failed|generation failed|geração falhou/i, 'A geração falhou. Tente novamente.'],
+  ];
+  for (const [pattern, translated] of map) {
+    if (pattern.test(msg)) return translated;
+  }
+  return msg;
+}
+
 function showGenerationErrorWithRetry(cardRefs, displayMsg, body) {
   if (!cardRefs?.statusMessage) return;
   cardRefs.statusMessage.textContent = displayMsg;
@@ -2301,7 +2323,7 @@ function updateOutputUI(data, cardRefs, startTime) {
     }
     stopLoadingForCard(cardRefs, { keepCompact: true });
     if (statusMessage) {
-      statusMessage.textContent = errMsg || 'O servidor está com alta demanda no momento. Tente novamente em alguns minutos.';
+      statusMessage.textContent = (errMsg ? translateApiError(errMsg) : '') || 'O servidor está com alta demanda no momento. Tente novamente em alguns minutos.';
       statusMessage.className = 'status-message error';
       statusMessage.classList.remove('hidden');
     }
@@ -2515,12 +2537,12 @@ async function pollUntilComplete(taskId, cardRefs, startTime, isMotion = false, 
         if (currentTaskId === taskId) currentTaskId = null;
         clearActiveTask(taskId).catch(() => {});
         if (btnVerify) btnVerify.classList.add('hidden');
-        // Mostrar erro imediatamente — nunca sumir sem avisar o cliente
+        // Mostrar erro imediatamente — mensagem real da API traduzida quando disponível
         stopLoadingForCard(cardRefs, { keepCompact: true });
         if (cardRefs?.statusMessage) {
           const msg = err.isTimeout
             ? 'O processamento demorou mais de 15 minutos e foi cancelado.'
-            : 'O servidor está com alta demanda no momento. Tente novamente em alguns minutos.';
+            : (err.message ? translateApiError(err.message) : '') || 'O servidor está com alta demanda no momento. Tente novamente em alguns minutos.';
           cardRefs.statusMessage.textContent = msg;
           cardRefs.statusMessage.className = 'status-message error';
           cardRefs.statusMessage.classList.remove('hidden');
@@ -2774,10 +2796,10 @@ async function generateMedia(body) {
     } else if (cardRefs?.statusMessage) {
       let displayMsg = err.isTimeout
         ? 'O processamento demorou mais de 15 minutos e foi cancelado.'
-        : 'O servidor está com alta demanda no momento.';
+        : (err.message ? translateApiError(err.message) : '') || 'O servidor está com alta demanda no momento.';
       if (refunded) {
         displayMsg += ' Seus créditos foram reembolsados. Você pode tentar novamente em alguns minutos.';
-      } else if (!err.isTimeout) {
+      } else if (!err.isTimeout && !err.message) {
         displayMsg += ' Tente novamente em alguns minutos.';
       }
       showGenerationErrorWithRetry(cardRefs, displayMsg, body);
@@ -2971,9 +2993,9 @@ function restoreTaskToCard(data, cardIndex) {
       } else if (cardRefs.statusMessage) {
         let msg = err.isTimeout
           ? 'O processamento demorou mais de 15 minutos e foi cancelado.'
-          : 'O servidor está com alta demanda no momento.';
+          : (err.message ? translateApiError(err.message) : '') || 'O servidor está com alta demanda no momento.';
         if (refunded) msg += ' Seus créditos foram reembolsados. Você pode tentar novamente em alguns minutos.';
-        else if (!err.isTimeout) msg += ' Tente novamente em alguns minutos.';
+        else if (!err.isTimeout && !err.message) msg += ' Tente novamente em alguns minutos.';
         cardRefs.statusMessage.textContent = msg;
         cardRefs.statusMessage.className = 'status-message error';
         cardRefs.statusMessage.classList.remove('hidden');
