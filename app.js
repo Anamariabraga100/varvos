@@ -2,6 +2,7 @@ const API_BASE = 'https://api.vidgo.ai';
 const POLL_INTERVAL = 3000;
 const POLL_TIMEOUT_MS = 15 * 60 * 1000; // 15 minutos – cancela se a API não concluir
 const CREDITS_COST_VIDEO = 50;
+const CREDITS_COST_VIDEO_4K = 100;  // veo3.1-fast em 4K custa o dobro
 const CREDITS_PER_SECOND_MOTION_720 = 8;   // Imitar movimento 720p: 8 créditos/segundo
 const CREDITS_PER_SECOND_MOTION_1080 = 11;  // Imitar movimento Full HD (1080p): 11 créditos/segundo
 const SKIP_CREDITS = false;  // true = criar vídeos sem deduzir créditos (para desenvolvimento/teste)
@@ -13,6 +14,7 @@ const ACTIVE_TASK_STORAGE = 'varvos_active_task';
 
 let selectedModel = 'veo3.1-fast';
 let hideModelSelection = false;
+let hideVEO3 = false;
 let currentMode = 'video';
 let currentTaskId = null;
 let lastPrompt = '';
@@ -121,6 +123,7 @@ const btnClearHistory = document.getElementById('btnClearHistory');
 const creditsModal = document.getElementById('creditsModal');
 
 const activeTasks = new Map();
+const reservedCardIndices = new Set();
 const EXPECTED_DURATION_MS = 10 * 60 * 1000;
 
 // Prompt suggestion chips e theme boxes (ao clicar preenche o prompt)
@@ -226,15 +229,28 @@ document.getElementById('videoModel')?.addEventListener('change', updateVideoMod
 
 async function applyHideModelSetting() {
   const fieldModel = document.querySelector('.field-model');
-  if (!fieldModel) return;
+  const modelSel = document.getElementById('videoModel');
+  if (!fieldModel || !modelSel) return;
   const sb = window.varvosSupabase;
   if (!sb) return;
   try {
-    const { data } = await sb.from('app_settings').select('value').eq('key', 'hide_model_selection').maybeSingle();
-    hideModelSelection = !!(data?.value === true || data?.value === 'true');
-    if (hideModelSelection) {
+    const { data: rows } = await sb.from('app_settings').select('key, value').in('key', ['hide_model_selection', 'hide_veo3']);
+    const map = Object.fromEntries((rows || []).map(r => [r.key, r.value]));
+    hideModelSelection = !!(map.hide_model_selection === true || map.hide_model_selection === 'true');
+    hideVEO3 = !!(map.hide_veo3 === true || map.hide_veo3 === 'true');
+
+    if (hideVEO3) {
+      const veoOpt = modelSel.querySelector('option[value="veo3.1-fast"]');
+      if (veoOpt) veoOpt.remove();
+      modelSel.value = 'sora-2';
+      selectedModel = 'sora-2';
+      fieldModel.classList.remove('hidden');
+      updateVideoModelUI();
+    } else if (hideModelSelection) {
       fieldModel.classList.add('hidden');
       selectedModel = 'veo3.1-fast';
+      updateVideoModelUI();
+    } else {
       updateVideoModelUI();
     }
   } catch (e) {
@@ -294,10 +310,16 @@ function syncConfigCardDisplays() {
   }
   if (resSel && resDisp) resDisp.textContent = resSel.selectedOptions[0]?.text || resSel.value;
 }
-document.getElementById('videoModel')?.addEventListener('change', syncConfigCardDisplays);
+document.getElementById('videoModel')?.addEventListener('change', () => {
+  syncConfigCardDisplays();
+  if (currentMode === 'video') updateGenerateButtonLabel(true);
+});
 document.getElementById('aspectRatio')?.addEventListener('change', syncConfigCardDisplays);
 document.getElementById('duration')?.addEventListener('change', syncConfigCardDisplays);
-document.getElementById('veoResolution')?.addEventListener('change', syncConfigCardDisplays);
+document.getElementById('veoResolution')?.addEventListener('change', () => {
+  syncConfigCardDisplays();
+  if (currentMode === 'video') updateGenerateButtonLabel(true);
+});
 if (document.getElementById('videoModel')) syncConfigCardDisplays();
 
 // Sincroniza displays dos config cards — Imitar Movimento
@@ -1068,7 +1090,11 @@ function applyMode(mode) {
         cost = '—';
         hasValue = false;
       }
-    } else if (currentMode === 'video' || currentMode === 'image') {
+    } else if (currentMode === 'video') {
+      const model = document.getElementById('videoModel')?.value || 'veo3.1-fast';
+      const resolution = document.getElementById('veoResolution')?.value || '720p';
+      cost = getCreditsCostForBody({ model, input: { resolution } });
+    } else if (currentMode === 'image') {
       cost = CREDITS_COST_VIDEO;
     }
     btnText.textContent = hasValue ? `${labels[currentMode] || 'Gerar'} · ${cost} créditos` : labels[currentMode] || 'Gerar';
@@ -1139,19 +1165,53 @@ async function loadHistoryFromSupabase() {
   if (!userId || !sb) return;
   try {
     const { data } = await sb.from('user_creations').select('task_id, prompt, mode, files, created_at, aspect_ratio').eq('user_id', userId).order('created_at', { ascending: false }).limit(50);
-    if (data && data.length) {
-      historyCache = data.map(row => ({
-        id: row.task_id + '-' + (row.created_at ? new Date(row.created_at).getTime() : Date.now()),
-        task_id: row.task_id,
-        created_time: row.created_at,
-        prompt: row.prompt || '',
-        mode: row.mode || 'video',
-        files: row.files || [],
-        aspect_ratio: row.aspect_ratio || '9:16'
-      }));
-      renderHistory();
-    }
-  } catch (e) { console.warn('loadHistoryFromSupabase:', e); }
+    const fromSupabase = (data || []).map(row => ({
+      id: row.task_id + '-' + (row.created_at ? new Date(row.created_at).getTime() : Date.now()),
+      task_id: row.task_id,
+      created_time: row.created_at,
+      prompt: row.prompt || '',
+      mode: row.mode || 'video',
+      files: row.files || [],
+      aspect_ratio: row.aspect_ratio || '9:16'
+    }));
+    const supabaseTaskIds = new Set(fromSupabase.map(i => i.task_id));
+    let localOnly = [];
+    try {
+      const raw = localStorage.getItem(HISTORY_STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        const items = Array.isArray(parsed) ? parsed : [];
+        localOnly = items.filter(i => i.task_id && !supabaseTaskIds.has(i.task_id) && i.files?.length);
+        for (const entry of localOnly) {
+          try {
+            await sb.from('user_creations').insert({
+              user_id: userId,
+              task_id: entry.task_id,
+              prompt: entry.prompt || '',
+              mode: entry.mode || 'video',
+              files: entry.files || [],
+              aspect_ratio: entry.aspect_ratio || '9:16'
+            });
+            supabaseTaskIds.add(entry.task_id);
+          } catch (_) {}
+        }
+      }
+    } catch (_) {}
+    const recovered = localOnly.filter(i => supabaseTaskIds.has(i.task_id));
+    historyCache = [...recovered, ...fromSupabase]
+      .filter((v, i, a) => a.findIndex(x => x.task_id === v.task_id) === i)
+      .sort((a, b) => (new Date(b.created_time || 0)) - (new Date(a.created_time || 0)))
+      .slice(0, 50);
+    saveHistory(historyCache);
+    renderHistory();
+  } catch (e) {
+    console.warn('loadHistoryFromSupabase:', e);
+    try {
+      const raw = localStorage.getItem(HISTORY_STORAGE_KEY);
+      historyCache = raw ? JSON.parse(raw) : [];
+    } catch (_) { historyCache = []; }
+    renderHistory();
+  }
 }
 
 async function loadHistory() {
@@ -1182,7 +1242,15 @@ async function addToHistorySupabase(entry) {
     };
     if (entry.aspect_ratio) row.aspect_ratio = entry.aspect_ratio;
     await sb.from('user_creations').insert(row);
-  } catch (e) { console.warn('addToHistorySupabase:', e); }
+  } catch (e) {
+    console.warn('addToHistorySupabase:', e);
+    const toast = document.createElement('div');
+    toast.className = 'generation-toast';
+    toast.textContent = 'Vídeo salvo localmente. Baixe agora para não perder — não foi possível sincronizar com sua conta.';
+    toast.setAttribute('role', 'status');
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 5000);
+  }
 }
 
 async function addToHistory(data, prompt, aspectRatio) {
@@ -1689,7 +1757,11 @@ function updateGenerateButtonLabel(showCredits = true) {
       cost = '—';
       hasValue = false;
     }
-  } else if (currentMode === 'video' || currentMode === 'image') {
+  } else if (currentMode === 'video') {
+    const model = document.getElementById('videoModel')?.value || 'veo3.1-fast';
+    const resolution = document.getElementById('veoResolution')?.value || '720p';
+    cost = getCreditsCostForBody({ model, input: { resolution } });
+  } else if (currentMode === 'image') {
     cost = CREDITS_COST_VIDEO;
   }
   btnText.textContent = hasValue ? `${labels[currentMode] || 'Gerar'} · ${cost} créditos` : labels[currentMode] || 'Gerar';
@@ -1714,7 +1786,7 @@ function buildRequestBody() {
     return { model: 'kling-2.6/motion-control', input };
   }
   if (currentMode === 'video') {
-    const model = hideModelSelection ? 'veo3.1-fast' : selectedModel;
+    const model = hideVEO3 ? 'sora-2' : (hideModelSelection ? 'veo3.1-fast' : selectedModel);
     const prompt = document.getElementById('prompt').value.trim();
 
     if (model === 'veo3.1-fast') {
@@ -2250,14 +2322,17 @@ async function pollUntilComplete(taskId, cardRefs, startTime, isMotion = false) 
   });
 }
 
+const MAX_CONCURRENT_CARDS = 3;
+
 function getAvailableCardIndex() {
-  const card0 = outputResultsList?.querySelector('.output-result-card[data-card="0"]');
-  const card1 = outputResultsList?.querySelector('.output-result-card[data-card="1"]');
-  const inUse0 = Array.from(activeTasks.values()).some(m => m.cardRefs?.card === card0);
-  const inUse1 = Array.from(activeTasks.values()).some(m => m.cardRefs?.card === card1);
-  if (!inUse0) return 0;
-  if (!inUse1) return 1;
-  return 0;
+  for (let i = 0; i < MAX_CONCURRENT_CARDS; i++) {
+    if (reservedCardIndices.has(i)) continue;
+    const card = outputResultsList?.querySelector(`.output-result-card[data-card="${i}"]`);
+    if (!card) continue;
+    const inUse = Array.from(activeTasks.values()).some(m => m.cardRefs?.card === card);
+    if (!inUse) return i;
+  }
+  return -1;
 }
 
 function getMotionRefVideoDuration() {
@@ -2273,7 +2348,13 @@ function getCreditsPerSecondMotion(resolution) {
 
 function getCreditsCostForBody(body) {
   const isMotion = body?.model === 'kling-2.6/motion-control';
-  if (!isMotion) return CREDITS_COST_VIDEO;
+  if (!isMotion) {
+    // veo3.1-fast em 4K custa o dobro
+    if (body?.model === 'veo3.1-fast' && (body?.input?.resolution === '4k' || body?.input?.resolution === '4K')) {
+      return CREDITS_COST_VIDEO_4K;
+    }
+    return CREDITS_COST_VIDEO;
+  }
   const resolution = body?.input?.mode || document.getElementById('motionResolution')?.value || '720p';
   const creditsPerSec = getCreditsPerSecondMotion(resolution);
   const duration = getMotionRefVideoDuration();
@@ -2312,11 +2393,23 @@ async function generateMedia(body) {
   const cardRefs = getCardByIndex(cardIndex);
 
   if (!cardRefs) {
+    if (cardIndex === -1) {
+      const inProgress = activeTasks.size + reservedCardIndices.size;
+      const toast = document.createElement('div');
+      toast.className = 'generation-toast';
+      toast.textContent = inProgress >= 1
+        ? `${inProgress} vídeo${inProgress > 1 ? 's' : ''} em geração. Aguarde um terminar para iniciar outro.`
+        : `Aguarde uma geração terminar. Você pode gerar até ${MAX_CONCURRENT_CARDS} vídeos ao mesmo tempo.`;
+      toast.setAttribute('role', 'status');
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 4000);
+    }
     updateGenerateButtonLabel(true);
     if (currentMode === 'video') updateRefImageReadyState(); else btnGenerate.disabled = false;
     return;
   }
 
+  reservedCardIndices.add(cardIndex);
   const card = cardRefs.card;
   if (card.classList.contains('hidden')) card.classList.remove('hidden');
 
@@ -2370,6 +2463,7 @@ async function generateMedia(body) {
 
     const aspectRatio = (currentMode === 'motion' ? document.getElementById('motionFormat') : document.getElementById('aspectRatio'))?.value || '9:16';
     if (cardRefs.card) cardRefs.card.dataset.aspectRatio = aspectRatio;
+    reservedCardIndices.delete(cardIndex);
     activeTasks.set(taskId, { cardRefs, startTime, prompt: lastPrompt, aspectRatio, isMotion: body?.model === 'kling-2.6/motion-control' });
     startLoadingForCard(cardRefs, currentMode);
     document.getElementById('currentResultSection')?.scrollIntoView({ behavior: 'smooth', block: 'end' });
@@ -2393,6 +2487,7 @@ async function generateMedia(body) {
       addToHistory(result, lastPrompt, ar);
     }
   } catch (err) {
+    reservedCardIndices.delete(cardIndex);
     if (taskId) activeTasks.delete(taskId);
     if (body?.model === 'kling-2.6/motion-control') deleteMotionRefsFromStorage();
     stopLoadingForCard(cardRefs);
@@ -2521,8 +2616,31 @@ if (promptParam && pathname.includes('video')) {
   } catch (_) {}
 }
 
+// Sincronizar tarefas que já terminaram enquanto o usuário estava fora — adiciona a "Seus vídeos"
+async function syncCompletedTasks() {
+  const tasks = await getStoredActiveTasks();
+  if (tasks.length === 0) return;
+  for (const data of tasks) {
+    const taskId = data.taskId;
+    const isMotion = data.mode === 'motion';
+    try {
+      const result = await getTaskStatus(taskId, isMotion);
+      if (result?.status === 'finished' && result?.files?.length) {
+        const ar = result.files[0]?.file_type === 'video'
+          ? (document.getElementById('aspectRatio')?.value || document.getElementById('motionFormat')?.value || '9:16')
+          : (document.getElementById('imgSize')?.value || '1:1');
+        addToHistory(result, data.prompt || '', ar);
+        await clearActiveTask(taskId);
+      } else if (result?.status === 'failed') {
+        await clearActiveTask(taskId);
+      }
+    } catch (_) {}
+  }
+}
+
 // Restaurar tarefas em andamento após recarregar (Supabase se logado, senão sessionStorage)
 async function restoreActiveTask() {
+  await syncCompletedTasks();
   if (!outputPlaceholder || !outputResultsList) return;
   const tasks = await getStoredActiveTasks();
   if (tasks.length === 0) return;

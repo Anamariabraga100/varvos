@@ -93,11 +93,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function loadAppSettings() {
   const sb = window.varvosSupabase;
-  const checkbox = document.getElementById('hideModelSelection');
-  if (!sb || !checkbox) return;
+  const hideModelCb = document.getElementById('hideModelSelection');
+  const hideVEO3Cb = document.getElementById('hideVEO3');
+  if (!sb) return;
   try {
-    const { data } = await sb.from('app_settings').select('value').eq('key', 'hide_model_selection').maybeSingle();
-    checkbox.checked = !!(data?.value === true || data?.value === 'true');
+    const { data: rows } = await sb.from('app_settings').select('key, value').in('key', ['hide_model_selection', 'hide_veo3']);
+    const map = Object.fromEntries((rows || []).map(r => [r.key, r.value]));
+    if (hideModelCb) hideModelCb.checked = !!(map.hide_model_selection === true || map.hide_model_selection === 'true');
+    if (hideVEO3Cb) hideVEO3Cb.checked = !!(map.hide_veo3 === true || map.hide_veo3 === 'true');
   } catch (e) {
     console.error('loadAppSettings:', e);
   }
@@ -105,13 +108,14 @@ async function loadAppSettings() {
 
 async function saveAppSettings() {
   const sb = window.varvosSupabase;
-  const checkbox = document.getElementById('hideModelSelection');
-  if (!sb || !checkbox) return;
+  const hideModelCb = document.getElementById('hideModelSelection');
+  const hideVEO3Cb = document.getElementById('hideVEO3');
+  if (!sb) return;
   try {
-    await sb.from('app_settings').upsert(
-      { key: 'hide_model_selection', value: checkbox.checked, updated_at: new Date().toISOString() },
-      { onConflict: 'key' }
-    );
+    const rows = [];
+    if (hideModelCb) rows.push({ key: 'hide_model_selection', value: hideModelCb.checked, updated_at: new Date().toISOString() });
+    if (hideVEO3Cb) rows.push({ key: 'hide_veo3', value: hideVEO3Cb.checked, updated_at: new Date().toISOString() });
+    if (rows.length) await sb.from('app_settings').upsert(rows, { onConflict: 'key' });
   } catch (e) {
     console.error('saveAppSettings:', e);
   }
@@ -215,6 +219,7 @@ async function loadDashboard() {
 }
 
 document.getElementById('hideModelSelection')?.addEventListener('change', saveAppSettings);
+document.getElementById('hideVEO3')?.addEventListener('change', saveAppSettings);
 
 function escapeHtml(s) {
   if (s == null) return '';
