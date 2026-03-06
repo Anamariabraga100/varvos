@@ -174,6 +174,209 @@ body {
   padding: 32px 24px;
 }
 
+/* Overview — filtro e cards estilo Stripe */
+.admin-overview {
+  background: var(--admin-card);
+  border: 1px solid var(--admin-border);
+  border-radius: 12px;
+  padding: 28px;
+  margin-bottom: 24px;
+  box-shadow: var(--admin-shadow);
+}
+
+.admin-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.admin-overview-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--admin-text);
+  letter-spacing: -0.02em;
+}
+
+.admin-filter-pills {
+  display: flex;
+  gap: 6px;
+  background: var(--admin-bg);
+  padding: 4px;
+  border-radius: 10px;
+  border: 1px solid var(--admin-border);
+}
+
+.admin-filter-pill {
+  padding: 10px 18px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--admin-text-muted);
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.admin-filter-pill:hover {
+  color: var(--admin-text);
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.admin-filter-pill.active {
+  color: var(--admin-accent);
+  background: var(--admin-card);
+  box-shadow: var(--admin-shadow);
+}
+
+.admin-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.admin-stats-secondary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 16px;
+  margin-bottom: 0;
+  padding-top: 20px;
+  border-top: 1px solid var(--admin-border);
+}
+
+.stat-card-primary .stat-value {
+  color: var(--admin-accent);
+  font-size: 2.25rem;
+}
+
+.stat-card-muted .stat-value {
+  font-size: 1.5rem;
+  color: var(--admin-text-muted);
+}
+
+.stat-card-muted .stat-label {
+  color: #8898aa;
+  font-size: 0.8rem;
+}
+
+/* Badge tipo de compra */
+.admin-table .type-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.admin-table .type-badge.type-assinatura {
+  background: #e8f4fd;
+  color: #0c5a9e;
+}
+
+.admin-table .type-badge.type-avulso {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+/* Overview — filtro e cards Stripe-style */
+.admin-overview {
+  background: var(--admin-card);
+  border: 1px solid var(--admin-border);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: var(--admin-shadow);
+}
+
+.admin-filter-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.admin-overview-title {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--admin-text);
+  letter-spacing: -0.02em;
+}
+
+.admin-filter-pills {
+  display: flex;
+  gap: 6px;
+  background: var(--admin-bg);
+  padding: 4px;
+  border-radius: 10px;
+  border: 1px solid var(--admin-border);
+}
+
+.admin-filter-pill {
+  padding: 8px 16px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--admin-text-muted);
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.admin-filter-pill:hover {
+  color: var(--admin-text);
+}
+
+.admin-filter-pill.active {
+  background: var(--admin-card);
+  color: var(--admin-accent);
+  box-shadow: var(--admin-shadow);
+}
+
+.admin-stats-grid {
+  margin-bottom: 20px;
+}
+
+.admin-stats-secondary {
+  margin-bottom: 0;
+}
+
+.stat-card-primary .stat-value {
+  color: var(--admin-accent);
+}
+
+.stat-card-muted .stat-value {
+  font-size: 1.5rem;
+  color: var(--admin-text-muted);
+}
+
+/* Tipo badge (Recorrente / Avulso) */
+.admin-table .type-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.admin-table .type-badge.type-assinatura {
+  background: #e8f4fd;
+  color: #0c5a9e;
+}
+
+.admin-table .type-badge.type-avulso {
+  background: #f0f4f8;
+  color: var(--admin-text-muted);
+}
+
 /* Stats — cards Stripe-style */
 .admin-stats {
   display: grid;

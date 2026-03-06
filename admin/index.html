@@ -31,18 +31,46 @@
     </header>
 
     <main class="admin-main">
-      <section class="admin-stats">
-        <div class="stat-card">
-          <span class="stat-value" id="statTotalUsers">—</span>
-          <span class="stat-label">Total de usuários</span>
+      <section class="admin-overview">
+        <div class="admin-filter-row">
+          <h2 class="admin-overview-title">Visão geral</h2>
+          <div class="admin-filter-pills">
+            <button type="button" class="admin-filter-pill active" data-filter="day">Hoje</button>
+            <button type="button" class="admin-filter-pill" data-filter="week">Semana</button>
+            <button type="button" class="admin-filter-pill" data-filter="month">Mês</button>
+          </div>
         </div>
-        <div class="stat-card">
-          <span class="stat-value" id="statTotalRevenue">—</span>
-          <span class="stat-label">Total faturado (R$)</span>
+        <div class="admin-stats admin-stats-grid">
+          <div class="stat-card stat-card-primary">
+            <span class="stat-value" id="statPeriodRevenue">—</span>
+            <span class="stat-label">Vendas no período (R$)</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-value" id="statRecurring">—</span>
+            <span class="stat-label">Compras recorrentes</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-value" id="statNewPurchases">—</span>
+            <span class="stat-label">Novas compras</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-value" id="statPayingToday">—</span>
+            <span class="stat-label">Clientes pagantes hoje</span>
+          </div>
         </div>
-        <div class="stat-card">
-          <span class="stat-value" id="statNewToday">—</span>
-          <span class="stat-label">Novos hoje</span>
+        <div class="admin-stats admin-stats-secondary">
+          <div class="stat-card stat-card-muted">
+            <span class="stat-value" id="statTotalUsers">—</span>
+            <span class="stat-label">Total de usuários</span>
+          </div>
+          <div class="stat-card stat-card-muted">
+            <span class="stat-value" id="statTotalRevenue">—</span>
+            <span class="stat-label">Total faturado (R$)</span>
+          </div>
+          <div class="stat-card stat-card-muted">
+            <span class="stat-value" id="statNewToday">—</span>
+            <span class="stat-label">Novos cadastros hoje</span>
+          </div>
         </div>
       </section>
 
@@ -74,13 +102,14 @@
               <tr>
                 <th>Usuário</th>
                 <th>Valor</th>
+                <th>Tipo</th>
                 <th>Status</th>
                 <th>Gateway</th>
                 <th>Data</th>
               </tr>
             </thead>
             <tbody id="paymentsTableBody">
-              <tr><td colspan="5" class="admin-loading">Carregando…</td></tr>
+              <tr><td colspan="6" class="admin-loading">Carregando…</td></tr>
             </tbody>
           </table>
         </div>

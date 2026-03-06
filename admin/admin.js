@@ -123,36 +123,54 @@ async function saveAppSettings() {
 
 async function loadDashboard() {
   const sb = window.varvosSupabase;
+  const setStat = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
   if (!sb) {
-    document.getElementById('statTotalUsers').textContent = '—';
-    document.getElementById('statTotalRevenue').textContent = '—';
-    document.getElementById('statNewToday').textContent = '—';
-    document.getElementById('usersTableBody').innerHTML = '<tr><td colspan="4">Supabase não configurado (config.js)</td></tr>';
-    document.getElementById('paymentsTableBody').innerHTML = '<tr><td colspan="5">Supabase não configurado</td></tr>';
+    setStat('statTotalUsers', '—');
+    setStat('statTotalRevenue', '—');
+    setStat('statNewToday', '—');
+    setStat('statPeriodRevenue', '—');
+    setStat('statRecurring', '—');
+    setStat('statNewPurchases', '—');
+    setStat('statPayingToday', '—');
+    document.getElementById('usersTableBody').innerHTML = '<tr><td colspan="5">Supabase não configurado (config.js)</td></tr>';
+    document.getElementById('paymentsTableBody').innerHTML = '<tr><td colspan="6">Supabase não configurado</td></tr>';
     return;
   }
 
   try {
     const today = new Date().toISOString().split('T')[0];
     const todayStart = today + 'T00:00:00.000Z';
+    const { from: periodFrom, to: periodTo } = getDateRangeForFilter(salesFilter);
 
-    const [usersRes, paymentsRes, usersTodayRes, totalUsersRes] = await Promise.all([
+    const [usersRes, paymentsRes, usersTodayRes, totalUsersRes, paymentsPeriodRes, paymentsTodayRes] = await Promise.all([
       sb.from('users').select('id, email, name, credits, created_at').order('created_at', { ascending: false }).limit(50),
-      sb.from('payments').select('id, user_id, amount, status, gateway, created_at').order('created_at', { ascending: false }).limit(30),
+      sb.from('payments').select('id, user_id, amount, status, gateway, metadata, created_at').order('created_at', { ascending: false }).limit(100),
       sb.from('users').select('id', { count: 'exact', head: true }).gte('created_at', todayStart),
-      sb.from('users').select('id', { count: 'exact', head: true })
+      sb.from('users').select('id', { count: 'exact', head: true }),
+      sb.from('payments').select('id, user_id, amount, status, metadata, created_at').eq('status', 'completed').gte('created_at', periodFrom).lte('created_at', periodTo),
+      sb.from('payments').select('user_id').eq('status', 'completed').gte('created_at', todayStart)
     ]);
 
     const users = usersRes.data || [];
     const payments = paymentsRes.data || [];
+    const paymentsPeriod = paymentsPeriodRes.data || [];
+    const paymentsToday = paymentsTodayRes.data || [];
     const newToday = usersTodayRes.count ?? 0;
     const totalUsers = totalUsersRes.count ?? 0;
 
     const totalRevenue = payments.filter(p => p.status === 'completed').reduce((s, p) => s + Number(p.amount || 0), 0);
+    const periodRevenue = paymentsPeriod.reduce((s, p) => s + Number(p.amount || 0), 0);
+    const recurring = paymentsPeriod.filter(p => (p.metadata?.type || '').toLowerCase() === 'assinatura').length;
+    const newPurchases = paymentsPeriod.filter(p => (p.metadata?.type || '').toLowerCase() === 'avulso' || !p.metadata?.type).length;
+    const payingToday = new Set(paymentsToday.map(p => p.user_id)).size;
 
-    document.getElementById('statTotalUsers').textContent = totalUsers;
-    document.getElementById('statTotalRevenue').textContent = totalRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
-    document.getElementById('statNewToday').textContent = newToday;
+    setStat('statTotalUsers', totalUsers);
+    setStat('statTotalRevenue', totalRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
+    setStat('statNewToday', newToday);
+    setStat('statPeriodRevenue', periodRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
+    setStat('statRecurring', recurring);
+    setStat('statNewPurchases', newPurchases);
+    setStat('statPayingToday', payingToday);
 
     const tbody = document.getElementById('usersTableBody');
     tbody.innerHTML = users.length ? users.slice(0, 20).map(u => `
@@ -193,6 +211,7 @@ async function loadDashboard() {
       if (v === 'refunded') return 'status-refunded';
       return '';
     };
+    const paymentTypeLabel = (p) => ((p.metadata?.type || '').toLowerCase() === 'assinatura' ? 'Recorrente' : 'Avulso');
 
     const paymentsTbody = document.getElementById('paymentsTableBody');
     paymentsTbody.innerHTML = payments.length ? payments.slice(0, 20).map(p => {
@@ -202,24 +221,57 @@ async function loadDashboard() {
         <tr>
           <td>${escapeHtml(u?.email || p.user_id)}</td>
           <td><strong>R$ ${Number(p.amount || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong></td>
+          <td><span class="type-badge type-${(p.metadata?.type || 'avulso').toLowerCase()}">${escapeHtml(paymentTypeLabel(p))}</span></td>
           <td><span class="status-badge ${sc}">${escapeHtml(p.status || '—')}</span></td>
           <td>${escapeHtml(p.gateway || '—')}</td>
           <td>${formatDate(p.created_at)}</td>
         </tr>
       `;
-    }).join('') : '<tr><td colspan="5" class="admin-loading">Nenhum pagamento</td></tr>';
+    }).join('') : '<tr><td colspan="6" class="admin-loading">Nenhum pagamento</td></tr>';
 
   } catch (err) {
     console.error('Admin load:', err);
     const msg = err?.message || 'Erro ao carregar';
     document.getElementById('usersTableBody').innerHTML = `<tr><td colspan="5">Erro: ${escapeHtml(msg)}</td></tr>`;
-    document.getElementById('paymentsTableBody').innerHTML = `<tr><td colspan="5">Erro: ${escapeHtml(msg)}</td></tr>`;
+    document.getElementById('paymentsTableBody').innerHTML = `<tr><td colspan="6">Erro: ${escapeHtml(msg)}</td></tr>`;
   }
   await loadAppSettings();
 }
 
 document.getElementById('hideModelSelection')?.addEventListener('change', saveAppSettings);
 document.getElementById('hideVEO3')?.addEventListener('change', saveAppSettings);
+
+/** Filtro de vendas: day | week | month */
+let salesFilter = 'day';
+
+function getDateRangeForFilter(filter) {
+  const now = new Date();
+  const to = now.toISOString();
+  let from;
+  if (filter === 'day') {
+    const d = new Date(now);
+    d.setHours(0, 0, 0, 0);
+    from = d.toISOString();
+  } else if (filter === 'week') {
+    const d = new Date(now);
+    d.setDate(d.getDate() - 7);
+    from = d.toISOString();
+  } else {
+    const d = new Date(now);
+    d.setMonth(d.getMonth() - 1);
+    from = d.toISOString();
+  }
+  return { from, to };
+}
+
+document.querySelectorAll('.admin-filter-pill').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    salesFilter = btn.dataset.filter || 'day';
+    document.querySelectorAll('.admin-filter-pill').forEach((b) => b.classList.remove('active'));
+    btn.classList.add('active');
+    loadDashboard();
+  });
+});
 
 function escapeHtml(s) {
   if (s == null) return '';

@@ -274,13 +274,16 @@
 .plan-cta-active {
   display: block;
   width: 100%;
-  padding: 14px 24px;
-  background: #10b981;
+  padding: 16px 24px;
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
   color: #fff;
   border-radius: 10px;
-  font-weight: 600;
-  font-size: 1rem;
+  font-weight: 700;
+  font-size: 1.05rem;
   text-align: center;
+  letter-spacing: 0.03em;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);
+  border: 2px solid rgba(255, 255, 255, 0.3);
 }
 
 .plan-name {

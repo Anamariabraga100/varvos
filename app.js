@@ -806,6 +806,15 @@ function openPlansModal() {
   }
 }
 
+const PLAN_ORDER = ['start', 'pro', 'agency'];
+
+function isPlanUpgrade(planId, activePlanId) {
+  if (!activePlanId) return false;
+  const a = PLAN_ORDER.indexOf(activePlanId);
+  const b = PLAN_ORDER.indexOf(planId);
+  return a >= 0 && b >= 0 && b > a;
+}
+
 function updatePlanCardsActiveState() {
   const container = document.getElementById('plansMensais');
   if (!container) return;
@@ -828,15 +837,29 @@ function updatePlanCardsActiveState() {
         badge.classList.remove('hidden');
         if (ctaSlot && ctaSlot.tagName === 'A') {
           if (!card.dataset.originalCta) card.dataset.originalCta = ctaSlot.outerHTML;
-          ctaSlot.outerHTML = '<span class="plan-cta plan-cta-active">ATIVO</span>';
+          ctaSlot.outerHTML = '<span class="plan-cta plan-cta-active">PLANO ATIVO</span>';
         }
       } else {
         if (badge) badge.classList.add('hidden');
         const activeSpan = card.querySelector('.plan-cta-active');
-        if (activeSpan && card.dataset.originalCta) {
+        const ctaLink = card.querySelector('a.plan-cta');
+        const showUpgrade = activePlanId && isPlanUpgrade(planId, activePlanId);
+        if (activeSpan) {
+          if (!card.dataset.originalCta) return;
+          const orig = card.dataset.originalCta;
           const wrap = document.createElement('div');
-          wrap.innerHTML = card.dataset.originalCta;
+          if (showUpgrade) {
+            const hrefMatch = orig.match(/href="([^"]+)"/);
+            const href = hrefMatch ? hrefMatch[1] : '/checkout?plano=' + planId;
+            wrap.innerHTML = '<a href="' + href + '" class="plan-cta">Fazer upgrade</a>';
+          } else {
+            wrap.innerHTML = orig;
+          }
           activeSpan.replaceWith(wrap.firstChild);
+        } else if (ctaLink) {
+          if (!card.dataset.originalCta) card.dataset.originalCta = ctaLink.outerHTML;
+          if (!card.dataset.originalCtaText) card.dataset.originalCtaText = ctaLink.textContent;
+          ctaLink.textContent = showUpgrade ? 'Fazer upgrade' : card.dataset.originalCtaText;
         }
       }
     });
@@ -2178,6 +2201,7 @@ function translateApiError(msg, model) {
     return MSG_SERVER_ALTA_DEMANDA;
   }
   const map = [
+    [/server exception|erro do servidor/i, 'Muitos vídeos estão sendo gerados no momento. Você pode tentar mais tarde ou tentar gerar em outro modelo de IA.'],
     [/inappropriate content|conteúdo inadequado|content.*not allowed/i, 'Conteúdo inadequado. Esse tipo de conteúdo não é permitido. Tente outro prompt.'],
     [/insufficient.*balance|saldo insuficiente/i, 'Créditos insuficientes. Adicione créditos para tentar novamente.'],
     [/rate limit|too many requests|muitas requisições/i, 'Muitas requisições. Aguarde um momento e tente novamente.'],
@@ -2778,6 +2802,100 @@ async function generateMedia(body) {
       addToHistory(result, lastPrompt, ar);
     }
   } catch (err) {
+    let amountToRefund = cost;
+    // Fallback Sora 2 -> Grok 15s quando há imagem de referência (sem mostrar erro ao cliente)
+    if (body?.model === 'sora-2' && refImageUrl && !err.isCredits && !err.isTimeout && currentMode === 'video') {
+      const tid = pollTimeouts.get(taskId);
+      if (tid) { clearTimeout(tid); pollTimeouts.delete(taskId); }
+      try {
+        if (creditsDeducted && userId && taskId) {
+          const refundRes = await fetch('/api/refund-credits', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId, amount: amountToRefund, taskId }),
+          });
+          if (refundRes.ok) {
+            creditsDeducted = false;
+            await refreshCreditsFromSupabase();
+          }
+        }
+        const grokBody = {
+          model: 'grok-imagine/image-to-video',
+          input: {
+            image_urls: [refImageUrl],
+            prompt: lastPrompt || document.getElementById('prompt')?.value?.trim() || '',
+            mode: document.getElementById('grokMode')?.value || 'normal',
+            duration: '15',
+            resolution: document.getElementById('grokResolution')?.value || '480p'
+          }
+        };
+        const grokCost = getCreditsCostForBody(grokBody);
+        const creditsNow = getCredits();
+        if (creditsNow == null || creditsNow < grokCost) throw new Error('Créditos insuficientes para tentar com outro modelo');
+
+        if (cardRefs?.statusMessage) {
+          cardRefs.statusMessage.textContent = '';
+          cardRefs.statusMessage.classList.add('hidden');
+        }
+        if (cardRefs?.taskStatusEl) {
+          cardRefs.taskStatusEl.textContent = 'Gerando...';
+          cardRefs.taskStatusEl.className = 'status-badge';
+        }
+        cardRefs.card?.querySelector('.status-retry-wrap')?.remove();
+        startLoadingForCard(cardRefs, 'video', { refImageUrl, prompt: lastPrompt });
+
+        taskId = await submitTask(grokBody);
+        if (!taskId) throw new Error('Falha ao iniciar geração alternativa');
+
+        if (!SKIP_CREDITS) {
+          const userRaw = localStorage.getItem(AUTH_STORAGE);
+          const user = userRaw ? JSON.parse(userRaw) : null;
+          const userEmail = (user?.email || '').trim().toLowerCase();
+          const deductRes = await fetch('/api/deduct-credits', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: userId || undefined, email: userEmail || undefined, amount: grokCost, taskId }),
+          });
+          if (!deductRes.ok) throw new Error('Não foi possível debitar créditos');
+          creditsDeducted = true;
+          amountToRefund = grokCost;
+          try {
+            const data = await deductRes.json();
+            if (data.credits != null && user) {
+              user.credits = data.credits;
+              if (data.userId && !user.id) user.id = data.userId;
+              localStorage.setItem(AUTH_STORAGE, JSON.stringify(user));
+              updateCreditsDisplay();
+            }
+          } catch (_) {}
+          await refreshCreditsFromSupabase();
+          animateCreditsDecrease(grokCost);
+          amountToRefund = grokCost;
+        }
+
+        const aspectRatio = '9:16';
+        if (cardRefs.card) cardRefs.card.dataset.aspectRatio = aspectRatio;
+        activeTasks.set(taskId, { cardRefs, startTime, prompt: lastPrompt, aspectRatio, isMotion: false, model: 'grok-imagine/image-to-video' });
+        currentTaskId = taskId;
+        saveActiveTask(taskId, startTime, lastPrompt, grokCost, 'grok-imagine/image-to-video');
+        updateOutputUI({ status: 'not_started', progress: 0 }, cardRefs, startTime);
+
+        const result = await pollUntilComplete(taskId, cardRefs, startTime, false, true);
+        const tid2 = pollTimeouts.get(taskId);
+        if (tid2) { clearTimeout(tid2); pollTimeouts.delete(taskId); }
+        if (result?.status === 'finished' && result?.files?.length) {
+          const ar = document.getElementById('aspectRatio')?.value || '9:16';
+          addToHistory(result, lastPrompt, ar);
+        }
+        updateGenerateButtonLabel(true);
+        if (currentMode === 'video') updateRefImageReadyState(); else btnGenerate.disabled = false;
+        return;
+      } catch (fallbackErr) {
+        console.error('[VARVOS] Fallback Grok falhou:', fallbackErr);
+        err = fallbackErr;
+      }
+    }
+
     reservedCardIndices.delete(cardIndex);
     if (taskId) activeTasks.delete(taskId);
     if (body?.model === 'kling-2.6/motion-control') deleteMotionRefsFromStorage();
@@ -2797,7 +2915,7 @@ async function generateMedia(body) {
         const refundRes = await fetch('/api/refund-credits', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId, amount: cost, taskId }),
+          body: JSON.stringify({ userId, amount: amountToRefund, taskId }),
         });
         if (refundRes.ok) {
           refunded = true;
