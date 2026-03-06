@@ -2234,8 +2234,9 @@ function updateOutputUI(data, cardRefs, startTime) {
     }
     stopLoadingForCard(cardRefs);
     if (statusMessage) {
-      statusMessage.textContent = errMsg || 'Ocorreu um erro ao gerar. Tente novamente em alguns minutos.';
+      statusMessage.textContent = errMsg || 'O servidor está com alta demanda no momento. Tente novamente em alguns minutos.';
       statusMessage.className = 'status-message error';
+      statusMessage.classList.remove('hidden');
     }
   } else {
     if (downloadWarning) downloadWarning.classList.add('hidden');
@@ -2283,6 +2284,7 @@ async function saveActiveTask(taskId, startTime, prompt, cost) {
       if (tasks.length > 2) tasks.shift();
     }
     sessionStorage.setItem(ACTIVE_TASK_STORAGE, JSON.stringify({ tasks }));
+    try { localStorage.setItem(ACTIVE_TASK_STORAGE, JSON.stringify({ tasks })); } catch (_) {}
   } catch (e) {}
   const userId = getCurrentUserId();
   const sb = window.varvosSupabase;
@@ -2308,11 +2310,17 @@ async function clearActiveTask(onlyIfTaskId = null) {
         const d = JSON.parse(stored);
         const tasks = Array.isArray(d.tasks) ? d.tasks : (d.taskId ? [d] : []);
         const filtered = tasks.filter(t => t.taskId !== onlyIfTaskId);
-        if (filtered.length === 0) sessionStorage.removeItem(ACTIVE_TASK_STORAGE);
-        else sessionStorage.setItem(ACTIVE_TASK_STORAGE, JSON.stringify({ tasks: filtered }));
+        if (filtered.length === 0) {
+          sessionStorage.removeItem(ACTIVE_TASK_STORAGE);
+          try { localStorage.removeItem(ACTIVE_TASK_STORAGE); } catch (_) {}
+        } else {
+          sessionStorage.setItem(ACTIVE_TASK_STORAGE, JSON.stringify({ tasks: filtered }));
+          try { localStorage.setItem(ACTIVE_TASK_STORAGE, JSON.stringify({ tasks: filtered })); } catch (_) {}
+        }
       }
     } else {
       sessionStorage.removeItem(ACTIVE_TASK_STORAGE);
+      try { localStorage.removeItem(ACTIVE_TASK_STORAGE); } catch (_) {}
     }
   } catch (e) {}
   const userId = getCurrentUserId();
@@ -2329,6 +2337,9 @@ async function clearActiveTask(onlyIfTaskId = null) {
 async function getStoredActiveTasks() {
   const userId = getCurrentUserId();
   const sb = window.varvosSupabase;
+  const byId = new Map();
+
+  // 1. Buscar do Supabase (se logado)
   if (userId && sb) {
     try {
       const { data } = await sb.from('user_active_task_items')
@@ -2337,25 +2348,37 @@ async function getStoredActiveTasks() {
         .order('started_at', { ascending: false })
         .limit(5);
       if (data && data.length > 0) {
-        return data.map(row => ({
-          taskId: row.task_id,
-          startTime: row.started_at ? new Date(row.started_at).getTime() : Date.now(),
-          mode: row.mode || 'video',
-          prompt: row.prompt || '',
-          cost: row.cost != null ? row.cost : undefined
-        }));
+        for (const row of data) {
+          byId.set(row.task_id, {
+            taskId: row.task_id,
+            startTime: row.started_at ? new Date(row.started_at).getTime() : Date.now(),
+            mode: row.mode || 'video',
+            prompt: row.prompt || '',
+            cost: row.cost != null ? row.cost : undefined
+          });
+        }
       }
     } catch (e) { console.warn('getStoredActiveTasks Supabase:', e); }
   }
-  try {
-    const stored = sessionStorage.getItem(ACTIVE_TASK_STORAGE);
-    if (stored) {
-      const d = JSON.parse(stored);
-      const tasks = Array.isArray(d.tasks) ? d.tasks : (d.taskId ? [{ taskId: d.taskId, startTime: d.startTime || Date.now(), mode: d.mode || 'video', prompt: d.prompt || '' }] : []);
-      return tasks.map(t => ({ ...t, prompt: t.prompt || '' })).slice(0, 2);
-    }
-  } catch (e) {}
-  return [];
+
+  // 2. Mesclar sessionStorage + localStorage — nunca perder tarefa salva localmente
+  for (const storage of [sessionStorage, localStorage]) {
+    try {
+      const stored = storage.getItem(ACTIVE_TASK_STORAGE);
+      if (stored) {
+        const d = JSON.parse(stored);
+        const tasks = Array.isArray(d.tasks) ? d.tasks : (d.taskId ? [{ taskId: d.taskId, startTime: d.startTime || Date.now(), mode: d.mode || 'video', prompt: d.prompt || '', cost: d.cost }] : []);
+        for (const t of tasks) {
+          const entry = { taskId: t.taskId, startTime: t.startTime || Date.now(), mode: t.mode || 'video', prompt: t.prompt || '', cost: t.cost != null ? t.cost : undefined };
+          const existing = byId.get(t.taskId);
+          if (!existing || entry.startTime > existing.startTime) byId.set(t.taskId, entry);
+        }
+      }
+    } catch (e) {}
+  }
+
+  const list = Array.from(byId.values()).sort((a, b) => (b.startTime || 0) - (a.startTime || 0)).slice(0, 5);
+  return list;
 }
 
 async function pollUntilComplete(taskId, cardRefs, startTime, isMotion = false) {
@@ -2400,6 +2423,20 @@ async function pollUntilComplete(taskId, cardRefs, startTime, isMotion = false) 
         if (currentTaskId === taskId) currentTaskId = null;
         clearActiveTask(taskId).catch(() => {});
         if (btnVerify) btnVerify.classList.add('hidden');
+        // Mostrar erro imediatamente — nunca sumir sem avisar o cliente
+        stopLoadingForCard(cardRefs);
+        if (cardRefs?.statusMessage) {
+          const msg = err.isTimeout
+            ? 'O processamento demorou mais de 15 minutos e foi cancelado.'
+            : 'O servidor está com alta demanda no momento. Tente novamente em alguns minutos.';
+          cardRefs.statusMessage.textContent = msg;
+          cardRefs.statusMessage.className = 'status-message error';
+          cardRefs.statusMessage.classList.remove('hidden');
+        }
+        if (cardRefs?.taskStatusEl) {
+          cardRefs.taskStatusEl.textContent = 'Falhou';
+          cardRefs.taskStatusEl.className = 'status-badge failed';
+        }
         reject(err);
       }
     };
@@ -2580,6 +2617,13 @@ async function generateMedia(body) {
     stopLoadingForCard(cardRefs);
     console.error('[VARVOS] Erro na geração:', err);
 
+    // Sempre mostrar a seção Resultado com o erro — nunca sumir sem avisar o cliente
+    if (outputPlaceholder && outputResultsList) {
+      outputPlaceholder.classList.add('hidden');
+      outputResultsList.classList.remove('hidden');
+      document.getElementById('currentResultSection')?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    }
+
     let refunded = false;
     if (creditsDeducted && userId && taskId) {
       try {
@@ -2597,10 +2641,10 @@ async function generateMedia(body) {
 
     if (err.isCredits) {
       openPlansModal();
-    } else if (cardRefs.statusMessage) {
+    } else if (cardRefs?.statusMessage) {
       let displayMsg = err.isTimeout
         ? 'O processamento demorou mais de 15 minutos e foi cancelado.'
-        : 'Estamos com alta demanda no momento.';
+        : 'O servidor está com alta demanda no momento.';
       if (refunded) {
         displayMsg += ' Seus créditos foram reembolsados. Você pode tentar novamente em alguns minutos.';
       } else if (!err.isTimeout) {
@@ -2783,14 +2827,24 @@ function restoreTaskToCard(data, cardIndex) {
       }
       if (err.isCredits) {
         openPlansModal();
+        if (cardRefs.statusMessage) {
+          cardRefs.statusMessage.textContent = 'Créditos insuficientes. Adicione créditos para tentar novamente.';
+          cardRefs.statusMessage.className = 'status-message error';
+          cardRefs.statusMessage.classList.remove('hidden');
+        }
       } else if (cardRefs.statusMessage) {
         let msg = err.isTimeout
           ? 'O processamento demorou mais de 15 minutos e foi cancelado.'
-          : 'Estamos com alta demanda no momento.';
+          : 'O servidor está com alta demanda no momento.';
         if (refunded) msg += ' Seus créditos foram reembolsados. Você pode tentar novamente em alguns minutos.';
         else if (!err.isTimeout) msg += ' Tente novamente em alguns minutos.';
         cardRefs.statusMessage.textContent = msg;
         cardRefs.statusMessage.className = 'status-message error';
+        cardRefs.statusMessage.classList.remove('hidden');
+      }
+      if (cardRefs.taskStatusEl) {
+        cardRefs.taskStatusEl.textContent = 'Falhou';
+        cardRefs.taskStatusEl.className = 'status-badge failed';
       }
     })
     .finally(() => {
@@ -2799,24 +2853,22 @@ function restoreTaskToCard(data, cardIndex) {
     });
 }
 
-// Restaurar tarefas em andamento após recarregar (Supabase se logado, senão sessionStorage)
+// Restaurar tarefas em andamento após recarregar — sessão do vídeo em criação nunca deve sumir
 async function restoreActiveTask() {
-  await syncCompletedTasks();
   if (!outputPlaceholder || !outputResultsList) return;
   const tasks = await getStoredActiveTasks();
-  if (tasks.length === 0) return;
-
-  outputPlaceholder.classList.add('hidden');
-  outputResultsList.classList.remove('hidden');
-
-  tasks.forEach((data) => {
-    const cardIndex = getAvailableCardIndex();
-    if (cardIndex >= 0) restoreTaskToCard(data, cardIndex);
-  });
-  if (tasks.length > 0) {
-    currentTaskId = tasks[0].taskId;
+  const toRestore = tasks.filter((t) => t?.taskId && !activeTasks.has(t.taskId));
+  if (toRestore.length > 0) {
+    outputPlaceholder.classList.add('hidden');
+    outputResultsList.classList.remove('hidden');
+    toRestore.forEach((data) => {
+      const cardIndex = getAvailableCardIndex();
+      if (cardIndex >= 0) restoreTaskToCard(data, cardIndex);
+    });
+    currentTaskId = toRestore[0].taskId;
     document.getElementById('currentResultSection')?.scrollIntoView({ behavior: 'smooth', block: 'end' });
   }
+  syncCompletedTasks();
 }
 
 // Polling: buscar tarefas iniciadas em outro dispositivo (ex: celular) e exibir no computador
@@ -2843,5 +2895,15 @@ document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible' && getCurrentUserId()) pollActiveTasksFromOtherDevices();
 });
 
-restoreActiveTask();
+function runRestoreActiveTask() {
+  restoreActiveTask().then(() => {
+    // Retry após 600ms se não restauramos nada — cobre race com Supabase/auth
+    if (activeTasks.size === 0) setTimeout(restoreActiveTask, 600);
+  });
+}
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', runRestoreActiveTask);
+} else {
+  runRestoreActiveTask();
+}
 

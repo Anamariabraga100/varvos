@@ -92,25 +92,46 @@ header {
   box-shadow: 0 4px 20px rgba(0,0,0,0.08);
 }
 
-/* Escala e Agency: melhor custo por vídeo */
+/* Escala e Agency: melhor custo por vídeo — destaque em preto */
 .preco-escala,
 .preco-agency {
-  border: 2px solid rgba(5, 150, 105, 0.5);
-  box-shadow: 0 4px 24px rgba(5, 150, 105, 0.15);
+  border: 2px solid #1a1a1a;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
 }
 
 .preco-escala .preco-por,
 .preco-agency .preco-por {
-  color: #047857;
+  color: #111827;
   font-weight: 700;
 }
 
 .preco-badge-escala,
 .preco-badge-agency {
-  background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+  background: #111827 !important;
   color: #fff !important;
   padding: 6px 14px;
   border-radius: 999px;
+}
+
+.preco-escala .preco-videos-badge,
+.preco-agency .preco-videos-badge {
+  background: rgba(0, 0, 0, 0.06);
+}
+.preco-escala .preco-videos-icon,
+.preco-agency .preco-videos-icon {
+  color: #111827;
+}
+.preco-escala .preco-videos-main,
+.preco-agency .preco-videos-main {
+  color: #111827;
+}
+.preco-escala .preco-videos-credits,
+.preco-agency .preco-videos-credits {
+  color: #374151;
+}
+.preco-escala .preco-garantia,
+.preco-agency .preco-garantia {
+  color: #374151;
 }
 
 .preco-banner-starter {

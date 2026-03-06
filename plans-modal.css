@@ -647,24 +647,24 @@
   font-size: 1.15rem;
 }
 
-/* Escala e Agency: melhor custo por vídeo — destaque especial */
+/* Escala e Agency: melhor custo por vídeo — destaque em preto */
 .plan-card-escala,
 .plan-card-agency {
-  border: 2px solid rgba(5, 150, 105, 0.4);
+  border: 2px solid #1a1a1a;
   border-radius: 14px;
-  box-shadow: 0 4px 20px rgba(5, 150, 105, 0.12);
-  background: linear-gradient(180deg, #fff 0%, rgba(16, 185, 129, 0.03) 100%);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  background: #fff;
 }
 
 .plan-card-escala .plan-price-box,
 .plan-card-agency .plan-price-box {
-  background: rgba(16, 185, 129, 0.06);
-  border-color: rgba(16, 185, 129, 0.25);
+  background: #f8fafc;
+  border-color: #e2e8f0;
 }
 
 .plan-card-escala .plan-price-inverted .plan-per-first,
 .plan-card-agency .plan-price-inverted .plan-per-first {
-  color: #047857;
+  color: #111827;
   font-weight: 800;
 }
 
@@ -673,12 +673,33 @@
   display: inline-block;
   margin-bottom: 6px;
   padding: 5px 12px;
-  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  background: #111827;
   color: #fff;
   font-size: 0.65rem;
   font-weight: 700;
   letter-spacing: 0.06em;
   border-radius: 999px;
+}
+
+.plan-card-escala .plan-videos-badge,
+.plan-card-agency .plan-videos-badge {
+  background: rgba(0, 0, 0, 0.06);
+}
+.plan-card-escala .plan-videos-icon,
+.plan-card-agency .plan-videos-icon {
+  color: #111827;
+}
+.plan-card-escala .plan-videos-main,
+.plan-card-agency .plan-videos-main {
+  color: #111827;
+}
+.plan-card-escala .plan-videos-credits,
+.plan-card-agency .plan-videos-credits {
+  color: #374151;
+}
+.plan-card-escala .plan-features li::before,
+.plan-card-agency .plan-features li::before {
+  color: #111827;
 }
 
 .plan-cta-green {
@@ -698,6 +719,11 @@
   font-size: 0.8rem;
   color: #059669;
   font-weight: 500;
+}
+
+.plan-card-escala .plan-guarantee,
+.plan-card-agency .plan-guarantee {
+  color: #374151;
 }
 
 .plan-badge-popular {

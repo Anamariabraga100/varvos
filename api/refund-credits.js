@@ -8,7 +8,9 @@ import { createClient } from '@supabase/supabase-js';
 
 function isValidAmount(n) {
   if (n === 50) return true;  // vídeo
-  if (n >= 8 && n <= 800 && n % 8 === 0) return true;  // motion: 8 créditos/seg (até 100s)
+  if (n === 100) return true;  // vídeo 4K
+  // motion: 720p=8/seg, 1080p=11/seg — aceita 8–1200
+  if (n >= 8 && n <= 1200 && Number.isInteger(n)) return true;
   return false;
 }
 
@@ -22,7 +24,7 @@ export default async function handler(req, res) {
 
   if (!userId || !taskId || isNaN(amountNum) || !isValidAmount(amountNum)) {
     return res.status(400).json({
-      error: 'userId, taskId e amount válidos são obrigatórios (vídeo: 50 | motion: 8–800, múltiplo de 8)',
+      error: 'userId, taskId e amount válidos são obrigatórios (vídeo: 50 ou 100 | motion: 8–1200)',
     });
   }
 
