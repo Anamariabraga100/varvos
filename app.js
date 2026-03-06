@@ -2130,13 +2130,14 @@ async function saveActiveTask(taskId, startTime, prompt, cost) {
   const sb = window.varvosSupabase;
   if (userId && sb) {
     try {
-      await sb.from('user_active_tasks').upsert({
+      await sb.from('user_active_task_items').upsert({
         user_id: userId,
         task_id: taskId,
         mode: currentMode,
-        started_at: new Date(payload.startTime).toISOString(),
-        updated_at: new Date().toISOString()
-      }, { onConflict: 'user_id' });
+        prompt: prompt || '',
+        cost: cost != null ? cost : null,
+        started_at: new Date(payload.startTime).toISOString()
+      }, { onConflict: 'user_id,task_id' });
     } catch (e) { console.warn('saveActiveTask Supabase:', e); }
   }
 }
@@ -2160,7 +2161,7 @@ async function clearActiveTask(onlyIfTaskId = null) {
   const sb = window.varvosSupabase;
   if (userId && sb) {
     try {
-      let q = sb.from('user_active_tasks').delete().eq('user_id', userId);
+      let q = sb.from('user_active_task_items').delete().eq('user_id', userId);
       if (onlyIfTaskId) q = q.eq('task_id', onlyIfTaskId);
       await q;
     } catch (e) { console.warn('clearActiveTask Supabase:', e); }
@@ -2172,10 +2173,19 @@ async function getStoredActiveTasks() {
   const sb = window.varvosSupabase;
   if (userId && sb) {
     try {
-      const { data } = await sb.from('user_active_tasks').select('task_id, started_at, mode').eq('user_id', userId).maybeSingle();
-      if (data) {
-        const startTime = data.started_at ? new Date(data.started_at).getTime() : Date.now();
-        return [{ taskId: data.task_id, startTime, mode: data.mode || 'video' }];
+      const { data } = await sb.from('user_active_task_items')
+        .select('task_id, started_at, mode, prompt, cost')
+        .eq('user_id', userId)
+        .order('started_at', { ascending: false })
+        .limit(5);
+      if (data && data.length > 0) {
+        return data.map(row => ({
+          taskId: row.task_id,
+          startTime: row.started_at ? new Date(row.started_at).getTime() : Date.now(),
+          mode: row.mode || 'video',
+          prompt: row.prompt || '',
+          cost: row.cost != null ? row.cost : undefined
+        }));
       }
     } catch (e) { console.warn('getStoredActiveTasks Supabase:', e); }
   }
@@ -2329,6 +2339,9 @@ async function generateMedia(body) {
   try {
     taskId = await submitTask(body);
     if (!taskId) throw new Error('Nenhum task_id retornado');
+
+    // Motion refs: apagar do Storage logo após envio — API já recebeu as URLs, não precisa armazenar
+    if (body?.model === 'kling-2.6/motion-control') deleteMotionRefsFromStorage();
 
     if (!SKIP_CREDITS && !isLocalhost()) {
       const deductRes = await fetch('/api/deduct-credits', {

@@ -264,11 +264,10 @@
 .plan-badge-ativo {
   background: #10b981;
 }
-/* Evita sobreposição com banner (50% OFF ou SOMENTE HOJE) */
+/* Esconde badge ATIVO quando há banner (50% OFF ou SOMENTE HOJE) para evitar sobreposição */
 .plan-card:has(.plan-banner-mensal) .plan-badge-ativo,
 .plan-card:has(.plan-banner-starter) .plan-badge-ativo {
-  left: auto;
-  right: 16px;
+  display: none !important;
 }
 .plan-badge-ativo.hidden { display: none; }
 

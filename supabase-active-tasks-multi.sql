@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS public.user_active_task_items (
   mode TEXT NOT NULL DEFAULT 'video',
   started_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   prompt TEXT DEFAULT '',
+  cost INTEGER,
   PRIMARY KEY (user_id, task_id)
 );
 
