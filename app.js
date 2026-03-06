@@ -1958,6 +1958,8 @@ const STATUS_PT = { not_started: 'Na fila', running: 'Gerando', finished: 'Pront
 
 function startLoadingForCard(cardRefs, mode, opts = {}) {
   if (!cardRefs?.loadingPlaceholder) return;
+  const mediaContainer = cardRefs.loadingPlaceholder.closest('.media-container');
+  if (mediaContainer) mediaContainer.classList.add('is-loading');
   cardRefs.loadingPlaceholder.classList.remove('hidden');
   const imgUrl = opts.refImageUrl ?? (mode === 'motion' ? motionCharImageUrl : refImageUrl);
   const prompt = opts.prompt || lastPrompt || '';
@@ -1992,7 +1994,11 @@ function startLoadingForCard(cardRefs, mode, opts = {}) {
 }
 
 function stopLoadingForCard(cardRefs) {
-  if (cardRefs?.loadingPlaceholder) cardRefs.loadingPlaceholder.classList.add('hidden');
+  if (cardRefs?.loadingPlaceholder) {
+    const mediaContainer = cardRefs.loadingPlaceholder.closest('.media-container');
+    if (mediaContainer) mediaContainer.classList.remove('is-loading');
+    cardRefs.loadingPlaceholder.classList.add('hidden');
+  }
   const tid = cardRefs?.card && loadingIntervals.get(cardRefs.card);
   if (tid) {
     clearInterval(tid);
@@ -2718,6 +2724,81 @@ async function syncCompletedTasks() {
   }
 }
 
+// Restaura uma tarefa em um card específico (usado no load e no poll entre dispositivos)
+function restoreTaskToCard(data, cardIndex) {
+  const cardRefs = getCardByIndex(cardIndex);
+  if (!cardRefs || !data?.taskId) return;
+
+  const startTime = data.startTime || Date.now();
+  if (cardRefs.videoPlayer) {
+    cardRefs.videoPlayer.src = '';
+    cardRefs.videoPlayer.style.display = 'none';
+  }
+  if (cardRefs.imageGallery) {
+    cardRefs.imageGallery.classList.add('hidden');
+    cardRefs.imageGallery.innerHTML = '';
+  }
+
+  cardRefs.card.classList.remove('hidden');
+  activeTasks.set(data.taskId, { cardRefs, startTime });
+  startLoadingForCard(cardRefs, data.mode || 'video', { refImageUrl: (data.mode === 'motion' ? motionCharImageUrl : refImageUrl), prompt: data.prompt || lastPrompt });
+
+  if (cardRefs.taskStatusEl) cardRefs.taskStatusEl.textContent = 'Enviando...';
+  if (cardRefs.taskProgressEl) cardRefs.taskProgressEl.textContent = '0%';
+  if (cardRefs.progressFill) cardRefs.progressFill.style.width = '0%';
+
+  const isMotion = data.mode === 'motion';
+  pollUntilComplete(data.taskId, cardRefs, startTime, isMotion)
+    .then((result) => {
+      const tid = pollTimeouts.get(data.taskId);
+      if (tid) { clearTimeout(tid); pollTimeouts.delete(data.taskId); }
+      if (result?.status === 'finished' && result?.files?.length) {
+        const ar = result.files[0]?.file_type === 'video'
+          ? (document.getElementById('aspectRatio')?.value || '9:16')
+          : (document.getElementById('imgSize')?.value || '1:1');
+        const promptToSave = data.prompt || lastPrompt || '';
+        addToHistory(result, promptToSave, ar);
+      }
+    })
+    .catch(async (err) => {
+      const tid = pollTimeouts.get(data.taskId);
+      if (tid) { clearTimeout(tid); pollTimeouts.delete(data.taskId); }
+      activeTasks.delete(data.taskId);
+      stopLoadingForCard(cardRefs);
+      let refunded = false;
+      const restoreUserId = getCurrentUserId();
+      const restoreCost = data.cost != null ? parseInt(data.cost, 10) : (data.mode === 'motion' ? null : 50);
+      if (restoreUserId && data.taskId && restoreCost && restoreCost > 0) {
+        try {
+          const refundRes = await fetch('/api/refund-credits', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: restoreUserId, amount: restoreCost, taskId: data.taskId }),
+          });
+          if (refundRes.ok) {
+            refunded = true;
+            await refreshCreditsFromSupabase();
+          }
+        } catch (_) {}
+      }
+      if (err.isCredits) {
+        openPlansModal();
+      } else if (cardRefs.statusMessage) {
+        let msg = err.isTimeout
+          ? 'O processamento demorou mais de 15 minutos e foi cancelado.'
+          : 'Estamos com alta demanda no momento.';
+        if (refunded) msg += ' Seus créditos foram reembolsados. Você pode tentar novamente em alguns minutos.';
+        else if (!err.isTimeout) msg += ' Tente novamente em alguns minutos.';
+        cardRefs.statusMessage.textContent = msg;
+        cardRefs.statusMessage.className = 'status-message error';
+      }
+    })
+    .finally(() => {
+      updateGenerateButtonLabel(true);
+      if (currentMode === 'video') updateRefImageReadyState(); else btnGenerate.disabled = false;
+    });
+}
+
 // Restaurar tarefas em andamento após recarregar (Supabase se logado, senão sessionStorage)
 async function restoreActiveTask() {
   await syncCompletedTasks();
@@ -2728,88 +2809,39 @@ async function restoreActiveTask() {
   outputPlaceholder.classList.add('hidden');
   outputResultsList.classList.remove('hidden');
 
-  const restoreOne = (data, cardIndex) => {
-    const cardRefs = getCardByIndex(cardIndex);
-    if (!cardRefs || !data?.taskId) return;
-
-    const startTime = data.startTime || Date.now();
-    // Não altera o modo da página — mantém o que o usuário escolheu (vídeo ou imitar movimento)
-
-    if (cardRefs.videoPlayer) {
-      cardRefs.videoPlayer.src = '';
-      cardRefs.videoPlayer.style.display = 'none';
-    }
-    if (cardRefs.imageGallery) {
-      cardRefs.imageGallery.classList.add('hidden');
-      cardRefs.imageGallery.innerHTML = '';
-    }
-
-    cardRefs.card.classList.remove('hidden');
-    activeTasks.set(data.taskId, { cardRefs, startTime });
-    startLoadingForCard(cardRefs, data.mode || 'video', { refImageUrl: (data.mode === 'motion' ? motionCharImageUrl : refImageUrl), prompt: data.prompt || lastPrompt });
-
-    if (cardRefs.taskStatusEl) cardRefs.taskStatusEl.textContent = 'Enviando...';
-    if (cardRefs.taskProgressEl) cardRefs.taskProgressEl.textContent = '0%';
-    if (cardRefs.progressFill) cardRefs.progressFill.style.width = '0%';
-
-    const isMotion = data.mode === 'motion';
-    pollUntilComplete(data.taskId, cardRefs, startTime, isMotion)
-      .then((result) => {
-        const tid = pollTimeouts.get(data.taskId);
-        if (tid) { clearTimeout(tid); pollTimeouts.delete(data.taskId); }
-        if (result?.status === 'finished' && result?.files?.length) {
-          const ar = result.files[0]?.file_type === 'video'
-            ? (document.getElementById('aspectRatio')?.value || '9:16')
-            : (document.getElementById('imgSize')?.value || '1:1');
-          const promptToSave = data.prompt || lastPrompt || '';
-          addToHistory(result, promptToSave, ar);
-        }
-      })
-      .catch(async (err) => {
-        const tid = pollTimeouts.get(data.taskId);
-        if (tid) { clearTimeout(tid); pollTimeouts.delete(data.taskId); }
-        activeTasks.delete(data.taskId);
-        stopLoadingForCard(cardRefs);
-        let refunded = false;
-        const restoreUserId = getCurrentUserId();
-        const restoreCost = data.cost != null ? parseInt(data.cost, 10) : (data.mode === 'motion' ? null : 50);
-        if (restoreUserId && data.taskId && restoreCost && restoreCost > 0) {
-          try {
-            const refundRes = await fetch('/api/refund-credits', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ userId: restoreUserId, amount: restoreCost, taskId: data.taskId }),
-            });
-            if (refundRes.ok) {
-              refunded = true;
-              await refreshCreditsFromSupabase();
-            }
-          } catch (_) {}
-        }
-        if (err.isCredits) {
-          openPlansModal();
-        } else if (cardRefs.statusMessage) {
-          let msg = err.isTimeout
-            ? 'O processamento demorou mais de 15 minutos e foi cancelado.'
-            : 'Estamos com alta demanda no momento.';
-          if (refunded) msg += ' Seus créditos foram reembolsados. Você pode tentar novamente em alguns minutos.';
-          else if (!err.isTimeout) msg += ' Tente novamente em alguns minutos.';
-          cardRefs.statusMessage.textContent = msg;
-          cardRefs.statusMessage.className = 'status-message error';
-        }
-      })
-      .finally(() => {
-        updateGenerateButtonLabel(true);
-        if (currentMode === 'video') updateRefImageReadyState(); else btnGenerate.disabled = false;
-      });
-  };
-
-  tasks.forEach((data, i) => restoreOne(data, i));
+  tasks.forEach((data) => {
+    const cardIndex = getAvailableCardIndex();
+    if (cardIndex >= 0) restoreTaskToCard(data, cardIndex);
+  });
   if (tasks.length > 0) {
     currentTaskId = tasks[0].taskId;
     document.getElementById('currentResultSection')?.scrollIntoView({ behavior: 'smooth', block: 'end' });
   }
 }
+
+// Polling: buscar tarefas iniciadas em outro dispositivo (ex: celular) e exibir no computador
+const ACTIVE_TASKS_POLL_INTERVAL_MS = 15 * 1000; // 15 segundos para sincronização mais rápida
+function pollActiveTasksFromOtherDevices() {
+  if (!getCurrentUserId() || !outputPlaceholder || !outputResultsList) return;
+  getStoredActiveTasks().then((tasks) => {
+    const currentTaskIds = new Set(activeTasks.keys());
+    const newTasks = tasks.filter((t) => t?.taskId && !currentTaskIds.has(t.taskId));
+    if (newTasks.length === 0) return;
+    outputPlaceholder.classList.add('hidden');
+    outputResultsList.classList.remove('hidden');
+    for (const data of newTasks) {
+      const cardIndex = getAvailableCardIndex();
+      if (cardIndex < 0) break;
+      restoreTaskToCard(data, cardIndex);
+    }
+    if (newTasks.length > 0) document.getElementById('currentResultSection')?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+  });
+}
+setInterval(pollActiveTasksFromOtherDevices, ACTIVE_TASKS_POLL_INTERVAL_MS);
+// Poll imediatamente quando o usuário volta à aba (ex: estava em outra aba e gerou no celular)
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && getCurrentUserId()) pollActiveTasksFromOtherDevices();
+});
 
 restoreActiveTask();
 

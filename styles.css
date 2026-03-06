@@ -1839,6 +1839,25 @@ select:focus {
   min-height: 180px;
   position: relative;
 }
+/* Durante o loading: layout compacto — só texto, tempo e prompt, sem retângulo grande */
+.media-container.is-loading {
+  aspect-ratio: auto !important;
+  min-height: auto !important;
+}
+.media-container.is-loading .loading-placeholder {
+  position: relative;
+  inset: auto;
+  width: 100%;
+  min-height: auto;
+}
+.media-container.is-loading .loading-placeholder-bg {
+  display: none;
+}
+.media-container.is-loading .loading-placeholder-overlay {
+  flex: none;
+  padding: 20px 16px;
+  background: transparent;
+}
 
 .loading-placeholder {
   position: absolute;
@@ -1916,6 +1935,7 @@ select:focus {
   border-top: 1px solid rgba(255,255,255,0.08);
 }
 .loading-placeholder-prompt.hidden { display: none !important; }
+
 .loading-prompt-toggle {
   display: flex;
   align-items: center;
