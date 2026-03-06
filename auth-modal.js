@@ -246,7 +246,8 @@ document.getElementById('btnEmailContinue')?.addEventListener('click', async () 
       passwordInput.placeholder = 'Digite sua senha';
       confirmWrap?.classList.add('hidden');
       if (submitBtn) submitBtn.textContent = 'Entrar';
-      if (forgotLink) forgotLink.classList.remove('hidden');
+      // Esqueci minha senha oculto até SES produção estar ativo
+      // if (forgotLink) forgotLink.classList.remove('hidden');
     } else {
       if (sub) sub.innerHTML = 'Crie uma conta <strong>gratuita</strong>';
       if (hint) { hint.textContent = 'Crie uma senha com no mínimo 8 caracteres.'; hint.classList.remove('hidden'); }
