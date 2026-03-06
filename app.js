@@ -2167,11 +2167,18 @@ function isCreditsError(msg) {
   return msg && /credit|insufficient|saldo|quota|balance|crédito/i.test(msg.toString());
 }
 
+const MSG_SERVER_ALTA_DEMANDA = 'O servidor está com alta demanda no momento. Tente novamente em alguns minutos.';
+
 /** Traduz mensagens de erro da API para português. Retorna a mensagem original se já estiver em PT ou não houver mapeamento. */
-function translateApiError(msg) {
+function translateApiError(msg, model) {
   if (!msg || typeof msg !== 'string') return '';
   const s = msg.trim().toLowerCase();
+  // Sora 2: erros de lentidão/servidor usam o aviso padrão
+  if (model === 'sora-2' && /timeout|timed out|tempo esgotado|internal server error|500|erro interno|rate limit|too many requests|busy|overload|high load|server.*error/i.test(msg)) {
+    return MSG_SERVER_ALTA_DEMANDA;
+  }
   const map = [
+    [/inappropriate content|conteúdo inadequado|content.*not allowed/i, 'Conteúdo inadequado. Esse tipo de conteúdo não é permitido. Tente outro prompt.'],
     [/insufficient.*balance|saldo insuficiente/i, 'Créditos insuficientes. Adicione créditos para tentar novamente.'],
     [/rate limit|too many requests|muitas requisições/i, 'Muitas requisições. Aguarde um momento e tente novamente.'],
     [/invalid request|invalid parameter|parâmetro inválido/i, 'Requisição inválida. Verifique os dados e tente novamente.'],
@@ -2299,7 +2306,9 @@ function updateOutputUI(data, cardRefs, startTime) {
       }
       if (downloadWarning) downloadWarning.classList.remove('hidden');
     }
-  } else if (data.status === 'failed') {
+    } else if (data.status === 'failed') {
+    const taskMeta = activeTasks.get(data.task_id);
+    const model = taskMeta?.model;
     activeTasks.delete(data.task_id);
     const errMsg = (data.error_message || '').toString().trim();
     if (isCreditsError(errMsg)) {
@@ -2324,7 +2333,7 @@ function updateOutputUI(data, cardRefs, startTime) {
     }
     stopLoadingForCard(cardRefs, { keepCompact: true });
     if (statusMessage) {
-      statusMessage.textContent = (errMsg ? translateApiError(errMsg) : '') || 'O servidor está com alta demanda no momento. Tente novamente em alguns minutos.';
+      statusMessage.textContent = (errMsg ? translateApiError(errMsg, model) : '') || MSG_SERVER_ALTA_DEMANDA;
       statusMessage.className = 'status-message error';
       statusMessage.classList.remove('hidden');
     }
@@ -2541,12 +2550,14 @@ async function pollUntilComplete(taskId, cardRefs, startTime, isMotion = false, 
         if (currentTaskId === taskId) currentTaskId = null;
         clearActiveTask(taskId).catch(() => {});
         if (btnVerify) btnVerify.classList.add('hidden');
+        const taskMeta = activeTasks.get(taskId);
+        const model = taskMeta?.model;
         // Mostrar erro imediatamente — mensagem real da API traduzida quando disponível
         stopLoadingForCard(cardRefs, { keepCompact: true });
         if (cardRefs?.statusMessage) {
           const msg = err.isTimeout
             ? 'O processamento demorou mais de 15 minutos e foi cancelado.'
-            : (err.message ? translateApiError(err.message) : '') || 'O servidor está com alta demanda no momento. Tente novamente em alguns minutos.';
+            : (err.message ? translateApiError(err.message, model) : '') || MSG_SERVER_ALTA_DEMANDA;
           cardRefs.statusMessage.textContent = msg;
           cardRefs.statusMessage.className = 'status-message error';
           cardRefs.statusMessage.classList.remove('hidden');
@@ -2743,7 +2754,7 @@ async function generateMedia(body) {
       : ((currentMode === 'motion' ? document.getElementById('motionFormat') : document.getElementById('aspectRatio'))?.value || '9:16');
     if (cardRefs.card) cardRefs.card.dataset.aspectRatio = aspectRatio;
     reservedCardIndices.delete(cardIndex);
-    activeTasks.set(taskId, { cardRefs, startTime, prompt: lastPrompt, aspectRatio, isMotion: body?.model === 'kling-2.6/motion-control' });
+    activeTasks.set(taskId, { cardRefs, startTime, prompt: lastPrompt, aspectRatio, isMotion: body?.model === 'kling-2.6/motion-control', model: body?.model });
     startLoadingForCard(cardRefs, currentMode, { refImageUrl: currentMode === 'motion' ? motionCharImageUrl : refImageUrl, prompt: lastPrompt });
     document.getElementById('currentResultSection')?.scrollIntoView({ behavior: 'smooth', block: 'end' });
 
@@ -2800,7 +2811,7 @@ async function generateMedia(body) {
     } else if (cardRefs?.statusMessage) {
       let displayMsg = err.isTimeout
         ? 'O processamento demorou mais de 15 minutos e foi cancelado.'
-        : (err.message ? translateApiError(err.message) : '') || 'O servidor está com alta demanda no momento.';
+        : (err.message ? translateApiError(err.message, body?.model) : '') || MSG_SERVER_ALTA_DEMANDA;
       if (refunded) {
         displayMsg += ' Seus créditos foram reembolsados. Você pode tentar novamente em alguns minutos.';
       } else if (!err.isTimeout && !err.message) {
@@ -2947,7 +2958,7 @@ function restoreTaskToCard(data, cardIndex) {
   }
 
   cardRefs.card.classList.remove('hidden');
-  activeTasks.set(data.taskId, { cardRefs, startTime });
+  activeTasks.set(data.taskId, { cardRefs, startTime, model: data.model });
   startLoadingForCard(cardRefs, data.mode || 'video', { refImageUrl: (data.mode === 'motion' ? motionCharImageUrl : refImageUrl), prompt: data.prompt || lastPrompt });
 
   if (cardRefs.taskStatusEl) cardRefs.taskStatusEl.textContent = 'Enviando...';
@@ -2999,7 +3010,7 @@ function restoreTaskToCard(data, cardIndex) {
       } else if (cardRefs.statusMessage) {
         let msg = err.isTimeout
           ? 'O processamento demorou mais de 15 minutos e foi cancelado.'
-          : (err.message ? translateApiError(err.message) : '') || 'O servidor está com alta demanda no momento.';
+          : (err.message ? translateApiError(err.message, data.model) : '') || MSG_SERVER_ALTA_DEMANDA;
         if (refunded) msg += ' Seus créditos foram reembolsados. Você pode tentar novamente em alguns minutos.';
         else if (!err.isTimeout && !err.message) msg += ' Tente novamente em alguns minutos.';
         cardRefs.statusMessage.textContent = msg;
