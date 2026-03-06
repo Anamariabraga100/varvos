@@ -1993,10 +1993,14 @@ function startLoadingForCard(cardRefs, mode, opts = {}) {
   loadingIntervals.set(cardRefs.card, tid);
 }
 
-function stopLoadingForCard(cardRefs) {
+function stopLoadingForCard(cardRefs, opts = {}) {
   if (cardRefs?.loadingPlaceholder) {
     const mediaContainer = cardRefs.loadingPlaceholder.closest('.media-container');
-    if (mediaContainer) mediaContainer.classList.remove('is-loading');
+    if (mediaContainer) {
+      mediaContainer.classList.remove('is-loading');
+      if (opts.keepCompact) mediaContainer.classList.add('keep-compact');
+      else mediaContainer.classList.remove('keep-compact');
+    }
     cardRefs.loadingPlaceholder.classList.add('hidden');
   }
   const tid = cardRefs?.card && loadingIntervals.get(cardRefs.card);
@@ -2213,7 +2217,7 @@ function updateOutputUI(data, cardRefs, startTime) {
     activeTasks.delete(data.task_id);
     const errMsg = (data.error_message || '').toString().trim();
     if (isCreditsError(errMsg)) {
-      stopLoadingForCard(cardRefs);
+      stopLoadingForCard(cardRefs, { keepCompact: true });
       if (statusMessage) {
         statusMessage.textContent = 'Créditos insuficientes. Adicione créditos para tentar novamente.';
         statusMessage.className = 'status-message error';
@@ -2232,7 +2236,7 @@ function updateOutputUI(data, cardRefs, startTime) {
       }
       return;
     }
-    stopLoadingForCard(cardRefs);
+    stopLoadingForCard(cardRefs, { keepCompact: true });
     if (statusMessage) {
       statusMessage.textContent = errMsg || 'O servidor está com alta demanda no momento. Tente novamente em alguns minutos.';
       statusMessage.className = 'status-message error';
@@ -2449,7 +2453,7 @@ async function pollUntilComplete(taskId, cardRefs, startTime, isMotion = false) 
         clearActiveTask(taskId).catch(() => {});
         if (btnVerify) btnVerify.classList.add('hidden');
         // Mostrar erro imediatamente — nunca sumir sem avisar o cliente
-        stopLoadingForCard(cardRefs);
+        stopLoadingForCard(cardRefs, { keepCompact: true });
         if (cardRefs?.statusMessage) {
           const msg = err.isTimeout
             ? 'O processamento demorou mais de 15 minutos e foi cancelado.'
@@ -2576,6 +2580,7 @@ async function generateMedia(body) {
   cardRefs.card.querySelector('.status-retry-wrap')?.remove();
   cardRefs.card.removeAttribute('data-retry-body');
   if (cardRefs.resultPromptEl) cardRefs.resultPromptEl.classList.add('hidden');
+  cardRefs.card?.querySelector('.media-container')?.classList?.remove('keep-compact');
 
   let taskId = null;
   let creditsDeducted = false;
@@ -2659,7 +2664,7 @@ async function generateMedia(body) {
     reservedCardIndices.delete(cardIndex);
     if (taskId) activeTasks.delete(taskId);
     if (body?.model === 'kling-2.6/motion-control') deleteMotionRefsFromStorage();
-    stopLoadingForCard(cardRefs);
+    stopLoadingForCard(cardRefs, { keepCompact: true });
     console.error('[VARVOS] Erro na geração:', err);
 
     // Sempre mostrar a seção Resultado com o erro — nunca sumir sem avisar o cliente
@@ -2818,6 +2823,7 @@ function restoreTaskToCard(data, cardIndex) {
   const cardRefs = getCardByIndex(cardIndex);
   if (!cardRefs || !data?.taskId) return;
 
+  cardRefs.card?.querySelector('.media-container')?.classList?.remove('keep-compact');
   const startTime = data.startTime || Date.now();
   if (cardRefs.videoPlayer) {
     cardRefs.videoPlayer.src = '';
@@ -2853,7 +2859,7 @@ function restoreTaskToCard(data, cardIndex) {
       const tid = pollTimeouts.get(data.taskId);
       if (tid) { clearTimeout(tid); pollTimeouts.delete(data.taskId); }
       activeTasks.delete(data.taskId);
-      stopLoadingForCard(cardRefs);
+      stopLoadingForCard(cardRefs, { keepCompact: true });
       let refunded = false;
       const restoreUserId = getCurrentUserId();
       const restoreCost = data.cost != null ? parseInt(data.cost, 10) : (data.mode === 'motion' ? null : 50);

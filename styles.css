@@ -1859,6 +1859,12 @@ select:focus {
   background: transparent;
 }
 
+/* Erro: manter layout compacto (não voltar ao retângulo grande) */
+.media-container.keep-compact {
+  aspect-ratio: auto !important;
+  min-height: auto !important;
+}
+
 .loading-placeholder {
   position: absolute;
   inset: 0;
@@ -2041,10 +2047,7 @@ select:focus {
 }
 
 .creation-disclaimer {
-  margin: 12px 0 0;
-  font-size: 0.82rem;
-  color: var(--text-muted);
-  line-height: 1.45;
+  display: none !important; /* Mensagem removida */
 }
 .creation-disclaimer a {
   color: var(--btn-bg, #2d2d2d);
