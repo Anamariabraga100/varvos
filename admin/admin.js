@@ -152,7 +152,14 @@ async function loadDashboard() {
       sb.from('payments').select('user_id').eq('status', 'completed').gte('created_at', todayStart)
     ]);
 
-    const users = usersRes.data || [];
+    const users = (usersRes.data || []).sort((a, b) => {
+      const creditsA = Number(a.credits ?? 0);
+      const creditsB = Number(b.credits ?? 0);
+      if (creditsA > 0 && creditsB === 0) return -1;
+      if (creditsA === 0 && creditsB > 0) return 1;
+      if (creditsA !== creditsB) return creditsB - creditsA;
+      return new Date(b.created_at) - new Date(a.created_at);
+    });
     const payments = paymentsRes.data || [];
     const paymentsPeriod = paymentsPeriodRes.data || [];
     const paymentsToday = paymentsTodayRes.data || [];
