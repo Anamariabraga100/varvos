@@ -50,39 +50,46 @@
         <form id="generateForm" class="create-form">
           <input type="hidden" id="mode" name="mode" value="video">
 
-          <!-- Título e modos — minimalista -->
-          <div class="create-header">
+          <!-- Título e modos — segmented control -->
+          <div class="create-header create-header-modes">
             <span class="create-label">O que você quer criar?</span>
-            <div class="mode-switcher">
-              <a href="." class="mode-btn active" data-mode="video"><span class="mode-btn-icon">🎬</span> Vídeo</a>
-              <a href="../imitar-movimento/" class="mode-btn" data-mode="motion"><span class="mode-btn-icon">👯</span> Imitar Movimento</a>
+            <div class="mode-segmented">
+              <a href="." class="mode-seg-item active" data-mode="video">
+                <span class="mode-seg-icon">🎬</span>
+                <span class="mode-seg-text">Vídeo</span>
+              </a>
+              <a href="../imitar-movimento/" class="mode-seg-item" data-mode="motion">
+                <span class="mode-seg-icon">👯</span>
+                <span class="mode-seg-text">Imitar Movimento</span>
+              </a>
             </div>
           </div>
 
           <!-- Fluxo: Sugestões (4, acima) → Caixa → Opções → Botão -->
           <div class="create-flow">
             <div id="createPromptBlock">
-            <div id="promptSuggestionsVideo" class="prompt-suggestions prompt-suggestions-above">
-              <div class="suggestion-chips">
-                <button type="button" class="chip" data-prompt="Vendedor animado apresentando produto à câmera com energia alta, gestos expressivos e tom de pitch de vendas, falando em português sobre benefícios e oferta especial, iluminação quente de estúdio, fundo clean profissional, estilo UGC viral para TikTok e Reels. Todo o áudio em português brasileiro.">Vendedor pitch</button>
-                <button type="button" class="chip" data-prompt="Unboxing estilo UGC: mulher brasileira, 25-35 anos, cabelos castanhos, mãos abrindo caixa elegante do produto com reação de surpresa e alegria autêntica, falando em português, iluminação quente interior, estética de filmagem smartphone, fundo suave, formato vertical 9:16, trending para anúncios em redes sociais. Todo o áudio em português brasileiro.">Unboxing UGC</button>
-                <button type="button" class="chip" data-prompt="Antes e depois split screen: lado esquerdo pele com imperfeições e oleosidade, lado direito pele radiante após 7 dias de uso do produto, iluminação natural, mulher brasileira real, estilo depoimento autêntico, profissional mas próximo, formato vertical Reels e TikTok. Todo o áudio em português brasileiro.">Transformação</button>
-                <button type="button" class="chip" data-prompt="Depoimento UGC autêntico: mulher brasileira, 30 anos, cabelos longos, falando diretamente à câmera com sorriso genuíno segurando o produto, luz natural suave da janela, fundo acolhedor em casa, estética smartphone crua, alta conversão para ads. Todo o áudio em português brasileiro.">Depoimento real</button>
-                <button type="button" class="chip" data-prompt="Tutorial passo a passo: influenciadora brasileira demonstrando aplicação de produto de beleza, mãos em close-up, falando em português explicando benefícios e modo de uso, iluminação de ring light, fundo neutro, estilo educativo e confiável, ideal para skincare e maquiagem. Todo o áudio em português brasileiro.">Tutorial produto</button>
-                <button type="button" class="chip" data-prompt="Comparativo de marcas: pessoa segurando dois produtos lado a lado, comparando características em tom informal e honesto, falando em português sobre preço, qualidade e qual vale mais a pena, cenário casual em casa, formato vertical para Reels. Todo o áudio em português brasileiro.">Comparativo honesto</button>
+            <div id="promptSuggestionsVideo" class="prompt-suggestions prompt-suggestions-themes">
+              <span class="suggestions-label">Sugestões rápidas</span>
+              <div class="suggestion-theme-boxes">
+                <button type="button" class="suggestion-theme-box" data-prompt="Vendedor animado apresentando produto à câmera com energia alta, gestos expressivos e tom de pitch de vendas, falando em português sobre benefícios e oferta especial, iluminação quente de estúdio, fundo clean profissional, estilo UGC viral para TikTok e Reels. Todo o áudio em português brasileiro.">UGC</button>
+                <button type="button" class="suggestion-theme-box" data-prompt="Unboxing estilo UGC: mulher brasileira, 25-35 anos, cabelos castanhos, mãos abrindo caixa elegante do produto com reação de surpresa e alegria autêntica, falando em português, iluminação quente interior, estética de filmagem smartphone, fundo suave, formato vertical 9:16, trending para anúncios em redes sociais. Todo o áudio em português brasileiro.">Produto</button>
+                <button type="button" class="suggestion-theme-box" data-prompt="Antes e depois split screen: lado esquerdo pele com imperfeições e oleosidade, lado direito pele radiante após 7 dias de uso do produto, iluminação natural, mulher brasileira real, estilo depoimento autêntico, profissional mas próximo, formato vertical Reels e TikTok. Todo o áudio em português brasileiro.">Depoimentos</button>
+                <button type="button" class="suggestion-theme-box" data-prompt="Depoimento UGC autêntico: mulher brasileira, 30 anos, cabelos longos, falando diretamente à câmera com sorriso genuíno segurando o produto, luz natural suave da janela, fundo acolhedor em casa, estética smartphone crua, alta conversão para ads. Todo o áudio em português brasileiro.">Review</button>
               </div>
             </div>
-            <div id="promptSuggestionsImage" class="prompt-suggestions prompt-suggestions-above hidden">
-              <div class="suggestion-chips">
-                <button type="button" class="chip" data-prompt="Produto ultra realista em cima de mesa molhada com reflexos espelhados, gotas de água escorrendo, superfície de mármore negro, iluminação dramática lateral, fotografia comercial high-end, 8K.">Produto em mesa molhada</button>
-                <button type="button" class="chip" data-prompt="Produto em banheiro de luxo com vapor suave, neblina translúcida, espelhos ao fundo refletindo luz dourada, atmosfera premium de spa, ultra realista, ideal para skincare e cosméticos.">Produto no vapor</button>
-                <button type="button" class="chip" data-prompt="Produto flutuando em ambiente minimalista com gotas de água congeladas no ar, fundo gradiente suave, iluminação de estúdio, fotografia surrealista comercial, ultra realista.">Produto flutuante</button>
-                <button type="button" class="chip" data-prompt="Produto com gelo e condensação na superfície, fundo de espelhos refletindo luz fria, atmosfera refrescante, fotografia de bebidas ou cosméticos, ultra realista.">Produto com gelo</button>
+            <div id="promptSuggestionsImage" class="prompt-suggestions prompt-suggestions-themes hidden">
+              <span class="suggestions-label">Sugestões rápidas</span>
+              <div class="suggestion-theme-boxes">
+                <button type="button" class="suggestion-theme-box chip" data-prompt="Produto ultra realista em cima de mesa molhada com reflexos espelhados, gotas de água escorrendo, superfície de mármore negro, iluminação dramática lateral, fotografia comercial high-end, 8K.">Produto</button>
+                <button type="button" class="suggestion-theme-box chip" data-prompt="Produto em banheiro de luxo com vapor suave, neblina translúcida, espelhos ao fundo refletindo luz dourada, atmosfera premium de spa, ultra realista, ideal para skincare e cosméticos.">Cenário</button>
+                <button type="button" class="suggestion-theme-box chip" data-prompt="Produto flutuando em ambiente minimalista com gotas de água congeladas no ar, fundo gradiente suave, iluminação de estúdio, fotografia surrealista comercial, ultra realista.">Minimalista</button>
+                <button type="button" class="suggestion-theme-box chip" data-prompt="Produto com gelo e condensação na superfície, fundo de espelhos refletindo luz fria, atmosfera refrescante, fotografia de bebidas ou cosméticos, ultra realista.">Refrescante</button>
               </div>
             </div>
             <div id="promptInputWrap" class="prompt-hero">
               <div class="prompt-field-wrap">
-                <textarea id="prompt" name="prompt" rows="5" placeholder="Descreva o vídeo… cena, atmosfera, estilo e formato desejado" required></textarea>
+                <div id="promptPlaceholderAnimated" class="prompt-placeholder-animated" aria-hidden="true"></div>
+                <textarea id="prompt" name="prompt" rows="5" placeholder=" " required></textarea>
                 <div class="prompt-field-bar">
                   <button type="button" class="btn-clear-prompt" id="btnClearPrompt" title="Limpar">Limpar</button>
                   <span class="prompt-powered">Powered by VARVOS AI</span>
@@ -91,67 +98,66 @@
             </div>
             </div>
 
-            <!-- Opções (acima do botão) → Botão Criar -->
-            <div id="configAdvancedWrap" class="config-above-btn">
-              <details class="config-advanced">
-                <summary>Opções</summary>
-                <div class="config-inner">
-            <div id="videoFields" class="mode-fields form-options form-options-compact">
-            <div class="config-row">
-              <div class="field field-compact field-model">
-                <label for="videoModel">Modelo</label>
-                <select id="videoModel" name="video_model">
-                  <option value="veo3.1-fast" selected>VEO 3.1 Fast</option>
-                  <option value="sora-2">Sora 2</option>
-                </select>
-                <div class="model-notice-veo-wrap" id="modelNoticeVeo">
-                  <p class="model-notice model-notice-veo-desc">⚡ Geração rápida e estável. Ideal para anúncios e testes. Vídeos sempre em português.</p>
+            <!-- Modelo, Formato, Duração — cards verticais estilo print -->
+            <div id="configMainOptions" class="config-main-options config-above-btn">
+            <div id="videoFields" class="mode-fields">
+              <div class="config-card config-card-model field-model" data-target="videoModel">
+                <div class="config-card-row">
+                  <span class="config-card-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 2L11 13"/><path d="M22 2L15 22L11 13L2 9L22 2Z"/></svg></span>
+                  <div class="config-card-content">
+                    <span class="config-card-label">Modelo</span>
+                    <span class="config-card-value" id="videoModelDisplay">VEO 3.1 Fast</span>
+                  </div>
+                  <span class="config-card-chevron">›</span>
+                  <select id="videoModel" name="video_model" class="config-card-select">
+                    <option value="veo3.1-fast" selected>VEO 3.1 Fast</option>
+                    <option value="sora-2">Sora 2</option>
+                  </select>
                 </div>
-                <p class="model-notice model-notice-sora hidden" id="modelNoticeSora">Modo Cinematográfico (15s) — qualidade estendida para vídeos mais imersivos. Disponibilidade pode variar conforme a demanda.</p>
               </div>
-              <div class="field field-compact" id="durationField">
-                <label for="duration">Duração</label>
-                <select id="duration" name="duration">
-                  <option value="8">8s</option>
-                  <option value="10">10s</option>
-                  <option value="15" selected>15s</option>
-                </select>
-                <input type="text" class="duration-fixed hidden" id="durationFixed" value="8s" readonly tabindex="-1">
+              <div class="config-card" data-target="aspectRatio">
+                <div class="config-card-row">
+                  <span class="config-card-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18"/></svg></span>
+                  <div class="config-card-content">
+                    <span class="config-card-label">Formato</span>
+                    <span class="config-card-value" id="aspectRatioDisplay">9:16 Stories</span>
+                  </div>
+                  <span class="config-card-chevron">›</span>
+                  <select id="aspectRatio" name="aspect_ratio" class="config-card-select">
+                    <option value="9:16" selected>9:16 Stories</option>
+                    <option value="16:9">16:9 YouTube</option>
+                    <option value="1:1">1:1 Destaque</option>
+                  </select>
+                </div>
               </div>
-              <div class="field field-compact">
-                <label for="aspectRatio">Formato</label>
-                <select id="aspectRatio" name="aspect_ratio">
-                  <option value="9:16" selected>Reels (TikTok, Stories)</option>
-                  <option value="16:9">YouTube (16:9)</option>
-                  <option value="1:1">Destaque (1:1)</option>
-                </select>
+              <div class="config-card" data-target="duration">
+                <div class="config-card-row">
+                  <span class="config-card-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
+                  <div class="config-card-content">
+                    <span class="config-card-label">Duração</span>
+                    <span class="config-card-value" id="durationDisplay">15 segundos</span>
+                  </div>
+                  <span class="config-card-chevron">›</span>
+                  <select id="duration" name="duration" class="config-card-select">
+                    <option value="8">8 segundos</option>
+                    <option value="10">10 segundos</option>
+                    <option value="15" selected>15 segundos</option>
+                  </select>
+                </div>
+                <input type="text" class="duration-fixed visually-hidden" id="durationFixed" value="8" readonly tabindex="-1" aria-hidden="true">
               </div>
-              <div class="field field-compact hidden" id="veoResolutionWrap">
-                <label for="veoResolution">Resolução</label>
-                <select id="veoResolution" name="veo_resolution">
-                  <option value="720p" selected>720p</option>
-                  <option value="1080p">1080p</option>
-                  <option value="4k">4K</option>
-                </select>
-              </div>
-              <div class="field field-compact" id="styleField">
-                <label for="style">Estilo</label>
-                <select id="style" name="style">
-                  <option value="">Nenhum</option>
-                  <option value="anime">Anime</option>
-                  <option value="nostalgic">Nostálgico</option>
-                  <option value="selfie">Selfie</option>
-                  <option value="news">Notícias</option>
-                  <option value="comic">HQ</option>
-                </select>
-              </div>
-              <div class="field field-compact field-ref">
-                <label>Ref. (opcional)</label>
-                <div class="file-upload file-upload-compact" id="imageRefUpload">
+            </div>
+            </div>
+
+            <!-- Imagem de Referência (opcional) — visível como no print -->
+            <div id="configRefWrap" class="config-ref-wrap">
+              <label class="config-ref-label">Imagem de Referência <span class="config-ref-optional">(opcional)</span></label>
+              <div class="file-upload file-upload-compact" id="imageRefUpload">
                 <input type="file" id="imageRefFile" accept="image/jpeg,image/png,image/webp" hidden>
                 <div class="file-upload-area" id="imageRefArea">
-                  <span class="file-upload-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></span>
-                  <span class="file-upload-text">Imagem</span>
+                  <span class="file-upload-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></span>
+                  <span class="file-upload-text">Clique ou arraste uma imagem</span>
+                  <span class="file-upload-hint">PNG, JPG ou WEBP (max 5MB)</span>
                 </div>
                 <div class="file-preview file-preview-motion hidden" id="imageRefPreview">
                   <div class="motion-preview-wrap">
@@ -164,13 +170,39 @@
                   <button type="button" class="file-remove" id="imageRefRemove">✕</button>
                 </div>
               </div>
+            </div>
+
+            <!-- Opções avançadas (minimizadas) -->
+            <details class="config-advanced config-advanced-mini">
+              <summary>Avançado</summary>
+              <div class="config-inner">
+                <div class="config-row">
+                  <div class="field field-compact hidden" id="veoResolutionWrap">
+                    <label for="veoResolution">Resolução</label>
+                    <select id="veoResolution" name="veo_resolution">
+                      <option value="720p" selected>720p</option>
+                      <option value="1080p">1080p</option>
+                      <option value="4k">4K</option>
+                    </select>
+                  </div>
+                  <div class="field field-compact" id="styleField">
+                    <label for="style">Estilo</label>
+                    <select id="style" name="style">
+                      <option value="">Nenhum</option>
+                      <option value="anime">Anime</option>
+                      <option value="nostalgic">Nostálgico</option>
+                      <option value="selfie">Selfie</option>
+                      <option value="news">Notícias</option>
+                      <option value="comic">HQ</option>
+                    </select>
+                  </div>
+                  <label class="checkbox-label checkbox-compact">
+                    <input type="checkbox" id="watermark" name="watermark">
+                    <span>Marca d'água</span>
+                  </label>
+                </div>
               </div>
-              <label class="checkbox-label checkbox-compact">
-                <input type="checkbox" id="watermark" name="watermark">
-                <span>Marca d'água</span>
-              </label>
-            </div>
-            </div>
+            </details>
 
             <!-- Image fields -->
           <div id="imageFields" class="mode-fields hidden form-options form-options-compact">
@@ -208,9 +240,6 @@
               </div>
             </div>
           </div>
-                </div>
-              </details>
-            </div>
 
             <!-- Imitar Movimento -->
           <div id="motionFields" class="mode-fields hidden form-options form-options-compact motion-fields">
@@ -403,6 +432,9 @@
         <h3 class="section-title">Seus vídeos</h3>
         <p class="history-download-hint">Os vídeos ficam disponíveis por até 24 horas. Baixe-os para guardar.</p>
         <div id="historyList" class="creations-grid"></div>
+        <div id="historyVerMaisWrap" class="history-ver-mais-wrap hidden">
+          <button type="button" class="btn-ver-mais" id="btnVerMais">Ver mais</button>
+        </div>
         <div id="historyEmpty" class="creations-empty">
           <p>Ainda não há criações</p>
           <span class="history-hint">Tudo que você gerar aparecerá aqui</span>

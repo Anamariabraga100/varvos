@@ -50,12 +50,18 @@
         <form id="generateForm" class="create-form">
           <input type="hidden" id="mode" name="mode" value="video">
 
-          <!-- Título e modos — minimalista -->
-          <div class="create-header">
+          <!-- Título e modos — segmented control moderno -->
+          <div class="create-header create-header-modes">
             <span class="create-label">O que você quer criar?</span>
-            <div class="mode-switcher">
-              <a href="../video/" class="mode-btn" data-mode="video"><span class="mode-btn-icon">🎬</span> Vídeo</a>
-              <a href="." class="mode-btn active" data-mode="motion"><span class="mode-btn-icon">👯</span> Imitar Movimento</a>
+            <div class="mode-segmented">
+              <a href="../video/" class="mode-seg-item" data-mode="video">
+                <span class="mode-seg-icon">🎬</span>
+                <span class="mode-seg-text">Vídeo</span>
+              </a>
+              <a href="." class="mode-seg-item active" data-mode="motion">
+                <span class="mode-seg-icon">👯</span>
+                <span class="mode-seg-text">Imitar Movimento</span>
+              </a>
             </div>
           </div>
 
@@ -398,6 +404,9 @@
         <h3 class="section-title">Seus vídeos</h3>
         <p class="history-download-hint">Os vídeos ficam disponíveis por até 24 horas. Baixe-os para guardar.</p>
         <div id="historyList" class="creations-grid"></div>
+        <div id="historyVerMaisWrap" class="history-ver-mais-wrap hidden">
+          <button type="button" class="btn-ver-mais" id="btnVerMais">Ver mais</button>
+        </div>
         <div id="historyEmpty" class="creations-empty">
           <p>Ainda não há criações</p>
           <span class="history-hint">Tudo que você gerar aparecerá aqui</span>

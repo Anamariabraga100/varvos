@@ -114,19 +114,86 @@ function getCardByIndex(i) {
 const btnVerify = document.getElementById('btnVerify'); // Removido da UI, mantido para compatibilidade
 const historyList = document.getElementById('historyList');
 const historyEmpty = document.getElementById('historyEmpty');
+const historyVerMaisWrap = document.getElementById('historyVerMaisWrap');
+const btnVerMais = document.getElementById('btnVerMais');
+let historyShowingAll = false;
 const btnClearHistory = document.getElementById('btnClearHistory');
 const creditsModal = document.getElementById('creditsModal');
 
 const activeTasks = new Map();
 const EXPECTED_DURATION_MS = 10 * 60 * 1000;
 
-// Prompt suggestion chips
-document.querySelectorAll('.chip').forEach(chip => {
-  chip.addEventListener('click', () => {
-    const p = chip.dataset.prompt || '';
+// Prompt suggestion chips e theme boxes (ao clicar preenche o prompt)
+document.querySelectorAll('.chip, .suggestion-theme-box').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const p = btn.dataset.prompt || '';
     const prompt = document.getElementById('prompt');
-    if (prompt) { prompt.value = p; updateClearPromptVisibility(); }
+    if (prompt && p) { prompt.value = p; updateClearPromptVisibility(); updatePromptWrapValue(); prompt.focus(); }
   });
+});
+
+// Placeholder animado — digita e apaga exemplos em quase transparente
+const PROMPT_EXAMPLES = [
+  'Uma mulher pedindo um produto no mercado sorrindo, luz natural, ambiente acolhedor',
+  'Vendedor animado apresentando produto à câmera, gestos expressivos, pitch de vendas em português',
+  'Unboxing estilo UGC com reação autêntica de surpresa ao abrir a caixa do produto',
+  'Depoimento antes e depois em split screen mostrando resultado real do uso do produto',
+  'Personal trainer na academia falando sobre treino, ambiente fitness, energia alta'
+];
+let promptExampleIndex = 0;
+let promptExampleCharIndex = 0;
+let promptTypingForward = true;
+let promptTypingTimeout = null;
+
+function runPromptPlaceholderAnimation() {
+  const el = document.getElementById('promptPlaceholderAnimated');
+  const wrap = document.querySelector('.prompt-field-wrap');
+  const prompt = document.getElementById('prompt');
+  if (!el || !wrap || !prompt) return;
+  if (wrap.matches(':focus-within') || prompt.value.trim()) return;
+  const text = PROMPT_EXAMPLES[promptExampleIndex];
+  if (promptTypingForward) {
+    promptExampleCharIndex++;
+    el.textContent = text.slice(0, promptExampleCharIndex);
+    if (promptExampleCharIndex >= text.length) {
+      promptTypingForward = false;
+      promptTypingTimeout = setTimeout(runPromptPlaceholderAnimation, 1500);
+    } else {
+      promptTypingTimeout = setTimeout(runPromptPlaceholderAnimation, 50 + Math.random() * 30);
+    }
+  } else {
+    promptExampleCharIndex--;
+    el.textContent = text.slice(0, promptExampleCharIndex);
+    if (promptExampleCharIndex <= 0) {
+      promptTypingForward = true;
+      promptExampleIndex = (promptExampleIndex + 1) % PROMPT_EXAMPLES.length;
+      promptTypingTimeout = setTimeout(runPromptPlaceholderAnimation, 400);
+    } else {
+      promptTypingTimeout = setTimeout(runPromptPlaceholderAnimation, 25);
+    }
+  }
+}
+
+function updatePromptWrapValue() {
+  const wrap = document.querySelector('.prompt-field-wrap');
+  const prompt = document.getElementById('prompt');
+  if (wrap && prompt) wrap.classList.toggle('has-value', !!prompt.value.trim());
+}
+
+document.getElementById('prompt')?.addEventListener('focus', () => {
+  if (promptTypingTimeout) clearTimeout(promptTypingTimeout);
+  updatePromptWrapValue();
+});
+document.getElementById('prompt')?.addEventListener('blur', () => {
+  updatePromptWrapValue();
+  promptExampleIndex = 0;
+  promptExampleCharIndex = 0;
+  promptTypingForward = true;
+  promptTypingTimeout = setTimeout(runPromptPlaceholderAnimation, 800);
+});
+document.getElementById('prompt')?.addEventListener('input', () => {
+  updatePromptWrapValue();
+  if (promptTypingTimeout) clearTimeout(promptTypingTimeout);
 });
 
 // Limpar prompt
@@ -154,6 +221,7 @@ function updateVideoModelUI() {
   if (styleField) styleField.classList.toggle('hidden', isVEO);
   if (noticeVeo) noticeVeo.classList.toggle('hidden', !isVEO);
   if (noticeSora) noticeSora.classList.toggle('hidden', isVEO);
+  if (typeof syncConfigCardDisplays === 'function') syncConfigCardDisplays();
 }
 document.getElementById('videoModel')?.addEventListener('change', updateVideoModelUI);
 
@@ -184,7 +252,16 @@ async function applyHideModelSetting() {
 
 document.getElementById('btnClearPrompt')?.addEventListener('click', () => {
   const prompt = document.getElementById('prompt');
-  if (prompt) { prompt.value = ''; prompt.focus(); updateClearPromptVisibility(); }
+  if (prompt) {
+    prompt.value = '';
+    prompt.focus();
+    updateClearPromptVisibility();
+    updatePromptWrapValue();
+    promptExampleCharIndex = 0;
+    promptTypingForward = true;
+    if (promptTypingTimeout) clearTimeout(promptTypingTimeout);
+    promptTypingTimeout = setTimeout(runPromptPlaceholderAnimation, 500);
+  }
 });
 
 document.getElementById('prompt')?.addEventListener('input', updateClearPromptVisibility);
@@ -192,6 +269,33 @@ document.getElementById('prompt')?.addEventListener('change', updateClearPromptV
 
 // Init clear button visibility
 updateClearPromptVisibility();
+updatePromptWrapValue();
+
+// Inicia placeholder animado após carregar
+setTimeout(() => {
+  if (document.getElementById('promptPlaceholderAnimated') && !document.querySelector('.prompt-field-wrap.has-value')) {
+    runPromptPlaceholderAnimation();
+  }
+}, 600);
+
+// Sincroniza displays dos config cards
+function syncConfigCardDisplays() {
+  const modelSel = document.getElementById('videoModel');
+  const aspectSel = document.getElementById('aspectRatio');
+  const durationSel = document.getElementById('duration');
+  const modelDisp = document.getElementById('videoModelDisplay');
+  const aspectDisp = document.getElementById('aspectRatioDisplay');
+  const durationDisp = document.getElementById('durationDisplay');
+  if (modelSel && modelDisp) modelDisp.textContent = modelSel.selectedOptions[0]?.text || modelSel.value;
+  if (aspectSel && aspectDisp) aspectDisp.textContent = aspectSel.selectedOptions[0]?.text || aspectSel.value;
+  if (durationSel && durationDisp) {
+    durationDisp.textContent = modelSel?.value === 'veo3.1-fast' ? '8 segundos' : (durationSel.selectedOptions[0]?.text || durationSel.value + ' segundos');
+  }
+}
+document.getElementById('videoModel')?.addEventListener('change', syncConfigCardDisplays);
+document.getElementById('aspectRatio')?.addEventListener('change', syncConfigCardDisplays);
+document.getElementById('duration')?.addEventListener('change', syncConfigCardDisplays);
+if (document.getElementById('videoModel')) syncConfigCardDisplays();
 
 // Modal vídeo ampliado - Biblioteca de IA
 const videoModal = document.getElementById('videoModal');
@@ -378,6 +482,12 @@ outputResultsList?.addEventListener('click', (e) => {
   const aspectRatio = card?.dataset?.aspectRatio || '9:16';
   const prompt = card?.dataset?.prompt || '';
   openVideoModalForResult(src, downloadBtn, null, aspectRatio, prompt);
+});
+
+// Ver mais / Ver menos — Seus vídeos
+btnVerMais?.addEventListener('click', () => {
+  historyShowingAll = !historyShowingAll;
+  renderHistory();
 });
 
 // Event delegation: histórico — download e clique para abrir vídeo
@@ -823,11 +933,15 @@ function applyMode(mode) {
   currentMode = mode;
   document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.mode-btn[data-mode="' + currentMode + '"]').forEach(b => b && b.classList.add('active'));
-  document.getElementById('videoFields').classList.toggle('hidden', currentMode !== 'video');
-  document.getElementById('imageFields').classList.toggle('hidden', currentMode !== 'image');
-  document.getElementById('motionFields').classList.toggle('hidden', currentMode !== 'motion');
-  const configWrap = document.getElementById('configAdvancedWrap');
-  if (configWrap) configWrap.classList.toggle('hidden', currentMode === 'motion');
+  document.getElementById('videoFields')?.classList.toggle('hidden', currentMode !== 'video');
+  document.getElementById('imageFields')?.classList.toggle('hidden', currentMode !== 'image');
+  document.getElementById('motionFields')?.classList.toggle('hidden', currentMode !== 'motion');
+  const configMain = document.getElementById('configMainOptions');
+  if (configMain) configMain.classList.toggle('hidden', currentMode !== 'video');
+  const configRef = document.getElementById('configRefWrap');
+  if (configRef) configRef.classList.toggle('hidden', currentMode !== 'video');
+  const configAdv = document.querySelector('.config-advanced-mini');
+  if (configAdv) configAdv.classList.toggle('hidden', currentMode !== 'video');
   const promptBlock = document.getElementById('createPromptBlock');
   if (promptBlock) promptBlock.classList.toggle('hidden', currentMode === 'motion');
   const promptSuggestionsVideo = document.getElementById('promptSuggestionsVideo');
@@ -984,9 +1098,21 @@ function renderHistory() {
   historyEmpty.classList.toggle('hidden', !!items.length);
   document.querySelector('.history-download-hint')?.classList.toggle('hidden', !items.length);
 
-  if (!items.length) return;
+  if (!items.length) {
+    historyVerMaisWrap?.classList.add('hidden');
+    return;
+  }
 
-  historyList.innerHTML = items.map(item => {
+  const limit = historyShowingAll ? items.length : 4;
+  const toShow = items.slice(0, limit);
+  const hasMore = items.length > 4;
+
+  historyVerMaisWrap?.classList.toggle('hidden', !hasMore);
+  if (btnVerMais) {
+    btnVerMais.textContent = historyShowingAll ? 'Ver menos' : 'Ver mais';
+  }
+
+  historyList.innerHTML = toShow.map(item => {
     const mainFile = item.files[0];
     const thumb = mainFile.file_type === 'image'
       ? `<img src="${mainFile.file_url}" alt="">`
