@@ -1,3 +1,6 @@
+-- [DEPRECADO] O app passou a usar Vidgo API para upload de motion-refs (imagem + vídeo).
+-- Este script NÃO é mais necessário. Mantido apenas para referência.
+--
 -- Permite upload anônimo na pasta motion-refs (Imitar Movimento)
 -- Execute no Supabase: SQL Editor (Dashboard > SQL Editor > New Query)
 --

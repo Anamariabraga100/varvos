@@ -1415,7 +1415,7 @@ function renderHistory() {
     const mainFile = item.files[0];
     const thumb = mainFile.file_type === 'image'
       ? `<img src="${mainFile.file_url}" alt="">`
-      : `<video src="${mainFile.file_url}" muted loop playsinline autoplay preload="auto"></video>`;
+      : `<video src="${mainFile.file_url}" controls preload="none" muted loop playsinline></video>`;
     const date = item.created_time ? new Date(item.created_time).toLocaleDateString('pt-BR') : '';
     const aspectRatio = item.aspect_ratio || '9:16';
     const downloads = item.files.map((f, i) =>
@@ -1436,9 +1436,7 @@ function renderHistory() {
       </div>
     `;
   }).join('');
-  historyList.querySelectorAll('.creation-thumb video').forEach((v) => {
-    v.play().catch(() => {});
-  });
+  // Vídeos usam preload="none" — carregam apenas quando o usuário clica (reduz bandwidth)
 }
 
 function escapeHtml(str) {
@@ -1477,42 +1475,7 @@ function validateMotionFileType(file, bucket) {
   }
 }
 
-// Extrai bucket e path da URL pública do Supabase Storage
-function parseSupabaseStorageUrl(url) {
-  if (!url || typeof url !== 'string') return null;
-  const m = url.match(/\/object\/public\/([^/]+)\/(.+)$/);
-  return m ? { bucket: m[1], path: m[2] } : null;
-}
-
-// Apaga um ou mais arquivos de motion-refs do Storage (libera espaço)
-async function deleteMotionRefsFromStorage(urlsToDelete) {
-  const urls = urlsToDelete || [motionCharImageUrl, motionRefVideoUrl].filter(Boolean);
-  if (urls.length === 0) return;
-  const sb = window.varvosSupabase;
-  if (!sb) return;
-  for (const url of urls) {
-    const parsed = parseSupabaseStorageUrl(url);
-    if (!parsed || parsed.path.indexOf('motion-refs/') !== 0) continue;
-    try {
-      await sb.storage.from(parsed.bucket).remove([parsed.path]);
-    } catch (_) {}
-  }
-}
-
-// File upload - Supabase Storage (para Imitar Movimento: suporta imagem e vídeo)
-async function uploadToSupabaseStorage(file, bucket) {
-  const sb = window.varvosSupabase;
-  if (!sb) throw new Error('Supabase não configurado');
-  validateMotionFileType(file, bucket);
-  const ext = (file.name || '').split('.').pop() || 'bin';
-  const path = `motion-refs/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-  const { data, error } = await sb.storage.from(bucket).upload(path, file, { upsert: false });
-  if (error) throw new Error(error.message || 'Falha no upload');
-  const { data: urlData } = sb.storage.from(bucket).getPublicUrl(data.path);
-  return urlData?.publicUrl || '';
-}
-
-// File upload - Vidgo Base64 API (apenas imagens; vídeo não suportado)
+// File upload - Vidgo Base64 API (imagem e vídeo; retorna URL pública da API)
 async function uploadFileToVidgo(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -1544,6 +1507,12 @@ async function uploadFileToVidgo(file) {
     reader.onerror = () => reject(new Error('Erro ao ler arquivo'));
     reader.readAsDataURL(file);
   });
+}
+
+// Upload para Imitar Movimento: valida formato (KIE exige JPEG/PNG, MP4/MOV) e envia para Vidgo
+async function uploadMotionFileToVidgo(file, bucket) {
+  validateMotionFileType(file, bucket);
+  return uploadFileToVidgo(file);
 }
 
 function runSimulatedProgress(progressEl) {
@@ -1719,7 +1688,7 @@ function updateMotionReadyState(forceState) {
   if (btn && currentMode === 'motion') btn.disabled = hasUploading || !(motionCharImageUrl && motionRefVideoUrl);
   if (currentMode === 'motion') updateMotionButtonCredits();
 }
-setupFileUpload({ inputId: 'motionCharImageFile', areaId: 'motionCharImageArea', previewId: 'motionCharImagePreview', imgId: 'motionCharImagePreviewImg', removeId: 'motionCharImageRemove', setUrl: (v) => motionCharImageUrl = v, onReady: updateMotionReadyState, uploadFn: (f) => uploadToSupabaseStorage(f, 'images'), onRemove: () => deleteMotionRefsFromStorage([motionCharImageUrl]), uploadStatusLabel: 'image', setUploadStatus: updateMotionReadyState, progressElId: 'motionCharImageProgress', hideProgressUI: true });
+setupFileUpload({ inputId: 'motionCharImageFile', areaId: 'motionCharImageArea', previewId: 'motionCharImagePreview', imgId: 'motionCharImagePreviewImg', removeId: 'motionCharImageRemove', setUrl: (v) => motionCharImageUrl = v, onReady: updateMotionReadyState, uploadFn: (f) => uploadMotionFileToVidgo(f, 'images'), uploadStatusLabel: 'image', setUploadStatus: updateMotionReadyState, progressElId: 'motionCharImageProgress', hideProgressUI: true });
 
 const MOTION_REF_MAX_DURATION_SECONDS = 30;
 
@@ -1850,7 +1819,7 @@ function setupVideoUpload(config) {
   });
 }
 
-setupVideoUpload({ inputId: 'motionRefVideoFile', areaId: 'motionRefVideoArea', previewId: 'motionRefVideoPreview', videoId: 'motionRefVideoPreviewVid', removeId: 'motionRefVideoRemove', setUrl: (v) => motionRefVideoUrl = v, maxMb: 100, maxDurationSeconds: MOTION_REF_MAX_DURATION_SECONDS, onReady: updateMotionReadyState, uploadFn: (f) => uploadToSupabaseStorage(f, 'videos'), onRemove: () => deleteMotionRefsFromStorage([motionRefVideoUrl]), uploadStatusLabel: 'video', setUploadStatus: updateMotionReadyState, progressElId: 'motionRefVideoProgress' });
+setupVideoUpload({ inputId: 'motionRefVideoFile', areaId: 'motionRefVideoArea', previewId: 'motionRefVideoPreview', videoId: 'motionRefVideoPreviewVid', removeId: 'motionRefVideoRemove', setUrl: (v) => motionRefVideoUrl = v, maxMb: 100, maxDurationSeconds: MOTION_REF_MAX_DURATION_SECONDS, onReady: updateMotionReadyState, uploadFn: (f) => uploadMotionFileToVidgo(f, 'videos'), uploadStatusLabel: 'video', setUploadStatus: updateMotionReadyState, progressElId: 'motionRefVideoProgress' });
 
 function updateMotionButtonCredits() {
   if (currentMode !== 'motion') return;
@@ -2749,9 +2718,6 @@ async function generateMedia(body) {
     taskId = await submitTask(body);
     if (!taskId) throw new Error('Nenhum task_id retornado');
 
-    // Motion refs: apagar do Storage logo após envio — API já recebeu as URLs, não precisa armazenar
-    if (body?.model === 'kling-2.6/motion-control') deleteMotionRefsFromStorage();
-
     if (!SKIP_CREDITS) {
       const uid = getCurrentUserId();
       const userRaw = localStorage.getItem(AUTH_STORAGE);
@@ -2817,7 +2783,6 @@ async function generateMedia(body) {
     const result = await pollUntilComplete(taskId, cardRefs, startTime, isMotion, isGrokImageToVideo);
     const tid = pollTimeouts.get(taskId);
     if (tid) { clearTimeout(tid); pollTimeouts.delete(taskId); }
-    if (isMotion) deleteMotionRefsFromStorage();
     if (result?.status === 'finished' && result?.files?.length) {
       const ar = result.files[0]?.file_type === 'video'
         ? ((currentMode === 'motion' ? document.getElementById('motionFormat') : document.getElementById('aspectRatio'))?.value || '9:16')
@@ -2921,7 +2886,6 @@ async function generateMedia(body) {
 
     reservedCardIndices.delete(cardIndex);
     if (taskId) activeTasks.delete(taskId);
-    if (body?.model === 'kling-2.6/motion-control') deleteMotionRefsFromStorage();
     stopLoadingForCard(cardRefs, { keepCompact: true });
     console.error('[VARVOS] Erro na geração:', err);
 
