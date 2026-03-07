@@ -554,7 +554,10 @@ function setMotionRefVideoFromUrl(url) {
     loadingOverlay.setAttribute('aria-hidden', 'false');
   }
   previewVid.classList.add('loading');
-  previewVid.src = url;
+  // URLs externas: usar proxy para evitar CORS no preview
+  const isExternal = /^https?:\/\//i.test(url) && !url.includes(window.location.hostname);
+  const previewSrc = isExternal ? (window.location.origin + '/api/kie/proxy-video?url=' + encodeURIComponent(url)) : url;
+  previewVid.src = previewSrc;
   const hideLoading = () => {
     if (loadingOverlay) {
       loadingOverlay.classList.add('hidden');
@@ -831,7 +834,7 @@ async function refreshCreditsFromSupabase() {
     let ok = false;
     // Usa API get-credits: retorna credits + plan e infere plano de contas antigas via payments
     const qs = userId ? 'userId=' + encodeURIComponent(userId) : 'email=' + encodeURIComponent(userEmail);
-    const r = await fetch(window.location.origin + '/api/get-credits?' + qs);
+    const r = await fetch(window.location.origin + '/api/app/get-credits?' + qs);
     if (r.ok) {
       const data = await r.json();
       if (data.credits != null) user.credits = data.credits;
@@ -1787,7 +1790,7 @@ function setupVideoUpload(config) {
   const removeBtn = document.getElementById(removeId);
   const progressEl = progressElId ? document.getElementById(progressElId) : null;
 
-  if (!input || !area) return;
+  if (!input || !area || !preview || !previewVideo) return;
 
   let cancelProgress = () => {};
   const setProgress = (show) => {
@@ -1874,7 +1877,8 @@ function setupVideoUpload(config) {
       setProgress(false);
       if (setUploadStatus) setUploadStatus({ error: err.message });
       else alert('Erro no upload: ' + err.message);
-      reset();
+      // Mantém o preview visível com blob URL — usuário pode remover manualmente
+      setUrl('');
     }
   };
 
