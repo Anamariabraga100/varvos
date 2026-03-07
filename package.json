@@ -4,7 +4,9 @@
   "scripts": {
     "build": "node scripts/build-config.js",
     "vercel-build": "node scripts/build-config.js",
-    "criar-plano-creator": "node scripts/create-creator-plan.js"
+    "criar-plano-creator": "node scripts/create-creator-plan.js",
+    "backup-db": "node scripts/backup-supabase-db.js",
+    "backup-db-json": "node scripts/backup-supabase-json.js"
   },
   "dependencies": {
     "@aws-sdk/client-ses": "^3.700.0",

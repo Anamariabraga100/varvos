@@ -289,7 +289,7 @@ header {
 /* Hero */
 .hero {
   text-align: center;
-  padding: 40px 24px 32px;
+  padding: 24px 24px 20px;
 }
 
 .hero-badge {
@@ -348,7 +348,7 @@ header {
   font-size: 1.1rem;
   color: var(--text-muted);
   max-width: 540px;
-  margin: 0 auto 32px;
+  margin: 0 auto 24px;
   line-height: 1.6;
 }
 
@@ -409,7 +409,7 @@ header {
 
 /* Carousel */
 .carousel-section {
-  padding: 16px 0 40px;
+  padding: 8px 0 32px;
   overflow: hidden;
   position: relative;
   z-index: 1;
