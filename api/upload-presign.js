@@ -46,6 +46,9 @@ export default async function handler(req, res) {
       region: 'auto',
       endpoint,
       credentials: { accessKeyId: accessKey, secretAccessKey: secretKey },
+      // Sem checksum: o navegador não envia x-amz-checksum-* no PUT, então a URL
+      // não pode incluir esses parâmetros senão o R2 responde 403 (assinatura inválida).
+      requestChecksumCalculation: 'WHEN_REQUIRED',
     });
 
     const putUrl = await getSignedUrl(

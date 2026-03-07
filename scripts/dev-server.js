@@ -2,7 +2,7 @@
  * Servidor local para desenvolvimento (sem Vercel).
  * Uso: node scripts/dev-server.js
  *
- * Carrega .env.local e serve a app + APIs em http://localhost:3000
+ * Carrega .env.local e serve a app + APIs em http://localhost:8080 (ou PORT)
  */
 const { config } = require('dotenv');
 const { resolve } = require('path');
