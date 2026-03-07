@@ -20,8 +20,6 @@ let currentMode = 'video';
 let currentTaskId = null;
 let lastPrompt = '';
 let refImageUrl = '';   // Video reference (uploaded)
-let refImageUrl2 = '';  // VEO 3: 2ª imagem (frame ou reference)
-let refImageUrl3 = '';  // VEO 3: 3ª imagem (reference)
 let refImageUploading = false;  // Upload em andamento
 let imgRefUrl = '';   // Image reference (uploaded)
 let motionCharImageUrl = '';  // Kling: character image
@@ -313,12 +311,8 @@ function updateVideoModelUI() {
   if (configRefOptional) configRefOptional.classList.toggle('hidden', isGrok);
   if (configRefRequired) configRefRequired.classList.toggle('hidden', !isGrok);
   if (configRefWrap && isSoraOrVeo) configRefWrap.classList.remove('hidden');
-  const veo3RefsWrap = document.getElementById('veo3RefsWrap');
-  const veo3RefsHint = document.getElementById('veo3RefsHint');
   const imageRefAreaText = document.querySelector('#imageRefArea .file-upload-text');
-  if (veo3RefsWrap) veo3RefsWrap.classList.toggle('hidden', !isVEO);
-  if (veo3RefsHint) veo3RefsHint.classList.toggle('hidden', !isVEO);
-  if (imageRefAreaText) imageRefAreaText.textContent = isVEO ? 'Imagem 1' : 'Clique ou arraste uma imagem';
+  if (imageRefAreaText) imageRefAreaText.textContent = 'Clique aqui para enviar';
   if (noticeVeo) noticeVeo.classList.toggle('hidden', !isVEO);
   if (noticeSora) noticeSora.classList.toggle('hidden', isVEO && !isGrok);
   if (typeof syncConfigCardDisplays === 'function') syncConfigCardDisplays();
@@ -1758,28 +1752,6 @@ setupFileUpload({
   onUploadEnd: () => { refImageUploading = false; updateRefImageReadyState(); },
   progressElId: 'imageRefProgress'
 });
-setupFileUpload({
-  inputId: 'imageRef2File',
-  areaId: 'imageRef2Area',
-  previewId: 'imageRef2Preview',
-  imgId: 'imageRef2PreviewImg',
-  removeId: 'imageRef2Remove',
-  setUrl: (v) => { refImageUrl2 = v; updateRefImageReadyState(); },
-  onUploadStart: () => { refImageUploading = true; updateRefImageReadyState(); },
-  onUploadEnd: () => { refImageUploading = false; updateRefImageReadyState(); },
-  progressElId: 'imageRef2Progress'
-});
-setupFileUpload({
-  inputId: 'imageRef3File',
-  areaId: 'imageRef3Area',
-  previewId: 'imageRef3Preview',
-  imgId: 'imageRef3PreviewImg',
-  removeId: 'imageRef3Remove',
-  setUrl: (v) => { refImageUrl3 = v; updateRefImageReadyState(); },
-  onUploadStart: () => { refImageUploading = true; updateRefImageReadyState(); },
-  onUploadEnd: () => { refImageUploading = false; updateRefImageReadyState(); },
-  progressElId: 'imageRef3Progress'
-});
 setupFileUpload({ inputId: 'imgRefFile', areaId: 'imgRefArea', previewId: 'imgRefPreview', imgId: 'imgRefPreviewImg', removeId: 'imgRefRemove', setUrl: (v) => imgRefUrl = v });
 function updateMotionReadyState(forceState) {
   const el = document.getElementById('motionReadyState');
@@ -2023,17 +1995,10 @@ function buildRequestBody() {
         aspect_ratio: aspectRatio === '1:1' ? '9:16' : aspectRatio,
         resolution
       };
-      const imageUrls = [refImageUrl, refImageUrl2, refImageUrl3].filter(Boolean);
-      if (imageUrls.length > 0) {
-        input.image_urls = imageUrls;
-        // Doc: 2 imagens = frame (início→fim), 3 imagens = reference
-        if (imageUrls.length === 2) {
-          input.generation_type = 'frame';
-          input.generate_type = 'frame';
-        } else {
-          input.generation_type = 'reference';
-          input.generate_type = 'reference';
-        }
+      if (refImageUrl) {
+        input.image_urls = [refImageUrl];
+        input.generation_type = 'reference';
+        input.generate_type = 'reference';
       }
       return { model: 'veo3.1-fast', input };
     }
@@ -2169,7 +2134,7 @@ function startLoadingForCard(cardRefs, mode, opts = {}) {
   const mediaContainer = cardRefs.loadingPlaceholder.closest('.media-container');
   if (mediaContainer) mediaContainer.classList.add('is-loading');
   cardRefs.loadingPlaceholder.classList.remove('hidden');
-  const imgUrl = opts.refImageUrl ?? (mode === 'motion' ? motionCharImageUrl : [refImageUrl, refImageUrl2, refImageUrl3].find(Boolean) || refImageUrl);
+  const imgUrl = opts.refImageUrl ?? (mode === 'motion' ? motionCharImageUrl : refImageUrl);
   const prompt = opts.prompt || lastPrompt || '';
   const bg = cardRefs.loadingPlaceholderBg;
   if (bg) {
@@ -3004,6 +2969,98 @@ async function generateMedia(body) {
         err = fallbackErr;
       }
     }
+    // Fallback Veo3 -> Grok 10s quando há imagem de referência (sem mostrar erro ao cliente)
+    else if (body?.model === 'veo3.1-fast' && refImageUrl && !err.isCredits && !err.isTimeout && currentMode === 'video') {
+      const tid = pollTimeouts.get(taskId);
+      if (tid) { clearTimeout(tid); pollTimeouts.delete(taskId); }
+      try {
+        if (creditsDeducted && userId && taskId) {
+          const refundRes = await fetch('/api/refund-credits', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId, amount: amountToRefund, taskId }),
+          });
+          if (refundRes.ok) {
+            creditsDeducted = false;
+            await refreshCreditsFromSupabase();
+          }
+        }
+        const grokBody = {
+          model: 'grok-imagine/image-to-video',
+          input: {
+            image_urls: [refImageUrl],
+            prompt: lastPrompt || document.getElementById('prompt')?.value?.trim() || '',
+            mode: document.getElementById('grokMode')?.value || 'normal',
+            duration: '10',
+            resolution: document.getElementById('grokResolution')?.value || '480p'
+          }
+        };
+        const grokCost = getCreditsCostForBody(grokBody);
+        const creditsNow = getCredits();
+        if (creditsNow == null || creditsNow < grokCost) throw new Error('Créditos insuficientes para tentar com outro modelo');
+
+        if (cardRefs?.statusMessage) {
+          cardRefs.statusMessage.textContent = '';
+          cardRefs.statusMessage.classList.add('hidden');
+        }
+        if (cardRefs?.taskStatusEl) {
+          cardRefs.taskStatusEl.textContent = 'Gerando...';
+          cardRefs.taskStatusEl.className = 'status-badge';
+        }
+        cardRefs.card?.querySelector('.status-retry-wrap')?.remove();
+        startLoadingForCard(cardRefs, 'video', { refImageUrl, prompt: lastPrompt });
+
+        taskId = await submitTask(grokBody);
+        if (!taskId) throw new Error('Falha ao iniciar geração alternativa');
+
+        if (!SKIP_CREDITS) {
+          const userRaw = localStorage.getItem(AUTH_STORAGE);
+          const user = userRaw ? JSON.parse(userRaw) : null;
+          const userEmail = (user?.email || '').trim().toLowerCase();
+          const deductRes = await fetch('/api/deduct-credits', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: userId || undefined, email: userEmail || undefined, amount: grokCost, taskId }),
+          });
+          if (!deductRes.ok) throw new Error('Não foi possível debitar créditos');
+          creditsDeducted = true;
+          amountToRefund = grokCost;
+          try {
+            const data = await deductRes.json();
+            if (data.credits != null && user) {
+              user.credits = data.credits;
+              if (data.userId && !user.id) user.id = data.userId;
+              localStorage.setItem(AUTH_STORAGE, JSON.stringify(user));
+              updateCreditsDisplay();
+            }
+          } catch (_) {}
+          await refreshCreditsFromSupabase();
+          animateCreditsDecrease(grokCost);
+          amountToRefund = grokCost;
+        }
+
+        const aspectRatio = '9:16';
+        if (cardRefs.card) cardRefs.card.dataset.aspectRatio = aspectRatio;
+        activeTasks.set(taskId, { cardRefs, startTime, prompt: lastPrompt, aspectRatio, isMotion: false, model: 'grok-imagine/image-to-video' });
+        currentTaskId = taskId;
+        saveActiveTask(taskId, startTime, lastPrompt, grokCost, 'grok-imagine/image-to-video');
+        updateOutputUI({ status: 'not_started', progress: 0 }, cardRefs, startTime);
+
+        const result = await pollUntilComplete(taskId, cardRefs, startTime, false, true);
+        const tid2 = pollTimeouts.get(taskId);
+        if (tid2) { clearTimeout(tid2); pollTimeouts.delete(taskId); }
+        if (result?.status === 'finished' && result?.files?.length) {
+          const ar = document.getElementById('aspectRatio')?.value || '9:16';
+          addToHistory(result, lastPrompt, ar);
+        }
+        updateGenerateButtonLabel(true);
+        if (currentMode === 'video') updateRefImageReadyState(); else btnGenerate.disabled = false;
+        return;
+      } catch (fallbackErr) {
+        console.error('[VARVOS] Fallback Veo3->Grok falhou:', fallbackErr);
+        err = fallbackErr;
+      }
+    }
 
     reservedCardIndices.delete(cardIndex);
     if (taskId) activeTasks.delete(taskId);
@@ -3077,9 +3134,7 @@ generateForm.addEventListener('submit', async (e) => {
     }
     // Imagem de ref selecionada mas upload ainda em andamento?
     const previews = [
-      { el: document.getElementById('imageRefPreview'), url: refImageUrl },
-      { el: document.getElementById('imageRef2Preview'), url: refImageUrl2 },
-      { el: document.getElementById('imageRef3Preview'), url: refImageUrl3 }
+      { el: document.getElementById('imageRefPreview'), url: refImageUrl }
     ];
     for (const { el, url } of previews) {
       if (el && !el.classList.contains('hidden') && !url) {

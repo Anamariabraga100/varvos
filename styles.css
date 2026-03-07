@@ -1158,33 +1158,6 @@ body {
   gap: 8px;
 }
 
-/* VEO: 3 imagens lado a lado para ocupar menos espaço */
-.config-ref-slots:has(.config-ref-veo3:not(.hidden)) {
-  flex-direction: row;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-.config-ref-slots:has(.config-ref-veo3:not(.hidden)) > .file-upload {
-  flex: 1;
-  min-width: 0;
-}
-.config-ref-veo3 {
-  display: flex;
-  flex: 2;
-  gap: 8px;
-  min-width: 0;
-}
-.config-ref-veo3 .file-upload {
-  flex: 1;
-  min-width: 0;
-}
-
-.config-ref-veo3-hint {
-  font-size: 0.8rem;
-  color: var(--text-muted);
-  margin: 8px 0 0;
-}
-
 .config-ref-label {
   display: block;
   font-size: 0.9rem;
