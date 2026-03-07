@@ -1600,35 +1600,31 @@ async function uploadFileToVidgo(file) {
   });
 }
 
-// Upload para Imitar Movimento: KIE File Stream API (aceita MOV, MP4, JPG, PNG)
+// Upload para Imitar Movimento: Supabase motion-refs → URL → KIE upload-from-url
 async function uploadMotionFileToKie(file, bucket) {
   validateMotionFileType(file, bucket);
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = async () => {
-      const base64Data = reader.result;
-      try {
-        const res = await fetch(window.location.origin + '/api/kie/upload-file', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            base64Data,
-            bucket: bucket === 'videos' ? 'videos' : 'images',
-            fileName: file.name || undefined,
-          }),
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data?.msg || data?.error || `Erro ${res.status}`);
-        const url = data?.url || data?.data?.downloadUrl || data?.data?.fileUrl;
-        if (url) resolve(url);
-        else reject(new Error('URL não retornada'));
-      } catch (e) {
-        reject(e);
-      }
-    };
-    reader.onerror = () => reject(new Error('Erro ao ler arquivo'));
-    reader.readAsDataURL(file);
+  const bucketName = bucket === 'videos' ? 'videos' : 'images';
+  const sb = window.varvosSupabase;
+  if (!sb) throw new Error('Supabase não configurado. Configure SUPABASE_URL e SUPABASE_ANON_KEY.');
+
+  const ext = (file.name || '').split('.').pop()?.toLowerCase() || (bucketName === 'images' ? 'jpg' : 'mp4');
+  const safeExt = ['mp4', 'mov', 'm4v', 'jpg', 'jpeg', 'png'].includes(ext) ? ext : (bucketName === 'images' ? 'jpg' : 'mp4');
+  const path = `motion-refs/${Date.now()}-${Math.random().toString(36).slice(2, 10)}.${safeExt}`;
+
+  const { error: uploadErr } = await sb.storage.from(bucketName).upload(path, file, { upsert: true });
+  if (uploadErr) throw new Error('Erro ao enviar para storage: ' + (uploadErr.message || uploadErr));
+
+  const { data: { publicUrl } } = sb.storage.from(bucketName).getPublicUrl(path);
+  const res = await fetch(window.location.origin + '/api/kie/upload-from-url', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ fileUrl: publicUrl, bucket: bucketName, fileName: file.name || path.split('/').pop() }),
   });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data?.msg || data?.error || `Erro ${res.status}`);
+  const url = data?.url || data?.data?.downloadUrl || data?.data?.fileUrl;
+  if (url) return url;
+  throw new Error('URL não retornada');
 }
 
 function runSimulatedProgress(progressEl) {
@@ -2081,6 +2077,9 @@ async function submitTask(body) {
   }
 
   if (isMotion || isGrokImageToVideo) {
+    if (body?.model === 'kling-2.6/motion-control') {
+      console.log('[KIE motion-control] body:', JSON.stringify(body, null, 2));
+    }
     const res = await fetch('/api/kie/create-task', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
