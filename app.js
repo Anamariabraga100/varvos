@@ -846,10 +846,23 @@ function startPlansModalTimer() {
   plansModalTimerInterval = setInterval(tick, 1000);
 }
 
+function applyPromotionalVisibility(hasPurchased) {
+  const timerEl = document.getElementById('plansModalTimer');
+  if (timerEl) timerEl.classList.toggle('hidden', !!hasPurchased);
+  document.querySelectorAll('.plan-banner-starter').forEach(el => el.classList.toggle('hidden', !!hasPurchased));
+  if (hasPurchased && plansModalTimerInterval) {
+    clearInterval(plansModalTimerInterval);
+    plansModalTimerInterval = null;
+  }
+}
+
 function openPlansModal() {
   const m = document.getElementById('plansModal');
   if (m) {
-    startPlansModalTimer();
+    userHasPurchased().then((hasPurchased) => {
+      applyPromotionalVisibility(hasPurchased);
+      if (!hasPurchased) startPlansModalTimer();
+    });
     updatePlansActiveSection();
     updatePlanCardsActiveState();
     m.classList.remove('hidden');
@@ -1159,6 +1172,11 @@ updateUserMenuPlan();
 // Atualiza créditos do Supabase (ex.: após admin editar) — ao carregar e ao focar na janela
 refreshCreditsFromSupabase();
 window.addEventListener('focus', refreshCreditsFromSupabase);
+
+// Após compra: oculta timer e banner SOMENTE HOJE
+userHasPurchased().then((hasPurchased) => {
+  if (hasPurchased) applyPromotionalVisibility(true);
+});
 
 // Abre modal de planos quando ?planos=1 na URL (ex: vindo de "Planos e preços")
 if (new URLSearchParams(location.search).get('planos') === '1' && document.getElementById('plansModal')) {
