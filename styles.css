@@ -1821,6 +1821,10 @@ select:focus {
 .output-result-card.hidden { display: none !important; }
 .output-placeholder.hidden { display: none !important; }
 
+/* Oculta barra de status durante loading (redundante com progresso no overlay) */
+.output-result-card:has(.media-container.is-loading) .task-status-bar {
+  display: none !important;
+}
 .task-status-bar {
   display: flex;
   align-items: center;
@@ -2184,8 +2188,10 @@ select:focus {
 .btn-download {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   padding: 12px 20px;
+  min-height: 44px;
   background: var(--btn-bg);
   border: none;
   border-radius: 10px;
@@ -2194,7 +2200,6 @@ select:focus {
   font-size: 0.9rem;
   font-weight: 500;
   text-decoration: none;
-  width: fit-content;
 }
 
 .btn-download:hover { background: var(--btn-hover); color: white; }
@@ -2205,9 +2210,13 @@ select:focus {
   flex-wrap: wrap;
   gap: 10px;
   justify-content: center;
-  align-items: center;
+  align-items: stretch;
+  width: 100%;
 }
 .share-video-buttons.hidden { display: none !important; }
+.share-video-buttons .btn-download { flex: 1 1 100%; min-width: 0; }
+.share-video-buttons .btn-share-whatsapp,
+.share-video-buttons .btn-close-result { flex: 1 1 auto; min-width: 120px; min-height: 44px; }
 
 .btn-share {
   display: inline-flex;
@@ -2215,6 +2224,7 @@ select:focus {
   justify-content: center;
   gap: 6px;
   padding: 12px 18px;
+  min-height: 44px;
   border-radius: 10px;
   font-family: inherit;
   font-size: 0.9rem;
@@ -2232,15 +2242,18 @@ select:focus {
 .btn-share-whatsapp:hover { color: white; }
 
 .btn-close-result {
-  padding: 10px 16px;
-  font-size: 0.88rem;
+  padding: 12px 18px;
+  font-size: 0.9rem;
   font-weight: 500;
   color: var(--text-muted, #6b7280);
   background: transparent;
   border: 1px solid var(--border, #e5e7eb);
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
   transition: background 0.2s, color 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 .btn-close-result:hover {
   background: #f3f4f6;
