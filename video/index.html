@@ -243,24 +243,63 @@
             <!-- Imagem de Referência (opcional) — visível como no print -->
             <div id="configRefWrap" class="config-ref-wrap">
               <label class="config-ref-label">Imagem de Referência <span class="config-ref-optional" id="configRefOptional">(opcional)</span><span class="config-ref-required hidden" id="configRefRequired">(obrigatório para Grok)</span></label>
-              <div class="file-upload file-upload-compact" id="imageRefUpload">
-                <input type="file" id="imageRefFile" accept="image/jpeg,image/png,image/webp" hidden>
-                <div class="file-upload-area" id="imageRefArea">
-                  <span class="file-upload-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></span>
-                  <span class="file-upload-text">Clique ou arraste uma imagem</span>
-                  <span class="file-upload-hint">PNG, JPG ou WEBP (max 5MB)</span>
+              <div class="config-ref-slots">
+                <div class="file-upload file-upload-compact" id="imageRefUpload">
+                  <input type="file" id="imageRefFile" accept="image/jpeg,image/png,image/webp" hidden>
+                  <div class="file-upload-area" id="imageRefArea">
+                    <span class="file-upload-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></span>
+                    <span class="file-upload-text">Imagem 1</span>
+                    <span class="file-upload-hint">PNG, JPG ou WEBP (max 5MB)</span>
+                  </div>
+                  <div class="file-preview file-preview-motion hidden" id="imageRefPreview">
+                    <div class="motion-preview-wrap">
+                      <img id="imageRefPreviewImg" class="motion-preview-media" alt="Preview">
+                      <div class="upload-overlay hidden" id="imageRefProgress" aria-hidden="true">
+                        <div class="upload-progress-bar-wrap"><div class="upload-progress-fill"></div></div>
+                        <span class="upload-progress-pct">0%</span>
+                      </div>
+                    </div>
+                    <button type="button" class="file-remove" id="imageRefRemove">✕</button>
+                  </div>
                 </div>
-                <div class="file-preview file-preview-motion hidden" id="imageRefPreview">
-                  <div class="motion-preview-wrap">
-                    <img id="imageRefPreviewImg" class="motion-preview-media" alt="Preview">
-                    <div class="upload-overlay hidden" id="imageRefProgress" aria-hidden="true">
-                      <div class="upload-progress-bar-wrap"><div class="upload-progress-fill"></div></div>
-                      <span class="upload-progress-pct">0%</span>
+                <div id="veo3RefsWrap" class="config-ref-veo3 hidden">
+                  <div class="file-upload file-upload-compact" id="imageRef2Upload">
+                    <input type="file" id="imageRef2File" accept="image/jpeg,image/png,image/webp" hidden>
+                    <div class="file-upload-area" id="imageRef2Area">
+                      <span class="file-upload-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></span>
+                      <span class="file-upload-text">Imagem 2</span>
+                    </div>
+                    <div class="file-preview file-preview-motion hidden" id="imageRef2Preview">
+                      <div class="motion-preview-wrap">
+                        <img id="imageRef2PreviewImg" class="motion-preview-media" alt="Preview">
+                        <div class="upload-overlay hidden" id="imageRef2Progress" aria-hidden="true">
+                          <div class="upload-progress-bar-wrap"><div class="upload-progress-fill"></div></div>
+                          <span class="upload-progress-pct">0%</span>
+                        </div>
+                      </div>
+                      <button type="button" class="file-remove" id="imageRef2Remove">✕</button>
                     </div>
                   </div>
-                  <button type="button" class="file-remove" id="imageRefRemove">✕</button>
+                  <div class="file-upload file-upload-compact" id="imageRef3Upload">
+                    <input type="file" id="imageRef3File" accept="image/jpeg,image/png,image/webp" hidden>
+                    <div class="file-upload-area" id="imageRef3Area">
+                      <span class="file-upload-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></span>
+                      <span class="file-upload-text">Imagem 3</span>
+                    </div>
+                    <div class="file-preview file-preview-motion hidden" id="imageRef3Preview">
+                      <div class="motion-preview-wrap">
+                        <img id="imageRef3PreviewImg" class="motion-preview-media" alt="Preview">
+                        <div class="upload-overlay hidden" id="imageRef3Progress" aria-hidden="true">
+                          <div class="upload-progress-bar-wrap"><div class="upload-progress-fill"></div></div>
+                          <span class="upload-progress-pct">0%</span>
+                        </div>
+                      </div>
+                      <button type="button" class="file-remove" id="imageRef3Remove">✕</button>
+                    </div>
+                  </div>
                 </div>
               </div>
+              <p class="config-ref-veo3-hint hidden" id="veo3RefsHint">VEO 3: 2 imagens = frame (início→fim). 3 imagens = referência.</p>
             </div>
 
             <!-- Image fields -->

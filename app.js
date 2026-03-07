@@ -18,7 +18,9 @@ let hideVEO3 = false;
 let currentMode = 'video';
 let currentTaskId = null;
 let lastPrompt = '';
-let refImageUrl = '';  // Video reference (uploaded)
+let refImageUrl = '';   // Video reference (uploaded)
+let refImageUrl2 = '';  // VEO 3: 2ª imagem (frame ou reference)
+let refImageUrl3 = '';  // VEO 3: 3ª imagem (reference)
 let refImageUploading = false;  // Upload em andamento
 let imgRefUrl = '';   // Image reference (uploaded)
 let motionCharImageUrl = '';  // Kling: character image
@@ -241,6 +243,12 @@ function updateVideoModelUI() {
   if (configRefOptional) configRefOptional.classList.toggle('hidden', isGrok);
   if (configRefRequired) configRefRequired.classList.toggle('hidden', !isGrok);
   if (configRefWrap && isSoraOrVeo) configRefWrap.classList.remove('hidden');
+  const veo3RefsWrap = document.getElementById('veo3RefsWrap');
+  const veo3RefsHint = document.getElementById('veo3RefsHint');
+  const imageRefAreaText = document.querySelector('#imageRefArea .file-upload-text');
+  if (veo3RefsWrap) veo3RefsWrap.classList.toggle('hidden', !isVEO);
+  if (veo3RefsHint) veo3RefsHint.classList.toggle('hidden', !isVEO);
+  if (imageRefAreaText) imageRefAreaText.textContent = isVEO ? 'Imagem 1' : 'Clique ou arraste uma imagem';
   if (noticeVeo) noticeVeo.classList.toggle('hidden', !isVEO);
   if (noticeSora) noticeSora.classList.toggle('hidden', isVEO && !isGrok);
   if (typeof syncConfigCardDisplays === 'function') syncConfigCardDisplays();
@@ -1689,6 +1697,28 @@ setupFileUpload({
   onUploadEnd: () => { refImageUploading = false; updateRefImageReadyState(); },
   progressElId: 'imageRefProgress'
 });
+setupFileUpload({
+  inputId: 'imageRef2File',
+  areaId: 'imageRef2Area',
+  previewId: 'imageRef2Preview',
+  imgId: 'imageRef2PreviewImg',
+  removeId: 'imageRef2Remove',
+  setUrl: (v) => { refImageUrl2 = v; updateRefImageReadyState(); },
+  onUploadStart: () => { refImageUploading = true; updateRefImageReadyState(); },
+  onUploadEnd: () => { refImageUploading = false; updateRefImageReadyState(); },
+  progressElId: 'imageRef2Progress'
+});
+setupFileUpload({
+  inputId: 'imageRef3File',
+  areaId: 'imageRef3Area',
+  previewId: 'imageRef3Preview',
+  imgId: 'imageRef3PreviewImg',
+  removeId: 'imageRef3Remove',
+  setUrl: (v) => { refImageUrl3 = v; updateRefImageReadyState(); },
+  onUploadStart: () => { refImageUploading = true; updateRefImageReadyState(); },
+  onUploadEnd: () => { refImageUploading = false; updateRefImageReadyState(); },
+  progressElId: 'imageRef3Progress'
+});
 setupFileUpload({ inputId: 'imgRefFile', areaId: 'imgRefArea', previewId: 'imgRefPreview', imgId: 'imgRefPreviewImg', removeId: 'imgRefRemove', setUrl: (v) => imgRefUrl = v });
 function updateMotionReadyState(forceState) {
   const el = document.getElementById('motionReadyState');
@@ -1922,11 +1952,17 @@ function buildRequestBody() {
         aspect_ratio: aspectRatio === '1:1' ? '9:16' : aspectRatio,
         resolution
       };
-      if (refImageUrl) {
-        input.image_urls = [refImageUrl];
-        // Modo reference: imagem guia personagem/objeto/estilo (não frame)
-        input.generation_type = 'reference';
-        input.generate_type = 'reference'; // alias usado pelo playground Vidgo
+      const imageUrls = [refImageUrl, refImageUrl2, refImageUrl3].filter(Boolean);
+      if (imageUrls.length > 0) {
+        input.image_urls = imageUrls;
+        // Doc: 2 imagens = frame (início→fim), 3 imagens = reference
+        if (imageUrls.length === 2) {
+          input.generation_type = 'frame';
+          input.generate_type = 'frame';
+        } else {
+          input.generation_type = 'reference';
+          input.generate_type = 'reference';
+        }
       }
       return { model: 'veo3.1-fast', input };
     }
@@ -2978,10 +3014,16 @@ generateForm.addEventListener('submit', async (e) => {
       return;
     }
     // Imagem de ref selecionada mas upload ainda em andamento?
-    const preview = document.getElementById('imageRefPreview');
-    if (preview && !preview.classList.contains('hidden') && !refImageUrl) {
-      alert('Aguarde o upload da imagem terminar antes de gerar.');
-      return;
+    const previews = [
+      { el: document.getElementById('imageRefPreview'), url: refImageUrl },
+      { el: document.getElementById('imageRef2Preview'), url: refImageUrl2 },
+      { el: document.getElementById('imageRef3Preview'), url: refImageUrl3 }
+    ];
+    for (const { el, url } of previews) {
+      if (el && !el.classList.contains('hidden') && !url) {
+        alert('Aguarde o upload da imagem terminar antes de gerar.');
+        return;
+      }
     }
     const model = hideVEO3 ? 'sora-2' : (hideModelSelection ? 'veo3.1-fast' : selectedModel);
     if (model === 'grok-imagine/image-to-video' && !refImageUrl) {

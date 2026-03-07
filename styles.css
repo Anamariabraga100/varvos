@@ -1104,6 +1104,30 @@ body {
   margin-bottom: 12px;
 }
 
+.config-ref-slots {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.config-ref-veo3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+@media (min-width: 640px) {
+  .config-ref-veo3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.config-ref-veo3-hint {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin: 8px 0 0;
+}
+
 .config-ref-label {
   display: block;
   font-size: 0.9rem;
