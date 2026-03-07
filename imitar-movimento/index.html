@@ -581,7 +581,7 @@
       </div>
       <button type="button" class="plans-modal-close" id="plansModalClose" aria-label="Fechar">×</button>
       <h2 id="plansModalTitle" class="plans-modal-title">Escolha seu plano</h2>
-      <p class="plans-modal-sub">Créditos avulsos ou assinatura mensal. Flexível para o seu fluxo.</p>
+      <p class="plans-modal-sub">Assinatura mensal ou créditos avulsos. Flexível para o seu fluxo.</p>
       <p id="plansModalCreditNote" class="plans-modal-credit-note">Pagamento único via Pix ou cartão</p>
 
       <div id="plansActiveSection" class="plans-active-section hidden">
@@ -597,25 +597,25 @@
       </div>
 
       <div class="plans-tabs">
-        <button type="button" class="plans-tab active" data-tab="avulsos">Comprar créditos</button>
-        <button type="button" class="plans-tab plans-tab-mensais plans-tab-with-badge" data-tab="mensais"><span class="plans-tab-badge plans-tab-badge-50">50%</span><span>Planos Mensais</span></button>
+        <button type="button" class="plans-tab plans-tab-mensais plans-tab-with-badge active" data-tab="mensais"><span class="plans-tab-badge plans-tab-badge-50">50%</span><span>Planos Mensais</span></button>
+        <button type="button" class="plans-tab" data-tab="avulsos">Comprar créditos</button>
       </div>
 
-      <div id="plansAvulsos" class="plans-tab-content">
+      <div id="plansAvulsos" class="plans-tab-content hidden">
         <div class="plan-card plan-card-avulso plan-card-starter">
           <h3 class="plan-name">Starter</h3>
           <p class="plan-desc">Para começar</p>
-          <div class="plan-videos-badge">
+          <div class="plan-price-box plan-price-avulso">
+            <span class="plan-price-main">R$ 14,90</span>
+            <span class="plan-price-sub">A partir de R$ 1,15 por vídeo</span>
+            <span class="plan-price-old">De R$ 18,90</span>
+          </div>
+          <div class="plan-videos-badge plan-videos-premium">
             <svg class="plan-videos-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
             <span class="plan-videos-main">Até 13 vídeos</span>
             <span class="plan-videos-credits">(200 créditos)</span>
           </div>
           <p class="plan-models-hint">Crie escrevendo texto ou enviando imagem de referência</p>
-          <div class="plan-price-box plan-price-inverted">
-            <span class="plan-per-first">A partir de R$ 1,15 por vídeo</span>
-            <span class="plan-old-total">De R$ 18,90</span>
-            <span class="plan-current-small">R$ 14,90</span>
-          </div>
           <ul class="plan-features">
             <li>Qualidade de vídeos em até 4K</li>
             <li>Sem marca d'água — 100% seus</li>
@@ -630,17 +630,17 @@
           <span class="plan-badge-popular">Melhor custo-benefício</span>
           <h3 class="plan-name">Popular</h3>
           <p class="plan-desc">Para quem quer mais vídeos</p>
-          <div class="plan-videos-badge">
+          <div class="plan-price-box plan-price-avulso">
+            <span class="plan-price-main">R$ 39,90</span>
+            <span class="plan-price-sub">A partir de R$ 0,93 por vídeo</span>
+            <span class="plan-price-old">De R$ 49,90</span>
+          </div>
+          <div class="plan-videos-badge plan-videos-premium">
             <svg class="plan-videos-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
             <span class="plan-videos-main">Até 43 vídeos</span>
             <span class="plan-videos-credits">(650 créditos)</span>
           </div>
           <p class="plan-models-hint">Crie escrevendo texto ou enviando imagem de referência</p>
-          <div class="plan-price-box plan-price-inverted">
-            <span class="plan-per-first">A partir de R$ 0,93 por vídeo</span>
-            <span class="plan-old-total">De R$ 49,90</span>
-            <span class="plan-current-small">R$ 39,90</span>
-          </div>
           <ul class="plan-features">
             <li>Qualidade de vídeos em até 4K</li>
             <li>Sem marca d'água — 100% seus</li>
@@ -655,17 +655,17 @@
           <span class="plan-badge-pro">Maior eficiência</span>
           <h3 class="plan-name">Pro</h3>
           <p class="plan-desc">Para criadores frequentes</p>
-          <div class="plan-videos-badge">
+          <div class="plan-price-box plan-price-avulso">
+            <span class="plan-price-main">R$ 79,90</span>
+            <span class="plan-price-sub">A partir de R$ 0,80 por vídeo</span>
+            <span class="plan-price-old">De R$ 99,90</span>
+          </div>
+          <div class="plan-videos-badge plan-videos-premium">
             <svg class="plan-videos-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
             <span class="plan-videos-main">Até 100 vídeos</span>
             <span class="plan-videos-credits">(1.500 créditos)</span>
           </div>
           <p class="plan-models-hint">Crie escrevendo texto ou enviando imagem de referência</p>
-          <div class="plan-price-box plan-price-inverted">
-            <span class="plan-per-first">A partir de R$ 0,80 por vídeo</span>
-            <span class="plan-old-total">De R$ 99,90</span>
-            <span class="plan-current-small">R$ 79,90</span>
-          </div>
           <ul class="plan-features">
             <li>Qualidade de vídeos em até 4K</li>
             <li>Sem marca d'água — 100% seus</li>
@@ -682,17 +682,17 @@
           <span class="plan-badge-escala">Melhor custo por vídeo</span>
           <h3 class="plan-name">Escala</h3>
           <p class="plan-desc">Para alto volume</p>
-          <div class="plan-videos-badge">
+          <div class="plan-price-box plan-price-avulso">
+            <span class="plan-price-main">R$ 297,00</span>
+            <span class="plan-price-sub">A partir de R$ 0,73 por vídeo</span>
+            <span class="plan-price-old">De R$ 367,00</span>
+          </div>
+          <div class="plan-videos-badge plan-videos-premium">
             <svg class="plan-videos-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
             <span class="plan-videos-main">Até 406 vídeos</span>
             <span class="plan-videos-credits">(6.100 créditos)</span>
           </div>
           <p class="plan-models-hint">Crie escrevendo texto ou enviando imagem de referência</p>
-          <div class="plan-price-box plan-price-inverted">
-            <span class="plan-per-first">A partir de R$ 0,73 por vídeo</span>
-            <span class="plan-old-total">De R$ 367,00</span>
-            <span class="plan-current-small">R$ 297,00</span>
-          </div>
           <ul class="plan-features">
             <li>Qualidade de vídeos em até 4K</li>
             <li>Sem marca d'água — 100% seus</li>
@@ -708,22 +708,24 @@
         </div>
       </div>
 
-      <div id="plansMensais" class="plans-tab-content hidden">
-        <div class="plan-card plan-card-avulso plan-card-creator" data-plan-id="start">
+      <div id="plansMensais" class="plans-tab-content">
+        <div class="plan-card plan-card-avulso plan-card-creator plan-card-most-chosen" data-plan-id="start">
           <span class="plan-banner plan-banner-creator">50% OFF</span>
+          <span class="plan-badge-most-chosen">🔥 Mais escolhido pelos criadores</span>
           <h3 class="plan-name">Creator</h3>
-          <p class="plan-desc">Para quem está começando</p>
-          <div class="plan-videos-badge">
+          <p class="plan-desc">Ideal para criadores</p>
+          <div class="plan-price-box plan-price-creator">
+            <span class="plan-price-main">R$ 59,90/mês</span>
+            <span class="plan-price-sub">A partir de R$ 0,60 por vídeo</span>
+            <span class="plan-price-old">De R$ 119,80/mês</span>
+          </div>
+          <div class="plan-videos-badge plan-videos-creator">
             <svg class="plan-videos-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
-            <span class="plan-videos-main">Até 100 vídeos/mês</span>
+            <span class="plan-videos-main">Até 100 vídeos por mês</span>
             <span class="plan-videos-credits">(1.500 créditos)</span>
           </div>
+          <p class="plan-economy-hint plan-economy-inline">💰 Economize até 70% vs créditos avulsos</p>
           <p class="plan-models-hint">Crie escrevendo texto ou enviando imagem de referência</p>
-          <div class="plan-price-box plan-price-inverted">
-            <span class="plan-per-first">A partir de R$ 0,60 por vídeo</span>
-            <span class="plan-old-total">De R$ 119,80/mês</span>
-            <span class="plan-current-small">R$ 59,90/mês</span>
-          </div>
           <ul class="plan-features">
             <li>Qualidade de vídeos em até 4K</li>
             <li>Sem marca d'água — 100% seus</li>
@@ -733,24 +735,25 @@
             <li>Geração 2x mais rápida</li>
             <li>Renovação automática</li>
           </ul>
-          <a href="/checkout?plano=start" class="plan-cta plan-cta-green">Garantir minha Oferta</a>
+          <p class="plan-social-proof">Mais de 1.200 criadores já usam este plano</p>
+          <a href="/checkout?plano=start" class="plan-cta plan-cta-green plan-cta-creator">QUERO APROVEITAR 50% OFF</a>
           <span class="plan-guarantee">Garantia de 7 dias</span>
         </div>
         <div class="plan-card plan-card-avulso plan-card-pro plan-card-pro-mensal" data-plan-id="pro">
           <span class="plan-badge-pro">Melhor custo-benefício</span>
           <h3 class="plan-name">Pro</h3>
           <p class="plan-desc">Para criadores em escala</p>
-          <div class="plan-videos-badge">
+          <div class="plan-price-box plan-price-premium">
+            <span class="plan-price-main">R$ 149,90/mês</span>
+            <span class="plan-price-sub">A partir de R$ 0,56 por vídeo</span>
+            <span class="plan-price-old">De R$ 179,90/mês</span>
+          </div>
+          <div class="plan-videos-badge plan-videos-premium">
             <svg class="plan-videos-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
-            <span class="plan-videos-main">Até 266 vídeos/mês</span>
+            <span class="plan-videos-main">Até 266 vídeos por mês</span>
             <span class="plan-videos-credits">(4.000 créditos)</span>
           </div>
           <p class="plan-models-hint">Crie escrevendo texto ou enviando imagem de referência</p>
-          <div class="plan-price-box plan-price-inverted">
-            <span class="plan-per-first">A partir de R$ 0,56 por vídeo</span>
-            <span class="plan-old-total">De R$ 179,90/mês</span>
-            <span class="plan-current-small">R$ 149,90/mês</span>
-          </div>
           <ul class="plan-features">
             <li>Qualidade de vídeos em até 4K</li>
             <li>Sem marca d'água — 100% seus</li>
@@ -761,24 +764,24 @@
             <li>Renovação automática</li>
             <li>Prioridade máxima na fila</li>
           </ul>
-          <a href="/checkout?plano=pro" class="plan-cta">ATIVAR plano</a>
+          <a href="/checkout?plano=pro" class="plan-cta plan-cta-premium">ATIVAR PLANO</a>
           <span class="plan-guarantee">Garantia de 7 dias</span>
         </div>
         <div class="plan-card plan-card-avulso plan-card-agency" data-plan-id="agency">
           <span class="plan-badge-agency">Máximo volume — menor preço</span>
           <h3 class="plan-name">Agency</h3>
           <p class="plan-desc">Para agências e alto volume</p>
-          <div class="plan-videos-badge">
+          <div class="plan-price-box plan-price-premium">
+            <span class="plan-price-main">R$ 449/mês</span>
+            <span class="plan-price-sub">A partir de R$ 0,45 por vídeo</span>
+            <span class="plan-price-old">De R$ 549/mês</span>
+          </div>
+          <div class="plan-videos-badge plan-videos-premium">
             <svg class="plan-videos-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
-            <span class="plan-videos-main">Até 1.000 vídeos/mês</span>
+            <span class="plan-videos-main">Até 1.000 vídeos por mês</span>
             <span class="plan-videos-credits">(15.000 créditos)</span>
           </div>
           <p class="plan-models-hint">Crie escrevendo texto ou enviando imagem de referência</p>
-          <div class="plan-price-box plan-price-inverted">
-            <span class="plan-per-first">A partir de R$ 0,45 por vídeo</span>
-            <span class="plan-old-total">De R$ 549/mês</span>
-            <span class="plan-current-small">R$ 449/mês</span>
-          </div>
           <ul class="plan-features">
             <li>Qualidade de vídeos em até 4K</li>
             <li>Sem marca d'água — 100% seus</li>
@@ -790,9 +793,10 @@
             <li>Suporte prioritário via WhatsApp</li>
             <li>Renovação automática</li>
           </ul>
-          <a href="/checkout?plano=agency" class="plan-cta">ATIVAR plano</a>
+          <a href="/checkout?plano=agency" class="plan-cta plan-cta-premium">ATIVAR PLANO</a>
           <span class="plan-guarantee">Garantia de 7 dias</span>
         </div>
+        <p class="plans-mensais-avulsos-hint">ou <button type="button" class="plan-avulsos-link" data-switch-tab="avulsos">comprar créditos avulsos</button></p>
       </div>
     </div>
   </div>

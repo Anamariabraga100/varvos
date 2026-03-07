@@ -256,6 +256,60 @@
   color: #fff;
 }
 
+/* Plano mais escolhido — prova social */
+.plan-badge-most-chosen {
+  display: block;
+  margin: 0 0 8px;
+  padding: 6px 12px;
+  background: rgba(234, 88, 12, 0.12);
+  color: #c2410c;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: 8px;
+  text-align: center;
+}
+
+/* Economize até 70% — gatilho de economia */
+.plan-economy-hint {
+  margin: 0 0 10px;
+  padding: 8px 12px;
+  background: rgba(16, 185, 129, 0.1);
+  color: #047857;
+  font-size: 0.82rem;
+  font-weight: 600;
+  border-radius: 8px;
+  text-align: center;
+}
+
+/* Creator: economia em linha simples (sem caixa) */
+.plan-economy-inline {
+  margin: 0 0 10px;
+  padding: 0;
+  background: none;
+  color: #047857;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: left;
+}
+
+/* ou comprar créditos avulsos — link para trocar aba */
+.plans-mensais-avulsos-hint {
+  margin: 16px 0 0;
+  font-size: 0.88rem;
+  color: var(--text-muted, #6b7280);
+  text-align: center;
+}
+.plan-avulsos-link {
+  background: none;
+  border: none;
+  color: #059669;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+}
+.plan-avulsos-link:hover { color: #047857; }
+
 .plan-card {
   background: #fff;
   border: 1px solid #e5e7eb;
@@ -512,6 +566,16 @@
   font-weight: 500;
   color: #059669;
   opacity: 0.9;
+}
+
+/* Creator: créditos menores (usuário compra resultado, não créditos) */
+.plan-videos-creator .plan-videos-main {
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+.plan-videos-creator .plan-videos-credits {
+  font-size: 0.72rem;
+  opacity: 0.75;
 }
 
 .plan-models-hint {
@@ -786,10 +850,131 @@
   box-shadow: 0 2px 8px rgba(234, 88, 12, 0.3);
 }
 
-/* Creator: mesmo estilo unificado dos demais */
+/* Creator: preço dominante — bloco premium, R$59,90 grande */
+.plan-card-creator .plan-price-box.plan-price-creator {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.06) 0%, rgba(5, 150, 105, 0.04) 100%);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  border-radius: 12px;
+  padding: 16px 20px;
+}
+.plan-price-creator {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+  margin-bottom: 14px;
+}
+.plan-price-creator .plan-price-main {
+  font-size: 2.1rem;
+  font-weight: 800;
+  color: #059669;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+.plan-price-creator .plan-price-sub {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #6b7280;
+}
+.plan-price-creator .plan-price-old {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #9ca3af;
+  text-decoration: line-through;
+}
+
+/* Creator: fallback para plan-price-inverted (não usado no Creator) */
 .plan-card-creator .plan-price-inverted .plan-current-small {
   color: #059669;
   font-size: 1.15rem;
+}
+
+/* Pro e Agency: preço premium — mesmo estilo do Creator */
+.plan-card-pro .plan-price-box.plan-price-premium,
+.plan-card-agency .plan-price-box.plan-price-premium {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.06) 0%, rgba(5, 150, 105, 0.04) 100%);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  border-radius: 12px;
+  padding: 16px 20px;
+}
+.plan-price-premium {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+  margin-bottom: 14px;
+}
+.plan-price-premium .plan-price-main {
+  font-size: 1.85rem;
+  font-weight: 800;
+  color: #111827;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+.plan-card-pro .plan-price-premium .plan-price-main {
+  color: #059669;
+}
+.plan-price-premium .plan-price-sub {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #6b7280;
+}
+.plan-price-premium .plan-price-old {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #9ca3af;
+  text-decoration: line-through;
+}
+
+/* Vídeos premium — créditos menores (Pro, Agency) */
+.plan-videos-premium .plan-videos-main {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+.plan-videos-premium .plan-videos-credits {
+  font-size: 0.72rem;
+  opacity: 0.75;
+}
+
+/* Botão premium (Pro, Agency) — maior para conversão */
+.plan-cta-premium {
+  padding: 14px 24px !important;
+  font-weight: 700 !important;
+  font-size: 1rem !important;
+}
+
+/* Créditos avulsos: preço premium — preço principal em destaque */
+.plan-price-avulso {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+  margin-bottom: 14px;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.06) 0%, rgba(5, 150, 105, 0.04) 100%) !important;
+  border: 1px solid rgba(16, 185, 129, 0.2) !important;
+  border-radius: 12px !important;
+  padding: 16px 20px !important;
+}
+.plan-price-avulso .plan-price-main {
+  font-size: 1.65rem;
+  font-weight: 800;
+  color: #059669;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+.plan-price-avulso .plan-price-sub {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: #6b7280;
+}
+.plan-price-avulso .plan-price-old {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: #9ca3af;
+  text-decoration: line-through;
+}
+.plan-card-starter .plan-price-avulso .plan-price-main {
+  color: #059669;
 }
 
 /* Badge 50% nos planos */
@@ -818,6 +1003,22 @@
   background: #059669 !important;
   border-color: #059669 !important;
   color: #fff !important;
+}
+
+/* Creator: botão maior para melhor conversão em mobile */
+.plan-cta-creator {
+  padding: 16px 24px !important;
+  font-weight: 700 !important;
+  font-size: 1.05rem !important;
+}
+
+/* Prova social acima do botão Creator */
+.plan-social-proof {
+  margin: 0 0 12px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #059669;
+  text-align: center;
 }
 
 .plan-card-avulso .plan-guarantee {

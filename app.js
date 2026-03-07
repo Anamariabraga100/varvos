@@ -868,20 +868,16 @@ function openPlansModal() {
     updatePlanCardsActiveState();
     m.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
-    // Se tem plano ativo, abre aba Planos Mensais para ver opções de upgrade
-    try {
-      const raw = localStorage.getItem(AUTH_STORAGE);
-      const user = raw ? JSON.parse(raw) : null;
-      if (user?.plan) {
-        document.querySelectorAll('.plans-tab').forEach(t => t.classList.remove('active'));
-        const mensaisTab = document.querySelector('.plans-tab[data-tab="mensais"]');
-        if (mensaisTab) {
-          mensaisTab.classList.add('active');
-          document.getElementById('plansAvulsos')?.classList.add('hidden');
-          document.getElementById('plansMensais')?.classList.remove('hidden');
-        }
-      }
-    } catch (_) {}
+    // Abre em Planos Mensais por padrão (mais lucrativo)
+    document.querySelectorAll('.plans-tab').forEach(t => t.classList.remove('active'));
+    const mensaisTab = document.querySelector('.plans-tab[data-tab="mensais"]');
+    if (mensaisTab) {
+      mensaisTab.classList.add('active');
+      document.getElementById('plansAvulsos')?.classList.add('hidden');
+      document.getElementById('plansMensais')?.classList.remove('hidden');
+      const note = document.getElementById('plansModalCreditNote');
+      if (note) note.classList.add('hidden');
+    }
   }
 }
 
@@ -1128,17 +1124,21 @@ document.getElementById('supportForm')?.addEventListener('submit', (e) => {
 });
 
 // Plans modal: tabs e fechar
+function switchPlansTab(t) {
+  document.querySelectorAll('.plans-tab').forEach(x => x.classList.remove('active'));
+  const tab = document.querySelector('.plans-tab[data-tab="' + t + '"]');
+  if (tab) tab.classList.add('active');
+  document.getElementById('plansAvulsos')?.classList.toggle('hidden', t !== 'avulsos');
+  document.getElementById('plansMensais')?.classList.toggle('hidden', t !== 'mensais');
+  const note = document.getElementById('plansModalCreditNote');
+  if (note) note.classList.toggle('hidden', t !== 'avulsos');
+  if (t === 'mensais') updatePlanCardsActiveState();
+}
 document.querySelectorAll('.plans-tab').forEach(tab => {
-  tab.addEventListener('click', () => {
-    const t = tab.dataset.tab;
-    document.querySelectorAll('.plans-tab').forEach(x => x.classList.remove('active'));
-    tab.classList.add('active');
-    document.getElementById('plansAvulsos')?.classList.toggle('hidden', t !== 'avulsos');
-    document.getElementById('plansMensais')?.classList.toggle('hidden', t !== 'mensais');
-    const note = document.getElementById('plansModalCreditNote');
-    if (note) note.classList.toggle('hidden', t !== 'avulsos');
-    if (t === 'mensais') updatePlanCardsActiveState();
-  });
+  tab.addEventListener('click', () => switchPlansTab(tab.dataset.tab));
+});
+document.querySelectorAll('.plan-avulsos-link').forEach(btn => {
+  btn.addEventListener('click', () => switchPlansTab('avulsos'));
 });
 
 document.getElementById('plansModalClose')?.addEventListener('click', closePlansModal);
