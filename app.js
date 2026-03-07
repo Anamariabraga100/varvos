@@ -13,8 +13,9 @@ const AUTH_STORAGE = 'varvos_user';
 const ACTIVE_TASK_STORAGE = 'varvos_active_task';
 
 let selectedModel = 'veo3.1-fast';
-let hideModelSelection = false;
-let hideVEO3 = false;
+let hideModelGrok = false;
+let hideModelVeo3 = false;
+let hideModelSora2 = false;
 let currentMode = 'video';
 let currentTaskId = null;
 let lastPrompt = '';
@@ -256,6 +257,20 @@ function updateVideoModelUI() {
 }
 document.getElementById('videoModel')?.addEventListener('change', updateVideoModelUI);
 
+const MODEL_OPTIONS = [
+  { value: 'grok-imagine/image-to-video', label: 'Grok', hideKey: 'hideModelGrok' },
+  { value: 'veo3.1-fast', label: 'VEO 3.1 Fast', hideKey: 'hideModelVeo3' },
+  { value: 'sora-2', label: 'Sora 2', hideKey: 'hideModelSora2' }
+];
+
+function getEffectiveModel() {
+  const hidden = { 'grok-imagine/image-to-video': hideModelGrok, 'veo3.1-fast': hideModelVeo3, 'sora-2': hideModelSora2 };
+  const visible = MODEL_OPTIONS.filter(m => !hidden[m.value]);
+  if (visible.length === 0) return selectedModel;
+  if (visible.length === 1) return visible[0].value;
+  return hidden[selectedModel] ? visible[0].value : selectedModel;
+}
+
 async function applyHideModelSetting() {
   const fieldModel = document.querySelector('.field-model');
   const modelSel = document.getElementById('videoModel');
@@ -263,25 +278,36 @@ async function applyHideModelSetting() {
   const sb = window.varvosSupabase;
   if (!sb) return;
   try {
-    const { data: rows } = await sb.from('app_settings').select('key, value').in('key', ['hide_model_selection', 'hide_veo3']);
+    const { data: rows } = await sb.from('app_settings').select('key, value').in('key', ['hide_model_grok', 'hide_model_veo3', 'hide_model_sora2']);
     const map = Object.fromEntries((rows || []).map(r => [r.key, r.value]));
-    hideModelSelection = !!(map.hide_model_selection === true || map.hide_model_selection === 'true');
-    hideVEO3 = !!(map.hide_veo3 === true || map.hide_veo3 === 'true');
+    const toBool = (v) => !!(v === true || v === 'true');
+    hideModelGrok = toBool(map.hide_model_grok);
+    hideModelVeo3 = toBool(map.hide_model_veo3);
+    hideModelSora2 = toBool(map.hide_model_sora2);
 
-    if (hideVEO3) {
-      const veoOpt = modelSel.querySelector('option[value="veo3.1-fast"]');
-      if (veoOpt) veoOpt.remove();
-      modelSel.value = 'sora-2';
-      selectedModel = 'sora-2';
+    const hidden = { 'grok-imagine/image-to-video': hideModelGrok, 'veo3.1-fast': hideModelVeo3, 'sora-2': hideModelSora2 };
+    const visible = MODEL_OPTIONS.filter(m => !hidden[m.value]);
+    if (visible.length === 0) {
       fieldModel.classList.remove('hidden');
       updateVideoModelUI();
-    } else if (hideModelSelection) {
-      fieldModel.classList.add('hidden');
-      selectedModel = 'veo3.1-fast';
-      updateVideoModelUI();
-    } else {
-      updateVideoModelUI();
+      return;
     }
+    if (visible.length === 1) {
+      fieldModel.classList.add('hidden');
+      selectedModel = visible[0].value;
+      modelSel.value = selectedModel;
+    } else {
+      fieldModel.classList.remove('hidden');
+      const currentVal = modelSel.value;
+      modelSel.innerHTML = visible.map(m => `<option value="${m.value}" ${currentVal === m.value ? 'selected' : ''}>${m.label}</option>`).join('');
+      if (hidden[currentVal]) {
+        selectedModel = visible[0].value;
+        modelSel.value = selectedModel;
+      } else {
+        selectedModel = currentVal;
+      }
+    }
+    updateVideoModelUI();
   } catch (e) {
     console.warn('app_settings:', e);
   }
@@ -290,7 +316,7 @@ async function applyHideModelSetting() {
 (async function initVideoModelSettings() {
   if (document.getElementById('videoModel')) {
     await applyHideModelSetting();
-    if (!hideModelSelection) updateVideoModelUI();
+    updateVideoModelUI();
   }
 })();
 
@@ -1938,7 +1964,7 @@ function buildRequestBody() {
     return { model: 'kling-2.6/motion-control', input };
   }
   if (currentMode === 'video') {
-    const model = hideVEO3 ? 'sora-2' : (hideModelSelection ? 'veo3.1-fast' : selectedModel);
+    const model = getEffectiveModel();
     const prompt = document.getElementById('prompt').value.trim();
 
     if (model === 'veo3.1-fast') {
@@ -3025,7 +3051,7 @@ generateForm.addEventListener('submit', async (e) => {
         return;
       }
     }
-    const model = hideVEO3 ? 'sora-2' : (hideModelSelection ? 'veo3.1-fast' : selectedModel);
+    const model = getEffectiveModel();
     if (model === 'grok-imagine/image-to-video' && !refImageUrl) {
       alert('O Grok requer uma imagem de referência. Envie uma imagem.');
       return;

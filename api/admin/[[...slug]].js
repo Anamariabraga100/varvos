@@ -135,18 +135,21 @@ export default async function handler(req, res) {
     if (!requireAdmin(req, res)) return;
     try {
       if (req.method === 'GET') {
-        const { data: rows, error } = await supabase.from('app_settings').select('key, value').in('key', ['hide_model_selection', 'hide_veo3']);
+        const { data: rows, error } = await supabase.from('app_settings').select('key, value').in('key', ['hide_model_grok', 'hide_model_veo3', 'hide_model_sora2']);
         if (error) throw error;
         const map = Object.fromEntries((rows || []).map(r => [r.key, r.value]));
+        const toBool = (v) => !!(v === true || v === 'true');
         return res.status(200).json({
-          hide_model_selection: !!(map.hide_model_selection === true || map.hide_model_selection === 'true'),
-          hide_veo3: !!(map.hide_veo3 === true || map.hide_veo3 === 'true')
+          hide_model_grok: toBool(map.hide_model_grok),
+          hide_model_veo3: toBool(map.hide_model_veo3),
+          hide_model_sora2: toBool(map.hide_model_sora2)
         });
       }
-      const { hide_model_selection, hide_veo3 } = req.body || {};
+      const { hide_model_grok, hide_model_veo3, hide_model_sora2 } = req.body || {};
       const rows = [];
-      if (typeof hide_model_selection === 'boolean') rows.push({ key: 'hide_model_selection', value: hide_model_selection, updated_at: new Date().toISOString() });
-      if (typeof hide_veo3 === 'boolean') rows.push({ key: 'hide_veo3', value: hide_veo3, updated_at: new Date().toISOString() });
+      if (typeof hide_model_grok === 'boolean') rows.push({ key: 'hide_model_grok', value: hide_model_grok, updated_at: new Date().toISOString() });
+      if (typeof hide_model_veo3 === 'boolean') rows.push({ key: 'hide_model_veo3', value: hide_model_veo3, updated_at: new Date().toISOString() });
+      if (typeof hide_model_sora2 === 'boolean') rows.push({ key: 'hide_model_sora2', value: hide_model_sora2, updated_at: new Date().toISOString() });
       if (rows.length) {
         const { error } = await supabase.from('app_settings').upsert(rows, { onConflict: 'key' });
         if (error) throw error;

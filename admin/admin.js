@@ -113,26 +113,28 @@ async function loadAppSettings() {
     const res = await adminFetch('/api/admin/settings');
     if (!res.ok) return;
     const data = await res.json();
-    const hideModelCb = document.getElementById('hideModelSelection');
-    const hideVEO3Cb = document.getElementById('hideVEO3');
-    if (hideModelCb) hideModelCb.checked = !!data.hide_model_selection;
-    if (hideVEO3Cb) hideVEO3Cb.checked = !!data.hide_veo3;
+    const setCb = (id, val) => { const el = document.getElementById(id); if (el) el.checked = !!val; };
+    setCb('hideModelGrok', data.hide_model_grok);
+    setCb('hideModelVeo3', data.hide_model_veo3);
+    setCb('hideModelSora2', data.hide_model_sora2);
   } catch (e) {
     console.error('loadAppSettings:', e);
   }
 }
 
 async function saveAppSettings() {
-  const hideModelCb = document.getElementById('hideModelSelection');
-  const hideVEO3Cb = document.getElementById('hideVEO3');
-  if (!hideModelCb || !hideVEO3Cb) return;
+  const grokCb = document.getElementById('hideModelGrok');
+  const veo3Cb = document.getElementById('hideModelVeo3');
+  const sora2Cb = document.getElementById('hideModelSora2');
+  if (!grokCb || !veo3Cb || !sora2Cb) return;
   try {
     const res = await adminFetch('/api/admin/settings', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        hide_model_selection: hideModelCb.checked,
-        hide_veo3: hideVEO3Cb.checked
+        hide_model_grok: grokCb.checked,
+        hide_model_veo3: veo3Cb.checked,
+        hide_model_sora2: sora2Cb.checked
       })
     });
     if (!res.ok) {
@@ -241,8 +243,9 @@ async function loadDashboard() {
   await loadAppSettings();
 }
 
-document.getElementById('hideModelSelection')?.addEventListener('change', saveAppSettings);
-document.getElementById('hideVEO3')?.addEventListener('change', saveAppSettings);
+document.getElementById('hideModelGrok')?.addEventListener('change', saveAppSettings);
+document.getElementById('hideModelVeo3')?.addEventListener('change', saveAppSettings);
+document.getElementById('hideModelSora2')?.addEventListener('change', saveAppSettings);
 
 let salesFilter = 'day';
 

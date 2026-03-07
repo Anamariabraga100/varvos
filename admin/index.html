@@ -122,13 +122,18 @@
       <section class="admin-section">
         <h2>Configurações</h2>
         <div class="admin-settings">
+          <p class="admin-settings-intro">Ocultar modelos individualmente — os marcados não aparecerão na seleção do site.</p>
           <label class="admin-setting-toggle">
-            <input type="checkbox" id="hideModelSelection" name="hide_model_selection">
-            <span>Ocultar seleção de modelo — apenas VEO 3.1 ativo (Sora 2 fica indisponível até habilitar)</span>
+            <input type="checkbox" id="hideModelGrok" name="hide_model_grok">
+            <span>Ocultar Grok</span>
           </label>
           <label class="admin-setting-toggle">
-            <input type="checkbox" id="hideVEO3" name="hide_veo3">
-            <span>Ocultar VEO 3 — apenas Sora 2 disponível</span>
+            <input type="checkbox" id="hideModelVeo3" name="hide_model_veo3">
+            <span>Ocultar VEO 3.1 Fast</span>
+          </label>
+          <label class="admin-setting-toggle">
+            <input type="checkbox" id="hideModelSora2" name="hide_model_sora2">
+            <span>Ocultar Sora 2</span>
           </label>
         </div>
       </section>
