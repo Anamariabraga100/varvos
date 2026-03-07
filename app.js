@@ -1606,7 +1606,11 @@ async function uploadMotionFileToKie(file, bucket) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = async () => {
-      const base64Data = reader.result;
+      let base64Data = reader.result;
+      // KIE pode rejeitar data:video/quicktime;base64,... — enviar base64 puro
+      if (typeof base64Data === 'string' && base64Data.includes(',')) {
+        base64Data = base64Data.split(',')[1] || base64Data;
+      }
       try {
         const res = await fetch(window.location.origin + '/api/kie/upload-file', {
           method: 'POST',
