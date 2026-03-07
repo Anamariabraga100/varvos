@@ -2573,7 +2573,7 @@ select:focus {
   display: none;
 }
 
-/* Modal vídeo ampliado — igual à landing page */
+/* Modal vídeo ampliado — bonito, tudo cabendo na tela */
 .video-modal {
   position: fixed;
   inset: 0;
@@ -2581,8 +2581,9 @@ select:focus {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24px 16px;
-  background: rgba(0, 0, 0, 0.8);
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
   pointer-events: auto;
   transition: opacity 0.2s;
   overflow-y: auto;
@@ -2598,29 +2599,31 @@ select:focus {
 
 .video-modal-content {
   position: relative;
-  background: #111;
+  background: #16161a;
   border-radius: 20px;
   overflow: hidden;
-  max-width: min(90vw, 560px);
-  max-height: calc(100vh - 32px);
+  max-width: min(92vw, 340px);
+  max-height: 95vh;
   width: 100%;
-  box-shadow: 0 16px 40px rgba(0,0,0,0.5);
-  overflow-y: auto;
+  box-shadow: 0 24px 48px rgba(0,0,0,0.5);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
 }
 
 .video-modal-close {
-  position: fixed;
-  top: 24px;
-  right: 24px;
-  width: 40px;
-  height: 40px;
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 36px;
+  height: 36px;
   border: none;
   border-radius: 50%;
-  background: rgba(0,0,0,0.7);
+  background: rgba(0,0,0,0.6);
   color: white;
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   cursor: pointer;
-  z-index: 2001;
+  z-index: 10;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2635,10 +2638,10 @@ select:focus {
 .video-modal-player {
   position: relative;
   aspect-ratio: 9/16;
-  border-radius: 20px;
+  flex: 1 1 0;
+  min-height: 120px;
   overflow: hidden;
   background: #000;
-  cursor: pointer;
 }
 
 .video-modal-player video {
@@ -2653,41 +2656,67 @@ select:focus {
 
 .video-modal-actions {
   padding: 16px;
-  background: #1a1a1c;
+  background: #1e1e22;
   flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+}
+
+.video-modal-prompt-wrap {
+  flex-shrink: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.video-modal-prompt-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .video-modal-prompt {
-  margin: 0 0 12px;
-  padding: 8px 0;
-  font-size: 0.85rem;
-  line-height: 1.4;
+  margin: 0;
+  padding: 10px 12px;
+  font-size: 0.82rem;
+  line-height: 1.45;
   color: rgba(255,255,255,0.9);
   word-wrap: break-word;
   overflow-wrap: break-word;
-  max-height: 6em;
+  max-height: 72px;
   overflow-y: auto;
+  background: rgba(0,0,0,0.25);
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.06);
 }
 .video-modal-prompt.hidden { display: none !important; }
+.video-modal-prompt-wrap:has(.video-modal-prompt.hidden) { display: none !important; }
 
 .video-modal-buttons {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
+  flex-shrink: 0;
 }
 
 .video-modal-download-wrap {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
   width: 100%;
+  flex-shrink: 0;
 }
 .video-modal-download-wrap .btn-share {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 14px 24px;
-  font-size: 1rem;
+  padding: 12px 20px;
+  font-size: 0.95rem;
   font-weight: 600;
   border-radius: 12px;
   width: 100%;
@@ -2695,9 +2724,9 @@ select:focus {
 
 .btn-imitar-movimento {
   display: block;
-  padding: 14px 24px;
+  padding: 12px 20px;
   border-radius: 12px;
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 600;
   text-align: center;
   text-decoration: none;

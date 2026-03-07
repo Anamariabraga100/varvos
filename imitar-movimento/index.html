@@ -23,13 +23,13 @@
 <body>
   <div class="app">
     <header class="header">
-      <a href="../" class="logo">
+      <span class="logo" aria-hidden="true">
         <svg class="logo-icon" width="28" height="28" viewBox="0 0 24 24" fill="none">
           <path d="M12 2L2 7l10 5 10-5-10-5z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           <path d="M2 17l10 5 10-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
         <span class="logo-text">VARVOS</span>
-      </a>
+      </span>
       <div class="header-right">
         <div class="header-credits-wrap">
           <span class="header-credits">
@@ -853,7 +853,10 @@
         <video id="videoModalVideo" controls preload="none" loop playsinline></video>
       </div>
       <div class="video-modal-actions">
-        <p class="video-modal-prompt hidden" id="videoModalPrompt"></p>
+        <div class="video-modal-prompt-wrap">
+          <span class="video-modal-prompt-label">Prompt</span>
+          <p class="video-modal-prompt hidden" id="videoModalPrompt"></p>
+        </div>
         <div class="video-modal-buttons">
           <div class="video-modal-download-wrap hidden">
             <a href="#" class="video-modal-download-btn btn-imitar-movimento" download>Baixar vídeo</a>

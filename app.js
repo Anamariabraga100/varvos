@@ -448,7 +448,7 @@ function openVideoModalForResult(src, downloadBtnOrHref, downloadName, aspectRat
   }
   const promptEl = document.getElementById('videoModalPrompt');
   if (promptEl) {
-    promptEl.textContent = prompt ? `Prompt: ${prompt}` : '';
+    promptEl.textContent = prompt || '';
     promptEl.classList.toggle('hidden', !prompt);
   }
   const btnImitar = document.getElementById('btnImitarMovimentoModal');
