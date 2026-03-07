@@ -1,8 +1,11 @@
 /**
- * API KIE unificada — record-info e create-task em uma única Serverless Function
- * GET /api/kie/record-info?taskId=xxx | POST /api/kie/create-task
+ * API KIE unificada — record-info, create-task e upload
+ * GET /api/kie/record-info?taskId=xxx
+ * POST /api/kie/create-task
+ * POST /api/kie/upload-file — upload de imagem/vídeo para Imitar Movimento (usa KIE File Upload API)
  */
 const KIE_API_BASE = 'https://api.kie.ai';
+const KIE_UPLOAD_BASE = 'https://kieai.redpandaai.co';
 
 function getRoute(req) {
   const slug = req.query?.slug;
@@ -58,6 +61,38 @@ export default async function handler(req, res) {
     } catch (err) {
       console.error('[api/kie/create-task]', err);
       return res.status(500).json({ code: 500, msg: err?.message || 'Erro ao chamar Kie AI' });
+    }
+  }
+
+  if (route === 'upload-file') {
+    if (req.method !== 'POST') return res.status(405).json({ code: 405, msg: 'Método não permitido' });
+    const { base64Data, uploadPath, fileName } = req.body || {};
+    if (!base64Data) return res.status(400).json({ code: 400, msg: 'base64Data é obrigatório' });
+    try {
+      const resKie = await fetch(`${KIE_UPLOAD_BASE}/api/file-base64-upload`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          base64Data,
+          uploadPath: uploadPath || 'motion-uploads',
+          fileName: fileName || undefined,
+        }),
+      });
+      const data = await resKie.json();
+      if (!data?.success && data?.code !== 200) {
+        return res.status(resKie.status).json(data);
+      }
+      const url = data?.data?.fileUrl || data?.data?.downloadUrl;
+      if (!url) {
+        return res.status(500).json({ code: 500, msg: 'URL não retornada pela KIE' });
+      }
+      return res.status(200).json({ success: true, url });
+    } catch (err) {
+      console.error('[api/kie/upload-file]', err);
+      return res.status(500).json({ code: 500, msg: err?.message || 'Erro ao fazer upload' });
     }
   }
 

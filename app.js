@@ -564,11 +564,21 @@ function setMotionRefVideoFromUrl(url) {
     updateMotionReadyState();
     updateMotionButtonCredits();
   };
+  const onError = () => {
+    hideLoading();
+    updateMotionReadyState({ error: 'Não foi possível carregar o vídeo. Verifique se a URL é válida ou tente outro.' });
+    // Reverter para permitir nova seleção
+    motionRefVideoUrl = '';
+    area.classList.remove('hidden');
+    preview.classList.add('hidden');
+    previewVid.src = '';
+    updateMotionReadyState();
+  };
   if (previewVid.readyState >= 2) hideLoading();
   else {
     previewVid.addEventListener('loadeddata', hideLoading, { once: true });
     previewVid.addEventListener('canplay', hideLoading, { once: true });
-    previewVid.addEventListener('error', hideLoading, { once: true });
+    previewVid.addEventListener('error', onError, { once: true });
   }
   updateMotionReadyState();
 }
@@ -1597,10 +1607,34 @@ async function uploadFileToVidgo(file) {
   });
 }
 
-// Upload para Imitar Movimento: valida formato (KIE exige JPEG/PNG, MP4/MOV) e envia para Vidgo
-async function uploadMotionFileToVidgo(file, bucket) {
+// Upload para Imitar Movimento: usa a API de upload da KIE (não Vidgo)
+async function uploadMotionFileToKie(file, bucket) {
   validateMotionFileType(file, bucket);
-  return uploadFileToVidgo(file);
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const base64Data = reader.result;
+      const uploadPath = bucket === 'images' ? 'motion-images' : 'motion-videos';
+      const ext = (file.name || '').split('.').pop()?.toLowerCase() || 'bin';
+      const fileName = `${Date.now()}_${Math.random().toString(36).slice(2, 10)}.${ext}`;
+      try {
+        const res = await fetch('/api/kie/upload-file', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ base64Data, uploadPath, fileName }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data?.msg || `Erro ${res.status}`);
+        const url = data?.url;
+        if (!url) throw new Error('URL não retornada');
+        resolve(url);
+      } catch (e) {
+        reject(e);
+      }
+    };
+    reader.onerror = () => reject(new Error('Erro ao ler arquivo'));
+    reader.readAsDataURL(file);
+  });
 }
 
 function runSimulatedProgress(progressEl) {
@@ -1774,7 +1808,7 @@ function updateMotionReadyState(forceState) {
   if (btn && currentMode === 'motion') btn.disabled = hasUploading || !(motionCharImageUrl && motionRefVideoUrl);
   if (currentMode === 'motion') { updateMotionButtonCredits(); updatePromptWrapValue(); }
 }
-setupFileUpload({ inputId: 'motionCharImageFile', areaId: 'motionCharImageArea', previewId: 'motionCharImagePreview', imgId: 'motionCharImagePreviewImg', removeId: 'motionCharImageRemove', setUrl: (v) => motionCharImageUrl = v, onReady: updateMotionReadyState, uploadFn: (f) => uploadMotionFileToVidgo(f, 'images'), uploadStatusLabel: 'image', setUploadStatus: updateMotionReadyState, progressElId: 'motionCharImageProgress', hideProgressUI: true });
+setupFileUpload({ inputId: 'motionCharImageFile', areaId: 'motionCharImageArea', previewId: 'motionCharImagePreview', imgId: 'motionCharImagePreviewImg', removeId: 'motionCharImageRemove', setUrl: (v) => motionCharImageUrl = v, onReady: updateMotionReadyState, uploadFn: (f) => uploadMotionFileToKie(f, 'images'), uploadStatusLabel: 'image', setUploadStatus: updateMotionReadyState, progressElId: 'motionCharImageProgress', hideProgressUI: true });
 
 const MOTION_REF_MAX_DURATION_SECONDS = 30;
 
@@ -1866,6 +1900,8 @@ function setupVideoUpload(config) {
       if (fill) fill.style.width = '100%';
       if (pct) pct.textContent = '100%';
       media?.classList.remove('loading');
+      // Usar a URL retornada pela API em vez do blob — evita que o vídeo "suma" se o blob for revogado
+      if (previewVideo && url) previewVideo.src = url;
       setTimeout(() => { setProgress(false); setUploadStatus?.(); onReady?.(); }, 400);
     } catch (err) {
       cancelProgress();
@@ -1905,7 +1941,7 @@ function setupVideoUpload(config) {
   });
 }
 
-setupVideoUpload({ inputId: 'motionRefVideoFile', areaId: 'motionRefVideoArea', previewId: 'motionRefVideoPreview', videoId: 'motionRefVideoPreviewVid', removeId: 'motionRefVideoRemove', setUrl: (v) => motionRefVideoUrl = v, maxMb: 100, maxDurationSeconds: MOTION_REF_MAX_DURATION_SECONDS, onReady: updateMotionReadyState, uploadFn: (f) => uploadMotionFileToVidgo(f, 'videos'), uploadStatusLabel: 'video', setUploadStatus: updateMotionReadyState, progressElId: 'motionRefVideoProgress' });
+setupVideoUpload({ inputId: 'motionRefVideoFile', areaId: 'motionRefVideoArea', previewId: 'motionRefVideoPreview', videoId: 'motionRefVideoPreviewVid', removeId: 'motionRefVideoRemove', setUrl: (v) => motionRefVideoUrl = v, maxMb: 100, maxDurationSeconds: MOTION_REF_MAX_DURATION_SECONDS, onReady: updateMotionReadyState, uploadFn: (f) => uploadMotionFileToKie(f, 'videos'), uploadStatusLabel: 'video', setUploadStatus: updateMotionReadyState, progressElId: 'motionRefVideoProgress' });
 
 function updateMotionButtonCredits() {
   if (currentMode !== 'motion') return;
@@ -1968,13 +2004,11 @@ function buildRequestBody() {
   if (currentMode === 'motion') {
     const orientation = document.getElementById('motionOrientation').value;
     const mode = document.getElementById('motionResolution').value;
-    const aspectRatio = (document.getElementById('motionFormat') || document.getElementById('aspectRatio'))?.value || '9:16';
     const input = {
       input_urls: [motionCharImageUrl],
       video_urls: [motionRefVideoUrl],
       character_orientation: orientation,
-      mode,
-      aspect_ratio: aspectRatio
+      mode
     };
     const prompt = document.getElementById('prompt').value.trim();
     if (prompt) input.prompt = prompt;
