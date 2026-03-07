@@ -1415,7 +1415,7 @@ function renderHistory() {
     const mainFile = item.files[0];
     const thumb = mainFile.file_type === 'image'
       ? `<img src="${mainFile.file_url}" alt="">`
-      : `<video src="${mainFile.file_url}" controls preload="none" muted loop playsinline></video>`;
+      : `<video src="${mainFile.file_url}" muted loop playsinline autoplay preload="auto"></video>`;
     const date = item.created_time ? new Date(item.created_time).toLocaleDateString('pt-BR') : '';
     const aspectRatio = item.aspect_ratio || '9:16';
     const downloads = item.files.map((f, i) =>
@@ -1436,7 +1436,9 @@ function renderHistory() {
       </div>
     `;
   }).join('');
-  // Vídeos usam preload="none" — carregam apenas quando o usuário clica (reduz bandwidth)
+  historyList.querySelectorAll('.creation-thumb video').forEach((v) => {
+    v.play().catch(() => {});
+  });
 }
 
 function escapeHtml(str) {
