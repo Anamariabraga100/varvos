@@ -850,6 +850,7 @@ function applyPromotionalVisibility(hasPurchased) {
   const timerEl = document.getElementById('plansModalTimer');
   if (timerEl) timerEl.classList.toggle('hidden', !!hasPurchased);
   document.querySelectorAll('.plan-banner-starter').forEach(el => el.classList.toggle('hidden', !!hasPurchased));
+  document.querySelectorAll('.plans-tab-badge-50').forEach(el => el.classList.toggle('hidden', !!hasPurchased));
   if (hasPurchased && plansModalTimerInterval) {
     clearInterval(plansModalTimerInterval);
     plansModalTimerInterval = null;

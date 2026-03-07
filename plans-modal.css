@@ -17,6 +17,7 @@
 }
 .plans-modal-timer.hidden { display: none !important; }
 .plan-banner-starter.hidden { display: none !important; }
+.plans-tab-badge-50.hidden { display: none !important; }
 
 .plans-modal-backdrop {
   position: absolute;
@@ -233,6 +234,25 @@
 
 .plans-tab-mensais.active .plans-tab-badge {
   background: rgba(255,255,255,0.25);
+  color: #fff;
+}
+
+/* Badge 50% em cima do tab Planos Mensais */
+.plans-tab-with-badge {
+  flex-direction: column;
+  gap: 4px;
+}
+.plans-tab-badge-50 {
+  padding: 3px 10px;
+  background: linear-gradient(90deg, #dc2626 0%, #ea580c 100%);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  border-radius: 6px;
+}
+.plans-tab-mensais.active .plans-tab-badge-50 {
+  background: rgba(255,255,255,0.3);
   color: #fff;
 }
 
