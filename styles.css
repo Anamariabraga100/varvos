@@ -1863,54 +1863,51 @@ select:focus {
   min-height: 180px;
   position: relative;
 }
-/* Durante o loading: layout compacto — só texto, tempo e prompt, sem retângulo grande */
-.media-container.is-loading {
-  aspect-ratio: auto !important;
-  min-height: auto !important;
-}
+/* Durante o loading: mantém formato retangular (9:16) como celular */
 .media-container.is-loading .loading-placeholder {
-  position: relative;
-  inset: auto;
+  position: absolute;
+  inset: 0;
   width: 100%;
-  min-height: auto;
+  height: 100%;
 }
 .media-container.is-loading .loading-placeholder-bg {
   display: block;
 }
-.media-container.is-loading .loading-placeholder {
-  min-height: 200px;
-}
 .media-container.is-loading .loading-placeholder-overlay {
-  flex: none;
-  padding: 20px 16px;
-  background: rgba(0,0,0,0.6);
-  border-radius: var(--radius);
-  margin: 12px;
+  flex: 1;
+  padding: 24px 20px;
+  background: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.5) 40%, rgba(0,0,0,0.85) 100%);
+  margin: 0;
+  border-radius: 0;
+  justify-content: flex-end;
+  gap: 16px;
 }
 .loading-placeholder-progress {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  margin-top: 12px;
+  align-items: stretch;
+  gap: 10px;
+  width: 100%;
+  max-width: 220px;
 }
 .loading-progress-pct {
-  font-size: 0.9rem;
-  color: rgba(255,255,255,0.9);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.95);
+  text-align: center;
 }
 .loading-progress-bar {
   width: 100%;
-  max-width: 200px;
-  height: 6px;
-  background: rgba(255,255,255,0.2);
-  border-radius: 3px;
+  height: 8px;
+  background: rgba(255,255,255,0.15);
+  border-radius: 4px;
   overflow: hidden;
 }
 .loading-progress-fill {
   height: 100%;
   width: 0%;
   background: linear-gradient(90deg, #3b82f6, #60a5fa);
-  border-radius: 3px;
+  border-radius: 4px;
   transition: width 0.3s ease;
 }
 
@@ -1943,18 +1940,19 @@ select:focus {
 
 .loading-placeholder-text {
   margin: 0;
-  color: rgba(255,255,255,0.9);
+  color: rgba(255,255,255,0.95);
   font-size: 0.95rem;
+  font-weight: 500;
   text-align: center;
-  padding: 0 20px;
+  padding: 0 16px;
   line-height: 1.5;
 }
 
 .loading-placeholder-hint {
-  margin: 8px 0 0;
-  color: rgba(255,255,255,0.5);
-  font-size: 0.82rem;
-  max-width: 320px;
+  margin: 0;
+  color: rgba(255,255,255,0.6);
+  font-size: 0.8rem;
+  max-width: 280px;
   text-align: center;
   line-height: 1.4;
 }
@@ -1970,11 +1968,11 @@ select:focus {
   z-index: 0;
   background-size: cover;
   background-position: center;
-  filter: blur(12px);
-  opacity: 0.5;
+  filter: blur(4px);
+  opacity: 0.85;
 }
 .loading-placeholder-bg.has-image {
-  opacity: 0.6;
+  opacity: 0.9;
 }
 .loading-placeholder-overlay {
   position: relative;
