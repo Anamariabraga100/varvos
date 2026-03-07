@@ -2125,17 +2125,20 @@ select:focus {
 @media (min-width: 768px) {
   .media-container { max-width: 280px; }
 }
-.output-result-card[data-aspect-ratio="9:16"] .media-container { aspect-ratio: 9/16; }
-.output-result-card[data-aspect-ratio="16:9"] .media-container { aspect-ratio: 16/9; }
-.output-result-card[data-aspect-ratio="1:1"] .media-container { aspect-ratio: 1/1; }
-.output-result-card:not([data-aspect-ratio]) .media-container { aspect-ratio: 9/16; }
+/* Sempre formato reels (9:16) para resultado, cabendo na tela */
+.output-result-card[data-aspect-ratio="9:16"] .media-container,
+.output-result-card[data-aspect-ratio="16:9"] .media-container,
+.output-result-card[data-aspect-ratio="1:1"] .media-container,
+.output-result-card:not([data-aspect-ratio]) .media-container {
+  aspect-ratio: 9/16;
+}
 .media-container video.media-output,
 .media-container .media-output {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   object-position: center;
   display: block;
 }
