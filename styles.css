@@ -2181,12 +2181,13 @@ select:focus {
 }
 
 .loading-placeholder-hint {
-  margin: 0;
-  color: rgba(255,255,255,0.6);
+  margin: 12px 0 0;
+  color: rgba(255,255,255,0.75);
   font-size: 0.8rem;
-  max-width: 280px;
+  max-width: 320px;
   text-align: center;
-  line-height: 1.4;
+  line-height: 1.45;
+  padding: 0 8px;
 }
 
 /* Preview da imagem embaçada + overlay com textos */
