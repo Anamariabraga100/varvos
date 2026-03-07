@@ -1218,7 +1218,7 @@ updateUserMenuPlan();
 refreshCreditsFromSupabase();
 window.addEventListener('focus', refreshCreditsFromSupabase);
 
-// Após compra: oculta timer e banner SOMENTE HOJE
+// Após compra: oculta timer e banner TESTE AGORA MESMO
 userHasPurchased().then((hasPurchased) => {
   if (hasPurchased) applyPromotionalVisibility(true);
 });

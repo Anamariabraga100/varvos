@@ -5,7 +5,7 @@
  */
 const PLANS = {
   'boas-vindas': { amount: 1490, credits: 200, name: 'Oferta de boas-vindas' }, // 200 créditos
-  starter: { amount: 1490, credits: 200, name: 'Starter' },
+  starter: { amount: 1490, credits: 150, name: 'Starter' },
   popular: { amount: 3990, credits: 650, name: 'Popular' },
   'pro-avulso': { amount: 7990, credits: 1500, name: 'Pro' },
   escala: { amount: 29700, credits: 6100, name: 'Escala' },

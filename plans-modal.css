@@ -512,7 +512,7 @@
 .plan-badge-ativo {
   background: #10b981;
 }
-/* Esconde badge ATIVO quando há banner (50% OFF ou SOMENTE HOJE) para evitar sobreposição */
+/* Esconde badge ATIVO quando há banner (50% OFF ou TESTE AGORA MESMO) para evitar sobreposição */
 .plan-card:has(.plan-banner-mensal) .plan-badge-ativo,
 .plan-card:has(.plan-banner-starter) .plan-badge-ativo {
   display: none !important;
@@ -923,7 +923,7 @@
   letter-spacing: 0.04em;
 }
 
-/* Banner SOMENTE HOJE no Starter — estende até o contorno */
+/* Banner TESTE AGORA MESMO no Starter — estende até o contorno */
 .plan-banner-starter {
   display: block;
   width: calc(100% + 24px);

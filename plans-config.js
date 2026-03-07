@@ -16,8 +16,8 @@ window.VARVOS_PLANS = {
       id: 'starter',
       name: 'Starter',
       amount: 1490,      // R$ 14,90
-      credits: 200,      // 200 créditos
-      description: '4 vídeos (200 créditos)',
+      credits: 15,        // 150 créditos (exibição: credits*10)
+      description: '10 vídeos (150 créditos)',
     },
     popular: {
       id: 'popular',
@@ -47,8 +47,8 @@ window.VARVOS_PLANS = {
       id: 'start',
       name: 'Creator',
       amount: 5990,       // R$ 59,90/mês
-      credits: 1500,      // 30 vídeos
-      description: '30 vídeos/mês (1.500 créditos)',
+      credits: 150,       // 150 créditos/mês
+      description: '10 vídeos/mês (150 créditos)',
     },
     pro: {
       id: 'pro',

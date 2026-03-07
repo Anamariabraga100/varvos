@@ -5,15 +5,18 @@
   const AVULSOS = ['boas-vindas', 'starter', 'popular', 'pro-avulso', 'escala'];
   const MENSAIS = ['start', 'pro', 'agency'];
   /** Número de vídeos (exibição) por plano avulso — usuário pensa em vídeos, não créditos */
-  const AVULSO_VIDEOS = { 'boas-vindas': 4, starter: 13, popular: 43, 'pro-avulso': 100, escala: 406 };
+  const AVULSO_VIDEOS = { 'boas-vindas': 4, starter: 10, popular: 43, 'pro-avulso': 100, escala: 406 };
   /** Frase de benefício abaixo do preço por plano */
   const AVULSO_BENEFIT = {
     starter: 'Para testar a plataforma',
-    popular: '🔥 3x mais vídeos que o plano Starter',
+    popular: '🔥 +33 vídeos a mais que o Starter (43 no total)',
     'pro-avulso': '💰 Melhor custo por vídeo',
     escala: '💰 Melhor custo por vídeo',
     'boas-vindas': 'Oferta especial',
   };
+  /** Vídeos por mês (exibição) por plano mensal — Creator 150 créditos ≈ 10 vídeos */
+  const MENSAIS_VIDEOS = { start: 10, pro: 80, agency: 300 };
+  const MENSAIS_BENEFIT = { start: '💰 Até 10 vídeos por mês', pro: '💰 80 vídeos por mês', agency: '💰 Até 300 vídeos por mês' };
 
   function getPlan() {
     const params = new URLSearchParams(location.search);
@@ -360,10 +363,23 @@
   } else {
     document.getElementById('checkoutMensal')?.classList.remove('hidden');
     document.getElementById('mensalPlanId').value = plan.id;
-    document.getElementById('mensalTitle').textContent = 'Assinatura — ' + plan.name;
-    var creditsDisplay = Number(plan.credits).toLocaleString('pt-BR');
+    document.getElementById('mensalTitle').textContent = 'Checkout — ' + plan.name;
+    var videoCount = MENSAIS_VIDEOS[plan.id] || Math.round(plan.credits / 50);
+    var priceStr = 'R$ ' + (plan.amount / 100).toFixed(2).replace('.', ',') + '/mês';
     document.getElementById('mensalPlan').textContent =
-      creditsDisplay + ' créditos/mês — R$ ' + (plan.amount / 100).toFixed(2).replace('.', ',') + '/mês';
+      'Até ' + videoCount + ' vídeos por mês — ' + priceStr;
+    var benefitEl = document.getElementById('mensalPlanBenefit');
+    if (benefitEl) benefitEl.textContent = MENSAIS_BENEFIT[plan.id] || '';
+    var listEl = document.getElementById('mensalYouAreBuyingList');
+    if (listEl) {
+      listEl.innerHTML =
+        '<li>Até ' + videoCount + ' vídeos por mês com IA</li>' +
+        '<li>Sem marca d\'água</li>' +
+        '<li>Qualidade até 4K</li>' +
+        '<li>Créditos renovados todo mês</li>' +
+        '<li>Cancele quando quiser</li>';
+    }
+    var creditsDisplay = Number(plan.credits).toLocaleString('pt-BR');
     var creditsNumEl = document.getElementById('mensalCreditsNum');
     if (creditsNumEl) creditsNumEl.textContent = creditsDisplay;
     if (user?.email) document.getElementById('mensalEmail').value = user.email;

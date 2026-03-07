@@ -143,8 +143,9 @@
 
       <!-- Checkout mensal: apenas Cartão -->
       <div id="checkoutMensal" class="checkout-card hidden">
-        <h1 id="mensalTitle">Assinatura — Plano mensal</h1>
+        <h1 id="mensalTitle">Checkout</h1>
         <p id="mensalPlan" class="checkout-plan-info"></p>
+        <p id="mensalPlanBenefit" class="checkout-plan-benefit"></p>
 
         <form id="formMensal" class="checkout-form" data-pagarmecheckout-form>
           <input type="hidden" name="planId" id="mensalPlanId">
@@ -178,14 +179,21 @@
             </div>
           </div>
 
+          <div id="mensalYouAreBuying" class="checkout-you-buying">
+            <p class="checkout-you-buying-title">Você está assinando:</p>
+            <ul id="mensalYouAreBuyingList" class="checkout-you-buying-list"></ul>
+          </div>
+
           <button type="submit" class="btn-checkout" id="btnMensalSubmit">
-            <span class="btn-text">Ativar assinatura</span>
+            <span class="btn-text">Pagar com cartão e ativar</span>
             <span class="btn-loading hidden">Processando...</span>
           </button>
-          <p class="checkout-pix-instant">⚡ Pagamento via cartão é aprovado em instantes</p>
-          <p class="checkout-pix-instant">Seus <span id="mensalCreditsNum">—</span> créditos serão liberados automaticamente</p>
-          <div class="checkout-trust">
-            <p class="checkout-trust-security">🔒 Pagamento seguro com criptografia SSL</p>
+          <p id="mensalSocialProof" class="checkout-social-proof">⭐ Criadores já geraram milhares de vídeos com VARVOS</p>
+          <p class="checkout-pix-instant">⚡ Aprovação em instantes — créditos liberados na hora</p>
+          <div class="checkout-trust checkout-trust-list">
+            <p class="checkout-trust-item">✔ Pagamento seguro</p>
+            <p class="checkout-trust-item">✔ Aprovação imediata</p>
+            <p class="checkout-trust-item">✔ Créditos liberados todo mês</p>
             <p class="checkout-trust-cards">Visa • Mastercard • Amex • Elo</p>
             <p class="checkout-trust-cancel">↩ Cancele quando quiser</p>
           </div>
@@ -205,7 +213,7 @@
           <p class="starter-upsell-price">Por apenas <strong>R$ 29,90</strong></p>
           <p class="starter-upsell-gain">🎬 +30 vídeos extras</p>
           <div class="starter-upsell-comparison">
-            <span class="starter-upsell-comp-from">Starter — 13 vídeos</span>
+            <span class="starter-upsell-comp-from">Starter — 10 vídeos</span>
             <span class="starter-upsell-comp-arrow" aria-hidden="true">↓ upgrade</span>
             <span class="starter-upsell-comp-to">🔥 Popular — 43 vídeos</span>
           </div>

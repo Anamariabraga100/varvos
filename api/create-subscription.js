@@ -6,7 +6,7 @@
 import { createClient } from '@supabase/supabase-js';
 
 const PLANS = {
-  start: { amount: 5990, credits: 1500, name: 'Creator' },  // R$ 59,90/mês
+  start: { amount: 5990, credits: 150, name: 'Creator' },  // R$ 59,90/mês — 150 créditos
   pro: { amount: 14990, credits: 4000, name: 'Pro' },
   agency: { amount: 44900, credits: 15000, name: 'Agency' },
 };
