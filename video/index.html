@@ -703,13 +703,18 @@
 
       <div id="plansActiveSection" class="plans-active-section hidden">
         <div class="plans-active-card">
-          <span class="plans-active-badge">Seu plano ativo</span>
+          <span class="plans-active-badge">Seu plano atual</span>
           <h3 id="plansActiveName" class="plans-active-name"></h3>
-          <p id="plansActiveDesc" class="plans-active-desc"></p>
+          <p id="plansActiveSocialProof" class="plans-active-social-proof hidden">🔥 Plano mais escolhido pelos criadores</p>
           <div class="plans-active-usage">
-            <span id="plansActiveCredits">—</span> créditos disponíveis
+            <span id="plansActiveCredits">—</span> créditos disponíveis<br>
+            <span id="plansActiveVideos" class="plans-active-videos"></span>
           </div>
-          <p class="plans-active-upgrade-hint">Quer mais créditos? Veja os planos maiores abaixo.</p>
+          <div class="plans-active-progress-wrap">
+            <div class="plans-active-progress-bar"><div id="plansActiveProgressFill" class="plans-active-progress-fill"></div></div>
+            <span id="plansActivePct" class="plans-active-pct"></span>
+          </div>
+          <button type="button" class="plans-active-upgrade-cta" id="plansActiveUpgradeBtn">⬆️ Precisa de mais vídeos? Veja planos maiores abaixo</button>
         </div>
       </div>
 

@@ -941,11 +941,16 @@ function updatePlanCardsActiveState() {
   } catch (_) {}
 }
 
+var CREDITS_PER_VIDEO = 15;
+
 function updatePlansActiveSection() {
   const section = document.getElementById('plansActiveSection');
   const nameEl = document.getElementById('plansActiveName');
-  const descEl = document.getElementById('plansActiveDesc');
   const creditsEl = document.getElementById('plansActiveCredits');
+  const videosEl = document.getElementById('plansActiveVideos');
+  const progressFill = document.getElementById('plansActiveProgressFill');
+  const pctEl = document.getElementById('plansActivePct');
+  const socialProof = document.getElementById('plansActiveSocialProof');
   if (!section || !nameEl) return;
   try {
     const raw = localStorage.getItem(AUTH_STORAGE);
@@ -958,8 +963,20 @@ function updatePlansActiveSection() {
     }
     section.classList.remove('hidden');
     nameEl.textContent = plan.name;
-    descEl.textContent = plan.description || (plan.credits + ' créditos/mês');
-    creditsEl.textContent = String(user?.credits ?? 0);
+    const credits = Number(user?.credits ?? 0);
+    creditsEl.textContent = String(credits);
+    const videosApprox = Math.floor(credits / CREDITS_PER_VIDEO);
+    if (videosEl) {
+      videosEl.textContent = videosApprox > 0 ? '≈ ' + videosApprox + ' vídeos restantes' : '';
+      videosEl.classList.toggle('hidden', videosApprox <= 0);
+    }
+    const planCredits = plan.credits || 1500;
+    const pctRemaining = Math.min(100, Math.round((credits / planCredits) * 100));
+    if (progressFill) progressFill.style.width = pctRemaining + '%';
+    if (pctEl) pctEl.textContent = pctRemaining + '% restante';
+    if (socialProof) {
+      socialProof.classList.toggle('hidden', planId !== 'start');
+    }
   } catch {
     section?.classList.add('hidden');
   }
@@ -1143,6 +1160,10 @@ document.querySelectorAll('.plan-avulsos-link').forEach(btn => {
 
 document.getElementById('plansModalClose')?.addEventListener('click', closePlansModal);
 document.querySelector('.plans-modal-backdrop')?.addEventListener('click', closePlansModal);
+document.getElementById('plansActiveUpgradeBtn')?.addEventListener('click', function () {
+  switchPlansTab('mensais');
+  document.getElementById('plansMensais')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+});
 
 // Sync varvos_user a partir da sessão Supabase (ex.: logou por e-mail e varvos_user está incompleto)
 async function syncUserFromSupabaseSession() {
