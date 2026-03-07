@@ -555,7 +555,9 @@ function setMotionRefVideoFromUrl(url) {
     loadingOverlay.setAttribute('aria-hidden', 'false');
   }
   previewVid.classList.add('loading');
-  previewVid.src = url;
+  const isExternal = /^https?:\/\//i.test(url) && !url.includes(window.location.hostname);
+  const previewSrc = isExternal ? (window.location.origin + '/api/proxy-video?url=' + encodeURIComponent(url)) : url;
+  previewVid.src = previewSrc;
   const hideLoading = () => {
     if (loadingOverlay) {
       loadingOverlay.classList.add('hidden');
@@ -568,7 +570,6 @@ function setMotionRefVideoFromUrl(url) {
   const onError = () => {
     hideLoading();
     updateMotionReadyState({ error: 'Não foi possível carregar o vídeo. Verifique se a URL é válida ou tente outro.' });
-    // Reverter para permitir nova seleção
     motionRefVideoUrl = '';
     area.classList.remove('hidden');
     preview.classList.add('hidden');
@@ -581,6 +582,9 @@ function setMotionRefVideoFromUrl(url) {
     previewVid.addEventListener('canplay', hideLoading, { once: true });
     previewVid.addEventListener('error', onError, { once: true });
   }
+  setTimeout(() => {
+    document.getElementById('motionRefVideoUpload')?.closest('.field')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, 100);
   updateMotionReadyState();
 }
 
@@ -1805,7 +1809,7 @@ function updateMotionReadyState(forceState) {
   const btn = document.getElementById('btnGenerate');
   if (el) {
   if (forceState?.uploading) {
-    const label = forceState.uploading === 'video' ? 'Enviando vídeo…' : forceState.uploading === 'image' ? 'Enviando imagem…' : 'Enviando…';
+    const label = forceState.uploading === 'video' ? 'Enviando vídeo de referência…' : forceState.uploading === 'image' ? 'Enviando foto do personagem…' : 'Enviando…';
     el.textContent = label;
     el.className = 'motion-ready-state uploading';
   } else if (forceState?.error) {
