@@ -2616,13 +2616,14 @@ select:focus {
   background: #16161a;
   border-radius: 20px;
   overflow: hidden;
-  max-width: min(92vw, 420px);
-  max-height: 95vh;
+  max-width: min(96vw, 400px);
+  max-height: 96vh;
   width: 100%;
   box-shadow: 0 24px 48px rgba(0,0,0,0.5);
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
+  overflow-y: auto;
 }
 
 .video-modal-close {
@@ -2652,10 +2653,11 @@ select:focus {
 .video-modal-player {
   position: relative;
   aspect-ratio: 9/16;
-  flex: 1 1 0;
-  min-height: 200px;
+  width: 100%;
+  flex-shrink: 0;
   overflow: hidden;
   background: #000;
+  cursor: pointer;
 }
 
 .video-modal-player video {
@@ -2666,6 +2668,7 @@ select:focus {
   object-fit: contain;
   object-position: center;
   display: block;
+  pointer-events: none;
 }
 
 .video-modal-actions {

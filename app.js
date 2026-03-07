@@ -442,10 +442,7 @@ function openVideoModalForResult(src, downloadBtnOrHref, downloadName, aspectRat
   videoModal.dataset.videoSrc = src || '';
   videoModal.dataset.context = 'result';
   const playerWrap = videoModal?.querySelector('.video-modal-player');
-  if (playerWrap) {
-    const ratio = aspectRatio === '16:9' ? '16/9' : aspectRatio === '1:1' ? '1/1' : '9/16';
-    playerWrap.style.aspectRatio = ratio;
-  }
+  if (playerWrap) playerWrap.style.aspectRatio = '9/16';
   const promptEl = document.getElementById('videoModalPrompt');
   if (promptEl) {
     promptEl.textContent = prompt || '';
@@ -545,6 +542,13 @@ document.querySelectorAll('.sample-video-slot').forEach(card => {
 if (videoModalClose) videoModalClose.addEventListener('click', closeVideoModal);
 videoModal?.querySelector('.video-modal-backdrop')?.addEventListener('click', closeVideoModal);
 if (btnImitarMovimentoModal) btnImitarMovimentoModal.addEventListener('click', handleImitarMovimentoFromModal);
+videoModal?.querySelector('.video-modal-player')?.addEventListener('click', (e) => {
+  e.stopPropagation();
+  if (videoModalVideo) {
+    if (videoModalVideo.paused) videoModalVideo.play().catch(() => {});
+    else videoModalVideo.pause();
+  }
+});
 
 // Download forçado (evita abrir em nova aba em URLs cross-origin)
 async function triggerDownload(url, filename) {
