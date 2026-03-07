@@ -9,12 +9,12 @@ const loginError = document.getElementById('adminLoginError');
 const logoutBtn = document.getElementById('adminLogout');
 
 function getAdminToken() {
-  return sessionStorage.getItem(ADMIN_TOKEN_KEY) || '';
+  return localStorage.getItem(ADMIN_TOKEN_KEY) || '';
 }
 
 function setAdminToken(token) {
-  if (token) sessionStorage.setItem(ADMIN_TOKEN_KEY, token);
-  else sessionStorage.removeItem(ADMIN_TOKEN_KEY);
+  if (token) localStorage.setItem(ADMIN_TOKEN_KEY, token);
+  else localStorage.removeItem(ADMIN_TOKEN_KEY);
 }
 
 function adminFetch(url, options = {}) {

@@ -79,6 +79,17 @@ app.post('/api/refund-credits', async (req, res) => {
   }
 });
 
+// API: get-credits (créditos e plano do usuário)
+app.get('/api/app/get-credits', async (req, res) => {
+  try {
+    const handler = (await import('../api/app/get-credits.js')).default;
+    await handler(req, res);
+  } catch (err) {
+    console.error('[dev-server] get-credits:', err);
+    res.status(500).json({ error: err?.message || 'Erro' });
+  }
+});
+
 // Fallback: SPA
 app.get(/^\/(?!api)/, (req, res) => {
   if (path.extname(req.path)) return res.status(404).send('Not found');
