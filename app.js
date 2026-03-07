@@ -1600,30 +1600,26 @@ async function uploadFileToVidgo(file) {
   });
 }
 
-// Upload para Imitar Movimento: usa API KIE (aceita MOV/video/quicktime); Vidgo rejeita
-async function uploadMotionFileToKie(file, bucket) {
+// Upload para Imitar Movimento: Supabase Storage (aceita MOV, MP4, JPG, PNG)
+async function uploadMotionFileToSupabase(file, bucket) {
   validateMotionFileType(file, bucket);
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = async () => {
-      let base64Data = reader.result;
-      // KIE pode rejeitar data:video/quicktime;base64,... — enviar base64 puro
-      if (typeof base64Data === 'string' && base64Data.includes(',')) {
-        base64Data = base64Data.split(',')[1] || base64Data;
-      }
+      const base64Data = reader.result;
       try {
-        const res = await fetch(window.location.origin + '/api/kie/upload-file', {
+        const res = await fetch(window.location.origin + '/api/upload-motion', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             base64Data,
-            uploadPath: bucket === 'videos' ? 'motion-uploads' : 'motion-images',
+            bucket: bucket === 'videos' ? 'videos' : 'images',
             fileName: file.name || undefined,
           }),
         });
         const data = await res.json();
-        if (!res.ok) throw new Error(data?.msg || data?.error?.message || `Erro ${res.status}`);
-        const url = data?.url || data?.data?.fileUrl || data?.data?.downloadUrl || data?.data?.url;
+        if (!res.ok) throw new Error(data?.error || data?.msg || `Erro ${res.status}`);
+        const url = data?.url;
         if (url) resolve(url);
         else reject(new Error('URL não retornada'));
       } catch (e) {
@@ -1806,7 +1802,7 @@ function updateMotionReadyState(forceState) {
   if (btn && currentMode === 'motion') btn.disabled = hasUploading || !(motionCharImageUrl && motionRefVideoUrl);
   if (currentMode === 'motion') { updateMotionButtonCredits(); updatePromptWrapValue(); }
 }
-setupFileUpload({ inputId: 'motionCharImageFile', areaId: 'motionCharImageArea', previewId: 'motionCharImagePreview', imgId: 'motionCharImagePreviewImg', removeId: 'motionCharImageRemove', setUrl: (v) => motionCharImageUrl = v, onReady: updateMotionReadyState, uploadFn: (f) => uploadMotionFileToKie(f, 'images'), uploadStatusLabel: 'image', setUploadStatus: updateMotionReadyState, progressElId: 'motionCharImageProgress', hideProgressUI: true });
+setupFileUpload({ inputId: 'motionCharImageFile', areaId: 'motionCharImageArea', previewId: 'motionCharImagePreview', imgId: 'motionCharImagePreviewImg', removeId: 'motionCharImageRemove', setUrl: (v) => motionCharImageUrl = v, onReady: updateMotionReadyState, uploadFn: (f) => uploadMotionFileToSupabase(f, 'images'), uploadStatusLabel: 'image', setUploadStatus: updateMotionReadyState, progressElId: 'motionCharImageProgress', hideProgressUI: true });
 
 const MOTION_REF_MAX_DURATION_SECONDS = 30;
 
@@ -1938,7 +1934,7 @@ function setupVideoUpload(config) {
   });
 }
 
-setupVideoUpload({ inputId: 'motionRefVideoFile', areaId: 'motionRefVideoArea', previewId: 'motionRefVideoPreview', videoId: 'motionRefVideoPreviewVid', removeId: 'motionRefVideoRemove', setUrl: (v) => motionRefVideoUrl = v, maxMb: 100, maxDurationSeconds: MOTION_REF_MAX_DURATION_SECONDS, onReady: updateMotionReadyState, uploadFn: (f) => uploadMotionFileToKie(f, 'videos'), uploadStatusLabel: 'video', setUploadStatus: updateMotionReadyState, progressElId: 'motionRefVideoProgress' });
+setupVideoUpload({ inputId: 'motionRefVideoFile', areaId: 'motionRefVideoArea', previewId: 'motionRefVideoPreview', videoId: 'motionRefVideoPreviewVid', removeId: 'motionRefVideoRemove', setUrl: (v) => motionRefVideoUrl = v, maxMb: 100, maxDurationSeconds: MOTION_REF_MAX_DURATION_SECONDS, onReady: updateMotionReadyState, uploadFn: (f) => uploadMotionFileToSupabase(f, 'videos'), uploadStatusLabel: 'video', setUploadStatus: updateMotionReadyState, progressElId: 'motionRefVideoProgress' });
 
 function updateMotionButtonCredits() {
   if (currentMode !== 'motion') return;
