@@ -1600,25 +1600,41 @@ async function uploadFileToVidgo(file) {
   });
 }
 
-// Upload para Imitar Movimento: Supabase motion-refs → URL → KIE upload-from-url
+// Upload para Imitar Movimento: R2 (presigned) → URL → KIE upload-from-url
 async function uploadMotionFileToKie(file, bucket) {
   validateMotionFileType(file, bucket);
-  const bucketName = bucket === 'videos' ? 'videos' : 'images';
-  const sb = window.varvosSupabase;
-  if (!sb) throw new Error('Supabase não configurado. Configure SUPABASE_URL e SUPABASE_ANON_KEY.');
+  const type = bucket === 'videos' ? 'video' : 'image';
 
-  const ext = (file.name || '').split('.').pop()?.toLowerCase() || (bucketName === 'images' ? 'jpg' : 'mp4');
-  const safeExt = ['mp4', 'mov', 'm4v', 'jpg', 'jpeg', 'png'].includes(ext) ? ext : (bucketName === 'images' ? 'jpg' : 'mp4');
-  const path = `motion-refs/${Date.now()}-${Math.random().toString(36).slice(2, 10)}.${safeExt}`;
+  const presignRes = await fetch(window.location.origin + '/api/upload-presign', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      fileName: file.name,
+      contentType: file.type,
+      type,
+    }),
+  });
+  const presignData = await presignRes.json();
+  if (!presignRes.ok) throw new Error(presignData?.msg || presignData?.error || 'Erro ao obter URL de upload');
 
-  const { error: uploadErr } = await sb.storage.from(bucketName).upload(path, file, { upsert: true });
-  if (uploadErr) throw new Error('Erro ao enviar para storage: ' + (uploadErr.message || uploadErr));
+  const { uploadUrl, publicUrl } = presignData;
+  if (!uploadUrl || !publicUrl) throw new Error('URL de upload não retornada');
 
-  const { data: { publicUrl } } = sb.storage.from(bucketName).getPublicUrl(path);
+  const putRes = await fetch(uploadUrl, {
+    method: 'PUT',
+    headers: { 'Content-Type': file.type || (type === 'video' ? 'video/mp4' : 'image/jpeg') },
+    body: file,
+  });
+  if (!putRes.ok) throw new Error('Erro ao enviar arquivo para R2: ' + putRes.status);
+
   const res = await fetch(window.location.origin + '/api/kie/upload-from-url', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ fileUrl: publicUrl, bucket: bucketName, fileName: file.name || path.split('/').pop() }),
+    body: JSON.stringify({
+      fileUrl: publicUrl,
+      bucket: bucket === 'videos' ? 'videos' : 'images',
+      fileName: file.name,
+    }),
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data?.msg || data?.error || `Erro ${res.status}`);

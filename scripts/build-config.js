@@ -2,6 +2,7 @@
  * Gera config.js a partir das variáveis de ambiente (Vercel).
  * Rode no build: node scripts/build-config.js
  */
+require('dotenv').config({ path: require('path').resolve(__dirname, '..', '.env.local') });
 const fs = require('fs');
 const path = require('path');
 
