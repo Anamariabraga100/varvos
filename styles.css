@@ -98,8 +98,8 @@ body {
 
 .credits-icon {
   flex-shrink: 0;
-  color: var(--text-muted);
-  opacity: 0.8;
+  font-size: 1em;
+  line-height: 1;
 }
 
 .credits-count {
@@ -1708,6 +1708,26 @@ select:focus {
 }
 .mode-howto-content p { margin: 0 0 10px; }
 .mode-howto-content p:last-child { margin-bottom: 0; }
+
+/* Como funciona — versão compacta */
+.mode-howto-compact {
+  padding: 12px 16px;
+}
+.mode-howto-compact .mode-howto-list {
+  margin: 10px 0 0;
+  padding: 10px 0 0;
+  border-top: 1px solid var(--border);
+  list-style: none;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+.mode-howto-compact .mode-howto-list li {
+  margin-bottom: 4px;
+}
+.mode-howto-compact .mode-howto-list li:last-child {
+  margin-bottom: 0;
+}
 
 /* Como fazer? — seção abaixo do Resultado */
 .section-como-fazer {
