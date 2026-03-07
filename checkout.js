@@ -4,6 +4,16 @@
 (function () {
   const AVULSOS = ['boas-vindas', 'starter', 'popular', 'pro-avulso', 'escala'];
   const MENSAIS = ['start', 'pro', 'agency'];
+  /** Número de vídeos (exibição) por plano avulso — usuário pensa em vídeos, não créditos */
+  const AVULSO_VIDEOS = { 'boas-vindas': 4, starter: 13, popular: 43, 'pro-avulso': 100, escala: 406 };
+  /** Frase de benefício abaixo do preço por plano */
+  const AVULSO_BENEFIT = {
+    starter: 'Para testar a plataforma',
+    popular: '🔥 3x mais vídeos que o plano Starter',
+    'pro-avulso': '💰 Melhor custo por vídeo',
+    escala: '💰 Melhor custo por vídeo',
+    'boas-vindas': 'Oferta especial',
+  };
 
   function getPlan() {
     const params = new URLSearchParams(location.search);
@@ -74,11 +84,11 @@
     return window.location.origin + '/api';
   }
 
-  // Redirecionamento automático para /video/ com contagem regressiva (padrão dos grandes players)
+  // Redirecionamento automático para /video/ com contagem regressiva
   var successRedirectInterval = null;
-  function startSuccessRedirect() {
+  function startSuccessRedirect(secsOptional) {
     if (successRedirectInterval) return;
-    var secs = 5;
+    var secs = secsOptional != null ? secsOptional : 5;
     var el = document.getElementById('successCountdown');
     var msgEl = document.getElementById('successRedirectMsg');
     var btnEl = document.getElementById('btnSuccessGoNow');
@@ -102,6 +112,52 @@
         goNow();
       }
     }, 1000);
+  }
+
+  var CHECKOUT_CUSTOMER_KEY = 'varvos_checkout_customer';
+
+  /** Mostra tela de sucesso e, se plano for Starter, o upsell para Popular */
+  function showCheckoutSuccess(planId) {
+    var successCard = document.getElementById('checkoutSuccess');
+    var successTitleEl = document.getElementById('successTitle');
+    var successMsg = document.getElementById('successMsg');
+    var upsell = document.getElementById('starterUpsell');
+    if (successCard) successCard.classList.remove('hidden');
+    if (planId === 'starter') {
+      try {
+        var name = document.getElementById('avulsoName')?.value?.trim();
+        var email = document.getElementById('avulsoEmail')?.value?.trim();
+        var doc = (document.getElementById('avulsoCpf')?.value || '').replace(/\D/g, '');
+        if (name && email && doc.length === 11) {
+          sessionStorage.setItem(CHECKOUT_CUSTOMER_KEY, JSON.stringify({ name: name, email: email, document: doc }));
+        }
+      } catch (e) {}
+      if (successTitleEl) successTitleEl.textContent = '✅ Pagamento confirmado!';
+      if (successMsg) successMsg.textContent = 'Seus créditos já estão disponíveis.';
+      if (upsell) upsell.classList.remove('hidden');
+      startSuccessRedirect(20);
+    } else {
+      try { sessionStorage.removeItem(CHECKOUT_CUSTOMER_KEY); } catch (e) {}
+      if (successTitleEl) successTitleEl.textContent = '🎉 Tudo pronto!';
+      if (successMsg) successMsg.textContent = 'Seus créditos já estão na conta.';
+      if (upsell) upsell.classList.add('hidden');
+      startSuccessRedirect(5);
+    }
+  }
+
+  function applySavedCustomerToForm() {
+    try {
+      var raw = sessionStorage.getItem(CHECKOUT_CUSTOMER_KEY);
+      if (!raw) return;
+      var data = JSON.parse(raw);
+      if (data.name) document.getElementById('avulsoName').value = data.name;
+      if (data.email) document.getElementById('avulsoEmail').value = data.email;
+      if (data.document && data.document.length === 11) {
+        var cpf = data.document.replace(/\D/g, '');
+        var formatted = cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+        document.getElementById('avulsoCpf').value = formatted;
+      }
+    } catch (e) {}
   }
 
   // Sincroniza campo validade MM/AA para exp_date: tokenizecard usa MM-YY (2 dígitos ano)
@@ -223,10 +279,9 @@
           showError('Pagamento não aprovado. Tente outro cartão ou método.');
           return;
         }
-        document.getElementById('checkoutSuccess')?.classList.remove('hidden');
         document.getElementById('checkoutAvulso')?.classList.add('hidden');
-        document.getElementById('successMsg').textContent = 'Pagamento aprovado! Seus créditos foram adicionados à conta.';
-        startSuccessRedirect();
+        var planId = document.getElementById('avulsoPlanId')?.value || '';
+        showCheckoutSuccess(planId);
       })
       .catch(function (err) { showError(err.message || 'Erro ao processar.'); })
       .finally(function () { if (cardSubmitTimeoutId) { clearTimeout(cardSubmitTimeoutId); cardSubmitTimeoutId = null; } setLoading(btn, false); });
@@ -277,16 +332,31 @@
   if (AVULSOS.includes(plan.id)) {
     document.getElementById('checkoutAvulso')?.classList.remove('hidden');
     document.getElementById('avulsoPlanId').value = plan.id;
-    document.getElementById('avulsoTitle').textContent = 'Comprar créditos — ' + plan.name;
-    var creditsDisplay = (plan.credits * 10).toLocaleString('pt-BR');
+    var isUpgrade = new URLSearchParams(location.search).get('upgrade') === '1';
+    var amountCents = (plan.id === 'popular' && isUpgrade) ? 2990 : plan.amount;
+    document.getElementById('avulsoTitle').textContent = 'Checkout — ' + plan.name;
+    var videoCount = AVULSO_VIDEOS[plan.id] || Math.round((plan.credits * 10) / 15);
+    var priceStr = 'R$ ' + (amountCents / 100).toFixed(2).replace('.', ',');
     document.getElementById('avulsoPlan').textContent =
-      creditsDisplay + ' créditos — R$ ' + (plan.amount / 100).toFixed(2).replace('.', ',') + ' (único)';
+      'Até ' + videoCount + ' vídeos com IA — ' + priceStr;
+    var benefitEl = document.getElementById('avulsoPlanBenefit');
+    if (benefitEl) benefitEl.textContent = AVULSO_BENEFIT[plan.id] || '';
+    var listEl = document.getElementById('avulsoYouAreBuyingList');
+    if (listEl) {
+      listEl.innerHTML =
+        '<li>Até ' + videoCount + ' vídeos com IA</li>' +
+        '<li>Sem marca d\'água</li>' +
+        '<li>Qualidade até 4K</li>' +
+        '<li>Liberação imediata</li>';
+    }
+    var creditsDisplay = (plan.credits * 10).toLocaleString('pt-BR');
     var creditsNumEl = document.getElementById('avulsoPixCreditsNum');
     if (creditsNumEl) creditsNumEl.textContent = creditsDisplay;
     if (user?.email) document.getElementById('avulsoEmail').value = user.email;
     if (user?.name) document.getElementById('avulsoName').value = user.name;
+    if (plan.id === 'popular' && isUpgrade) applySavedCustomerToForm();
     var btnT = document.getElementById('btnAvulsoSubmit')?.querySelector('.btn-text');
-    if (btnT) btnT.textContent = 'Gerar QR Code Pix';
+    if (btnT) btnT.textContent = 'Pagar com Pix agora';
   } else {
     document.getElementById('checkoutMensal')?.classList.remove('hidden');
     document.getElementById('mensalPlanId').value = plan.id;
@@ -316,7 +386,7 @@
       var pixCreditsMsg = document.getElementById('avulsoPixCreditsMsg');
       if (method === 'pix') {
         cardFields?.classList.add('hidden');
-        if (btnTxt) btnTxt.textContent = 'Gerar QR Code Pix';
+        if (btnTxt) btnTxt.textContent = 'Pagar com Pix agora';
         if (trustCards) trustCards.classList.add('hidden');
         if (pixInstant) pixInstant.classList.remove('hidden');
         if (pixCreditsMsg) pixCreditsMsg.classList.remove('hidden');
@@ -361,12 +431,14 @@
       e.stopImmediatePropagation();
     }
 
+    var isUpgrade = new URLSearchParams(location.search).get('upgrade') === '1';
     const payload = {
       planId,
       paymentMethod: effectiveMethod,
       userId: getUserId(),
       customer: { name, email, document: cpf || undefined },
     };
+    if (planId === 'popular' && isUpgrade) payload.upgrade = true;
 
     const btn = document.getElementById('btnAvulsoSubmit');
     setLoading(btn, true);
@@ -439,11 +511,8 @@
                     if (data.paid) {
                       clearInterval(pollInterval);
                       successDiv?.classList.add('hidden');
-                      var successCard = document.getElementById('checkoutSuccess');
-                      var successMsg = document.getElementById('successMsg');
-                      if (successCard) successCard.classList.remove('hidden');
-                      if (successMsg) successMsg.textContent = 'Pagamento confirmado! Seus créditos foram adicionados à conta.';
-                      startSuccessRedirect();
+                      var planId = document.getElementById('avulsoPlanId')?.value || '';
+                      showCheckoutSuccess(planId);
                     }
                   })
                   .catch(function () {});
@@ -485,11 +554,9 @@
               navigator.clipboard?.writeText(codeInput?.value || '');
             });
           } else {
-            document.getElementById('checkoutSuccess')?.classList.remove('hidden');
             document.getElementById('checkoutAvulso')?.classList.add('hidden');
-            document.getElementById('successMsg').textContent =
-              'Pagamento aprovado! Seus créditos foram adicionados à conta.';
-            startSuccessRedirect();
+            var planId = document.getElementById('avulsoPlanId')?.value || '';
+            showCheckoutSuccess(planId);
           }
         })
         .catch(function (err) {

@@ -21,13 +21,13 @@
 <body>
   <div class="checkout-page">
     <header>
-      <a href="." class="logo">
+      <span class="logo" aria-hidden="true">
         <svg class="logo-icon" width="28" height="28" viewBox="0 0 24 24" fill="none">
           <path d="M12 2L2 7l10 5 10-5-10-5z" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
           <path d="M2 17l10 5 10-5" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
         <span>VARVOS</span>
-      </a>
+      </span>
     </header>
 
     <main class="checkout-main">
@@ -56,8 +56,9 @@
 
       <!-- Checkout avulso: Pix ou Cartão -->
       <div id="checkoutAvulso" class="checkout-card hidden">
-        <h1 id="avulsoTitle">Checkout — Créditos avulsos</h1>
+        <h1 id="avulsoTitle">Checkout</h1>
         <p id="avulsoPlan" class="checkout-plan-info"></p>
+        <p id="avulsoPlanBenefit" class="checkout-plan-benefit"></p>
 
         <div class="payment-method-tabs">
           <button type="button" class="pm-tab active" data-method="pix">
@@ -107,14 +108,22 @@
             </div>
           </div>
 
+          <div id="avulsoYouAreBuying" class="checkout-you-buying">
+            <p class="checkout-you-buying-title">Você está comprando:</p>
+            <ul id="avulsoYouAreBuyingList" class="checkout-you-buying-list"></ul>
+          </div>
+
           <button type="submit" class="btn-checkout" id="btnAvulsoSubmit">
-            <span class="btn-text">Gerar QR Code Pix</span>
+            <span class="btn-text">Pagar com Pix agora</span>
             <span class="btn-loading hidden">Processando...</span>
           </button>
+          <p id="avulsoSocialProof" class="checkout-social-proof">🔥 Mais de 1.200 vídeos já criados hoje</p>
           <p id="avulsoPixInstant" class="checkout-pix-instant">⚡ Pagamento via Pix é aprovado instantaneamente</p>
           <p id="avulsoPixCreditsMsg" class="checkout-pix-instant">Seus <span id="avulsoPixCreditsNum">—</span> créditos serão liberados automaticamente</p>
-          <div class="checkout-trust">
-            <p class="checkout-trust-security">🔒 Pagamento seguro com criptografia SSL</p>
+          <div class="checkout-trust checkout-trust-list">
+            <p class="checkout-trust-item">✔ Pagamento seguro</p>
+            <p class="checkout-trust-item">✔ Aprovação imediata</p>
+            <p class="checkout-trust-item">✔ Créditos liberados automaticamente</p>
             <p id="avulsoTrustCards" class="checkout-trust-cards">Visa • Mastercard • Amex • Elo</p>
           </div>
         </form>
@@ -186,8 +195,22 @@
       <!-- Sucesso -->
       <div id="checkoutSuccess" class="checkout-card success-card hidden">
         <div class="success-icon">✓</div>
-        <h1>Pagamento realizado!</h1>
+        <h1 id="successTitle">Pagamento realizado!</h1>
         <p id="successMsg">Seus créditos foram adicionados à conta. Em caso de Pix, pode levar alguns minutos para a confirmação.</p>
+        <!-- Upsell pós-compra Starter: upgrade para Popular (hierarquia: oferta → comparação → botão) -->
+        <div id="starterUpsell" class="starter-upsell hidden">
+          <p class="starter-upsell-urgency">🔥 Oferta exclusiva para novos clientes</p>
+          <p class="starter-upsell-headline">Upgrade para Popular</p>
+          <p class="starter-upsell-price-old">De R$ 39,90</p>
+          <p class="starter-upsell-price">Por apenas <strong>R$ 29,90</strong></p>
+          <p class="starter-upsell-gain">🎬 +30 vídeos extras</p>
+          <div class="starter-upsell-comparison">
+            <span class="starter-upsell-comp-from">Starter — 13 vídeos</span>
+            <span class="starter-upsell-comp-arrow" aria-hidden="true">↓ upgrade</span>
+            <span class="starter-upsell-comp-to">🔥 Popular — 43 vídeos</span>
+          </div>
+          <a href="/checkout?plano=popular&upgrade=1" class="btn-checkout btn-upsell">👉 Liberar +30 vídeos</a>
+        </div>
         <p id="successRedirectMsg" class="success-redirect-msg">
           Redirecionando em <span id="successCountdown">5</span> segundos…
         </p>

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Preview — Tela de sucesso + Upsell</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="checkout.css">
+  <style>
+    body { background: #fafbfc; min-height: 100vh; display: flex; align-items: center; justify-content: center; margin: 0; padding: 24px; }
+    .preview-note { position: fixed; top: 12px; left: 50%; transform: translateX(-50%); background: #1a1a1a; color: #fff; padding: 8px 16px; border-radius: 8px; font-size: 0.85rem; z-index: 10; }
+    .preview-wrapper { width: 100%; max-width: 520px; }
+  </style>
+</head>
+<body>
+  <p class="preview-note">📷 Apenas visualização — tela de sucesso após compra Starter</p>
+  <div class="preview-wrapper">
+    <div class="checkout-card success-card">
+      <div class="success-icon">✓</div>
+      <h1>✅ Pagamento confirmado!</h1>
+      <p id="successMsg">Seus créditos já estão disponíveis.</p>
+      <div id="starterUpsell" class="starter-upsell">
+        <p class="starter-upsell-urgency">🔥 Oferta exclusiva para novos clientes</p>
+        <p class="starter-upsell-headline">Upgrade para Popular</p>
+        <p class="starter-upsell-price-old">De R$ 39,90</p>
+        <p class="starter-upsell-price">Por apenas <strong>R$ 29,90</strong></p>
+        <p class="starter-upsell-gain">🎬 +30 vídeos extras</p>
+        <div class="starter-upsell-comparison">
+          <span class="starter-upsell-comp-from">Starter — 13 vídeos</span>
+          <span class="starter-upsell-comp-arrow" aria-hidden="true">↓ upgrade</span>
+          <span class="starter-upsell-comp-to">🔥 Popular — 43 vídeos</span>
+        </div>
+        <a href="/checkout?plano=popular&upgrade=1" class="btn-checkout btn-upsell">👉 Liberar +30 vídeos</a>
+      </div>
+      <p class="success-redirect-msg">
+        Redirecionando em <span id="successCountdown">20</span> segundos…
+      </p>
+      <a href="video/" class="btn-checkout">Ir para criar vídeo agora</a>
+    </div>
+  </div>
+</body>
+</html>

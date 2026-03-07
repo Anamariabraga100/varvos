@@ -21,12 +21,16 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Pagar.me não configurado (PAGAR_ME_SECRET_KEY)' });
   }
 
-  const { planId, paymentMethod, userId, customer, cardToken } = req.body;
+  const { planId, paymentMethod, userId, customer, cardToken, upgrade } = req.body;
 
   const plan = PLANS[planId];
   if (!plan || !paymentMethod || !customer) {
     return res.status(400).json({ error: 'planId, paymentMethod e customer são obrigatórios' });
   }
+
+  // Upgrade pós-Starter: Popular por R$ 29,90 em vez de R$ 39,90
+  const amount = (planId === 'popular' && upgrade) ? 2990 : plan.amount;
+  const planForOrder = { ...plan, amount };
 
   if (paymentMethod !== 'pix' && paymentMethod !== 'credit_card') {
     return res.status(400).json({ error: 'paymentMethod deve ser pix ou credit_card' });
@@ -99,8 +103,10 @@ export default async function handler(req, res) {
     },
     items: [
       {
-        amount: plan.amount,
-        description: `VARVOS ${plan.name} - ${plan.credits} créditos`,
+        amount: planForOrder.amount,
+        description: upgrade && planId === 'popular'
+          ? `VARVOS ${plan.name} - Upgrade pós-Starter - ${plan.credits} créditos`
+          : `VARVOS ${plan.name} - ${plan.credits} créditos`,
         quantity: 1,
         code: planId,
       },
@@ -111,6 +117,7 @@ export default async function handler(req, res) {
       plan_id: planId,
       credits: String(plan.credits),
       type: 'avulso',
+      upgrade: upgrade ? '1' : '0',
     },
     code: orderCode,
   };
@@ -152,7 +159,7 @@ export default async function handler(req, res) {
         try {
           const { sendEmail } = await import('../services/emailService.js');
           const { paymentGeneratedEmail } = await import('../templates/emailTemplates.js');
-          const amount = (plan.amount || 0) / 100;
+          const amount = (planForOrder.amount || 0) / 100;
           const { subject, html, text } = paymentGeneratedEmail({
             name: customer.name,
             amount,

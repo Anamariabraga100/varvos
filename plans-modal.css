@@ -72,6 +72,11 @@
   -webkit-overflow-scrolling: touch;
 }
 
+/* Aba créditos avulsos: modal mais largo para grid 3 colunas */
+.plans-modal-card:has(#plansAvulsos:not(.hidden)) {
+  max-width: 780px;
+}
+
 .plans-modal-close {
   position: absolute;
   top: 12px;
@@ -308,6 +313,83 @@
 
 .plans-tab-content.hidden {
   display: none;
+}
+
+/* Grid 3 colunas: Starter | Popular | Pro (avulsos) */
+.plans-avulsos-three {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-bottom: 12px;
+}
+
+/* Popular em destaque: card maior, borda e sombra fortes, badge, fundo levemente diferente */
+.plan-card-avulso-featured {
+  transform: scale(1.05);
+  border: 2px solid rgba(16, 185, 129, 0.5);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(16, 185, 129, 0.15);
+  background: linear-gradient(180deg, #f0fdf4 0%, #fff 30%);
+  z-index: 1;
+}
+
+.plan-card-avulso-featured .plan-badge-most-chosen {
+  display: block;
+  margin-bottom: 6px;
+  padding: 6px 12px;
+  background: linear-gradient(135deg, #ea580c 0%, #f59e0b 100%);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  border-radius: 999px;
+  text-align: center;
+}
+
+/* Esconder preço por vídeo nos 3 planos principais — priorizar quantidade */
+.plans-avulsos-three .plan-price-sub {
+  display: none;
+}
+
+.plan-starter-hint {
+  margin: -4px 0 10px;
+  font-size: 0.75rem;
+  color: #6b7280;
+  line-height: 1.35;
+  max-width: 90%;
+}
+
+.plan-popular-value {
+  margin: -4px 0 10px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #047857;
+  line-height: 1.35;
+}
+
+/* CTA principal no Popular (verde) em vez do Starter */
+.plan-card-popular .plan-cta {
+  background: #10b981;
+  border-color: #10b981;
+  color: #fff;
+}
+.plan-card-popular .plan-cta:hover {
+  background: #059669;
+  border-color: #059669;
+  color: #fff;
+}
+
+/* Remover destaque verde do primeiro card quando Popular é o recomendado */
+#plansAvulsos .plans-avulsos-three .plan-card-starter .plan-cta,
+#plansAvulsos .plans-avulsos-three .plan-card-starter .plan-cta-outline {
+  background: transparent;
+  border: 2px solid #e5e7eb;
+  color: #374151;
+}
+#plansAvulsos .plans-avulsos-three .plan-card-starter .plan-cta:hover,
+#plansAvulsos .plans-avulsos-three .plan-card-starter .plan-cta-outline:hover {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+  color: #111827;
 }
 
 .plans-tab-badge {
@@ -1242,7 +1324,7 @@
   color: #059669;
 }
 
-/* Tela cheia no mobile */
+/* Tela cheia no mobile + planos avulsos em 1 coluna (Popular → Starter → Pro) */
 @media (max-width: 768px) {
   .plans-modal {
     padding: 0;
@@ -1258,8 +1340,24 @@
     max-height: none;
   }
 
+  .plans-modal-card:has(#plansAvulsos:not(.hidden)) {
+    max-width: none;
+  }
+
   .plans-modal-timer {
     border-radius: 0;
+  }
+
+  /* 1 coluna: não deixar os 3 juntos no mobile — ordem Popular, Starter, Pro */
+  .plans-avulsos-three {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .plans-avulsos-three .plan-card-starter { order: 2; }
+  .plans-avulsos-three .plan-card-popular { order: 1; }
+  .plans-avulsos-three .plan-card-pro { order: 3; }
+  .plan-card-avulso-featured {
+    transform: scale(1.02);
   }
 }
 
