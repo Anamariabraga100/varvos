@@ -1919,8 +1919,7 @@ function setupVideoUpload(config) {
       const upload = uploadFn || uploadFileToVidgo;
       const url = await upload(file);
       setUrl(url);
-      // Trocar para URL da API (evita que o vídeo "suma" se o blob for revogado)
-      if (previewVideo && url) previewVideo.src = url;
+      // Manter blob no preview — a URL da KIE pode não permitir playback no navegador (CORS)
       onUploadEnd?.();
       setUploadStatus?.();
       onReady?.();
