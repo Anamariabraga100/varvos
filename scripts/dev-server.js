@@ -58,6 +58,27 @@ app.all(/^\/api\/kie(\/.*)?$/, async (req, res) => {
   }
 });
 
+// API: débito e estorno de créditos (geração de vídeo)
+app.post('/api/deduct-credits', async (req, res) => {
+  try {
+    const handler = (await import('../api/deduct-credits.js')).default;
+    await handler(req, res);
+  } catch (err) {
+    console.error('[dev-server] deduct-credits:', err);
+    res.status(500).json({ error: err?.message || 'Erro ao debitar créditos' });
+  }
+});
+
+app.post('/api/refund-credits', async (req, res) => {
+  try {
+    const handler = (await import('../api/refund-credits.js')).default;
+    await handler(req, res);
+  } catch (err) {
+    console.error('[dev-server] refund-credits:', err);
+    res.status(500).json({ error: err?.message || 'Erro ao estornar créditos' });
+  }
+});
+
 // Fallback: SPA
 app.get(/^\/(?!api)/, (req, res) => {
   if (path.extname(req.path)) return res.status(404).send('Not found');
