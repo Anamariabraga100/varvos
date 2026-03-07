@@ -434,14 +434,7 @@
     document.querySelectorAll('.video-card').forEach(function(card) {
       card.addEventListener('click', function(e) {
         if (e.target.closest('.mute-btn')) { toggleMute(card); return; }
-        var src = card.dataset.videoSrc || (card.querySelector('video') && card.querySelector('video').src);
-        if (!src) return;
-        modalVideo.src = src;
-        modalVideo.muted = false;
-        modalVideo.load();
-        videoModal.classList.remove('hidden');
-        document.querySelectorAll('.video-card video').forEach(function(v){ v.muted = true; v.pause(); });
-        modalVideo.play().catch(function(){});
+        toggleMute(card);
       });
     });
   })();

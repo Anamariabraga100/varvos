@@ -222,12 +222,14 @@ function updateVideoModelUI() {
   const grokModeWrap = document.getElementById('grokModeWrap');
   const configRefOptional = document.getElementById('configRefOptional');
   const configRefRequired = document.getElementById('configRefRequired');
+  const configRefWrap = document.getElementById('configRefWrap');
   const noticeVeo = document.getElementById('modelNoticeVeo');
   const noticeSora = document.getElementById('modelNoticeSora');
   if (!modelSelect) return;
   selectedModel = modelSelect.value;
   const isVEO = selectedModel === 'veo3.1-fast';
   const isGrok = selectedModel === 'grok-imagine/image-to-video';
+  const isSoraOrVeo = selectedModel === 'sora-2' || selectedModel === 'veo3.1-fast';
   if (durationWrap) durationWrap.classList.toggle('hidden', isGrok);
   if (durationSelect) durationSelect.classList.toggle('hidden', isVEO || isGrok);
   if (durationFixed) durationFixed.classList.toggle('hidden', !isVEO);
@@ -238,9 +240,11 @@ function updateVideoModelUI() {
   if (grokModeWrap) grokModeWrap.classList.toggle('hidden', !isGrok);
   if (configRefOptional) configRefOptional.classList.toggle('hidden', isGrok);
   if (configRefRequired) configRefRequired.classList.toggle('hidden', !isGrok);
+  if (configRefWrap && isSoraOrVeo) configRefWrap.classList.remove('hidden');
   if (noticeVeo) noticeVeo.classList.toggle('hidden', !isVEO);
   if (noticeSora) noticeSora.classList.toggle('hidden', isVEO && !isGrok);
   if (typeof syncConfigCardDisplays === 'function') syncConfigCardDisplays();
+  if (currentMode === 'video') updateRefImageReadyState();
 }
 document.getElementById('videoModel')?.addEventListener('change', updateVideoModelUI);
 
