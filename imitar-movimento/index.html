@@ -211,7 +211,7 @@
               </details>
             </div>
 
-            <!-- Imitar Movimento — config acima, passo 1 e 2 lado a lado, botão abaixo -->
+            <!-- Imitar Movimento — config acima, passo 1 e 2 empilhados, botão abaixo -->
           <div id="motionFields" class="mode-fields hidden form-options form-options-compact motion-fields">
             <!-- Config Formato, Origem, Resolução — mesma linha acima do passo 1 -->
             <div class="config-main-options config-above-btn motion-config-cards motion-config-inline mode-fields">
@@ -307,6 +307,15 @@
               </div>
             </div>
 
+            <div class="prompt-actions prompt-actions-close">
+              <div id="motionReadyState" class="motion-ready-state" aria-live="polite"></div>
+              <button type="submit" class="btn-generate btn-generate-inline" id="btnGenerate">
+                <span id="btnGenerateText">Gerar vídeo</span>
+                <span class="btn-credits">✨</span>
+              </button>
+              <p class="motion-cost-note" id="motionCostNote">Custo calculado após o upload do vídeo (baseado na duração)</p>
+            </div>
+
             <div class="samples-compact-wrap">
               <p class="samples-compact-label">Biblioteca Varvos</p>
               <p class="samples-compact-hint">Use como referência se quiser</p>
@@ -340,15 +349,7 @@
               </div>
             </div>
           </div>
-
-            <div class="prompt-actions prompt-actions-close">
-              <div id="motionReadyState" class="motion-ready-state" aria-live="polite"></div>
-              <button type="submit" class="btn-generate btn-generate-inline" id="btnGenerate">
-                <span id="btnGenerateText">Gerar vídeo</span>
-                <span class="btn-credits">✨</span>
-              </button>
-              <p class="motion-cost-note" id="motionCostNote">Custo calculado após o upload do vídeo (baseado na duração)</p>
-            </div>
+        </div>
         </form>
       </section>
 

@@ -24,7 +24,6 @@ let refImageUploading = false;  // Upload em andamento
 let imgRefUrl = '';   // Image reference (uploaded)
 let motionCharImageUrl = '';  // Kling: character image
 let motionRefVideoUrl = '';   // Kling: reference video
-let motionRefVideoUploading = false;  // Upload em segundo plano (preview já visível)
 
 // Toast de aviso (substitui alert — mais discreto)
 let noticeToastTimeout = null;
@@ -555,9 +554,7 @@ function setMotionRefVideoFromUrl(url) {
     loadingOverlay.setAttribute('aria-hidden', 'false');
   }
   previewVid.classList.add('loading');
-  const isExternal = /^https?:\/\//i.test(url) && !url.includes(window.location.hostname);
-  const previewSrc = isExternal ? (window.location.origin + '/api/kie/proxy-video?url=' + encodeURIComponent(url)) : url;
-  previewVid.src = previewSrc;
+  previewVid.src = url;
   const hideLoading = () => {
     if (loadingOverlay) {
       loadingOverlay.classList.add('hidden');
@@ -567,24 +564,12 @@ function setMotionRefVideoFromUrl(url) {
     updateMotionReadyState();
     updateMotionButtonCredits();
   };
-  const onError = () => {
-    hideLoading();
-    updateMotionReadyState({ error: 'Não foi possível carregar o vídeo. Verifique se a URL é válida ou tente outro.' });
-    motionRefVideoUrl = '';
-    area.classList.remove('hidden');
-    preview.classList.add('hidden');
-    previewVid.src = '';
-    updateMotionReadyState();
-  };
   if (previewVid.readyState >= 2) hideLoading();
   else {
     previewVid.addEventListener('loadeddata', hideLoading, { once: true });
     previewVid.addEventListener('canplay', hideLoading, { once: true });
-    previewVid.addEventListener('error', onError, { once: true });
+    previewVid.addEventListener('error', hideLoading, { once: true });
   }
-  setTimeout(() => {
-    document.getElementById('motionRefVideoUpload')?.closest('.field')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  }, 100);
   updateMotionReadyState();
 }
 
@@ -846,7 +831,7 @@ async function refreshCreditsFromSupabase() {
     let ok = false;
     // Usa API get-credits: retorna credits + plan e infere plano de contas antigas via payments
     const qs = userId ? 'userId=' + encodeURIComponent(userId) : 'email=' + encodeURIComponent(userEmail);
-    const r = await fetch(window.location.origin + '/api/app/get-credits?' + qs);
+    const r = await fetch(window.location.origin + '/api/get-credits?' + qs);
     if (r.ok) {
       const data = await r.json();
       if (data.credits != null) user.credits = data.credits;
@@ -1279,18 +1264,6 @@ function applyMode(mode) {
   document.getElementById('videoFields')?.classList.toggle('hidden', currentMode !== 'video');
   document.getElementById('imageFields')?.classList.toggle('hidden', currentMode !== 'image');
   document.getElementById('motionFields')?.classList.toggle('hidden', currentMode !== 'motion');
-  // No modo motion: botão logo abaixo do grid; no vídeo: botão no final do form
-  const closeActions = document.querySelector('.prompt-actions-close');
-  const motionFields = document.getElementById('motionFields');
-  const grid = document.querySelector('.motion-uploads-grid');
-  const createFlow = document.querySelector('.create-flow');
-  if (closeActions && motionFields && grid && createFlow) {
-    if (currentMode === 'motion') {
-      motionFields.insertBefore(closeActions, grid.nextSibling);
-    } else {
-      createFlow.parentNode.insertBefore(closeActions, createFlow.nextSibling);
-    }
-  }
   const configMain = document.getElementById('configMainOptions');
   if (configMain) configMain.classList.toggle('hidden', currentMode !== 'video');
   const configRef = document.getElementById('configRefWrap');
@@ -1316,7 +1289,8 @@ function applyMode(mode) {
   updateGenerateButtonLabel(true);
   updatePromptWrapValue();
   const motionNote = document.querySelector('.motion-cost-note');
-  if (motionNote) motionNote.classList.toggle('hidden', currentMode !== 'motion');
+  const motionHasValue = currentMode === 'motion' && motionRefVideoUrl && getCreditsCostForBody({ model: 'kling-2.6/motion-control' }) > 0;
+  if (motionNote) motionNote.classList.toggle('hidden', currentMode !== 'motion' || !motionHasValue);
   document.getElementById('prompt').required = currentMode !== 'motion';
   if (currentMode === 'motion') setTimeout(updateMotionReadyState, 0);
   else if (btnGenerate) { if (currentMode === 'video') updateRefImageReadyState(); else btnGenerate.disabled = false; }
@@ -1623,34 +1597,10 @@ async function uploadFileToVidgo(file) {
   });
 }
 
-// Upload para Imitar Movimento: usa a API de upload da KIE (não Vidgo)
-async function uploadMotionFileToKie(file, bucket) {
+// Upload para Imitar Movimento: valida formato (KIE exige JPEG/PNG, MP4/MOV) e envia para Vidgo
+async function uploadMotionFileToVidgo(file, bucket) {
   validateMotionFileType(file, bucket);
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = async () => {
-      const base64Data = reader.result;
-      const uploadPath = bucket === 'images' ? 'motion-images' : 'motion-videos';
-      const ext = (file.name || '').split('.').pop()?.toLowerCase() || 'bin';
-      const fileName = `${Date.now()}_${Math.random().toString(36).slice(2, 10)}.${ext}`;
-      try {
-        const res = await fetch('/api/kie/upload-file', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ base64Data, uploadPath, fileName }),
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data?.msg || `Erro ${res.status}`);
-        const url = data?.url;
-        if (!url) throw new Error('URL não retornada');
-        resolve(url);
-      } catch (e) {
-        reject(e);
-      }
-    };
-    reader.onerror = () => reject(new Error('Erro ao ler arquivo'));
-    reader.readAsDataURL(file);
-  });
+  return uploadFileToVidgo(file);
 }
 
 function runSimulatedProgress(progressEl) {
@@ -1738,7 +1688,6 @@ function setupFileUpload(config) {
         setUploadStatus?.();
         onReady?.();
         onUploadEnd?.();
-        if (typeof updateMotionReadyState === 'function') setTimeout(updateMotionReadyState, 0);
       }
     } catch (err) {
       if (!hideProgressUI) {
@@ -1807,11 +1756,10 @@ setupFileUpload({ inputId: 'imgRefFile', areaId: 'imgRefArea', previewId: 'imgRe
 function updateMotionReadyState(forceState) {
   const el = document.getElementById('motionReadyState');
   const btn = document.getElementById('btnGenerate');
-  if (el) {
+  if (!el) return;
   if (forceState?.uploading) {
-    const label = forceState.uploading === 'video' ? 'Enviando vídeo de referência…' : forceState.uploading === 'image' ? 'Enviando foto do personagem…' : 'Enviando…';
-    el.textContent = label;
-    el.className = 'motion-ready-state uploading';
+    el.textContent = '';
+    el.className = 'motion-ready-state';
   } else if (forceState?.error) {
     el.textContent = '⚠ ' + forceState.error;
     el.className = 'motion-ready-state error';
@@ -1820,19 +1768,18 @@ function updateMotionReadyState(forceState) {
     el.textContent = ok ? '✓ Imagem e vídeo enviados — prontos para gerar' : '';
     el.className = 'motion-ready-state' + (ok ? ' ready' : '');
   }
-  }
   const p1 = document.getElementById('motionRefVideoProgress');
   const p2 = document.getElementById('motionCharImageProgress');
-  const hasUploading = motionRefVideoUploading || (p1 && !p1.classList.contains('hidden')) || (p2 && p2.classList.contains('uploading'));
+  const hasUploading = (p1 && !p1.classList.contains('hidden')) || (p2 && p2.classList.contains('uploading'));
   if (btn && currentMode === 'motion') btn.disabled = hasUploading || !(motionCharImageUrl && motionRefVideoUrl);
   if (currentMode === 'motion') { updateMotionButtonCredits(); updatePromptWrapValue(); }
 }
-setupFileUpload({ inputId: 'motionCharImageFile', areaId: 'motionCharImageArea', previewId: 'motionCharImagePreview', imgId: 'motionCharImagePreviewImg', removeId: 'motionCharImageRemove', setUrl: (v) => motionCharImageUrl = v, onReady: updateMotionReadyState, uploadFn: (f) => uploadMotionFileToKie(f, 'images'), uploadStatusLabel: 'image', setUploadStatus: updateMotionReadyState, progressElId: 'motionCharImageProgress', hideProgressUI: true });
+setupFileUpload({ inputId: 'motionCharImageFile', areaId: 'motionCharImageArea', previewId: 'motionCharImagePreview', imgId: 'motionCharImagePreviewImg', removeId: 'motionCharImageRemove', setUrl: (v) => motionCharImageUrl = v, onReady: updateMotionReadyState, uploadFn: (f) => uploadMotionFileToVidgo(f, 'images'), uploadStatusLabel: 'image', setUploadStatus: updateMotionReadyState, progressElId: 'motionCharImageProgress', hideProgressUI: true });
 
 const MOTION_REF_MAX_DURATION_SECONDS = 30;
 
 function setupVideoUpload(config) {
-  const { inputId, areaId, previewId, videoId, removeId, setUrl, maxMb = 50, maxDurationSeconds, onReady, uploadFn, onRemove, uploadStatusLabel, setUploadStatus, progressElId, onUploadStart, onUploadEnd } = config;
+  const { inputId, areaId, previewId, videoId, removeId, setUrl, maxMb = 50, maxDurationSeconds, onReady, uploadFn, onRemove, uploadStatusLabel, setUploadStatus, progressElId } = config;
   const input = document.getElementById(inputId);
   const area = document.getElementById(areaId);
   const preview = document.getElementById(previewId);
@@ -1909,26 +1856,21 @@ function setupVideoUpload(config) {
       }
     }
     try {
-      // Mostrar o vídeo imediatamente (blob) — não esperar o upload terminar
-      cancelProgress();
-      setProgress(false);
-      const media = progressEl?.closest('.motion-preview-wrap')?.querySelector('.motion-preview-media');
-      if (media) media.classList.remove('loading');
-      setUploadStatus?.({ uploading: uploadStatusLabel });
-      onUploadStart?.();
       const upload = uploadFn || uploadFileToVidgo;
       const url = await upload(file);
       setUrl(url);
-      // Manter blob no preview — a URL da KIE pode não permitir playback no navegador (CORS)
-      onUploadEnd?.();
-      setUploadStatus?.();
-      onReady?.();
-      setTimeout(updateMotionReadyState, 0);
+      cancelProgress();
+      const fill = progressEl?.querySelector('.upload-progress-fill');
+      const pct = progressEl?.querySelector('.upload-progress-pct');
+      const media = progressEl?.closest('.motion-preview-wrap')?.querySelector('.motion-preview-media');
+      if (fill) fill.style.width = '100%';
+      if (pct) pct.textContent = '100%';
+      media?.classList.remove('loading');
+      setTimeout(() => { setProgress(false); setUploadStatus?.(); onReady?.(); }, 400);
     } catch (err) {
-      onUploadEnd?.();
       cancelProgress();
       const media = progressEl?.closest('.motion-preview-wrap')?.querySelector('.motion-preview-media');
-      if (media) media.classList.remove('loading');
+      media?.classList.remove('loading');
       setProgress(false);
       if (setUploadStatus) setUploadStatus({ error: err.message });
       else alert('Erro no upload: ' + err.message);
@@ -1939,7 +1881,6 @@ function setupVideoUpload(config) {
   const reset = () => {
     if (onRemove) onRemove().catch(() => {});
     setUrl('');
-    onUploadEnd?.();
     cancelProgress();
     const media = progressEl?.closest('.motion-preview-wrap')?.querySelector('.motion-preview-media');
     if (media) media.classList.remove('loading');
@@ -1964,25 +1905,18 @@ function setupVideoUpload(config) {
   });
 }
 
-setupVideoUpload({ inputId: 'motionRefVideoFile', areaId: 'motionRefVideoArea', previewId: 'motionRefVideoPreview', videoId: 'motionRefVideoPreviewVid', removeId: 'motionRefVideoRemove', setUrl: (v) => motionRefVideoUrl = v, maxMb: 100, maxDurationSeconds: MOTION_REF_MAX_DURATION_SECONDS, onReady: updateMotionReadyState, uploadFn: (f) => uploadMotionFileToKie(f, 'videos'), uploadStatusLabel: 'video', setUploadStatus: updateMotionReadyState, progressElId: 'motionRefVideoProgress', onUploadStart: () => { motionRefVideoUploading = true; updateMotionReadyState(); }, onUploadEnd: () => { motionRefVideoUploading = false; updateMotionReadyState(); } });
+setupVideoUpload({ inputId: 'motionRefVideoFile', areaId: 'motionRefVideoArea', previewId: 'motionRefVideoPreview', videoId: 'motionRefVideoPreviewVid', removeId: 'motionRefVideoRemove', setUrl: (v) => motionRefVideoUrl = v, maxMb: 100, maxDurationSeconds: MOTION_REF_MAX_DURATION_SECONDS, onReady: updateMotionReadyState, uploadFn: (f) => uploadMotionFileToVidgo(f, 'videos'), uploadStatusLabel: 'video', setUploadStatus: updateMotionReadyState, progressElId: 'motionRefVideoProgress' });
 
 function updateMotionButtonCredits() {
   if (currentMode !== 'motion') return;
   const btnText = document.getElementById('btnGenerateText');
-  const motionNote = document.getElementById('motionCostNote') || document.querySelector('.motion-cost-note');
+  const motionNote = document.querySelector('.motion-cost-note');
   if (!btnText) return;
   const cost = getCreditsCostForBody({ model: 'kling-2.6/motion-control' });
   const hasValue = motionRefVideoUrl && cost > 0;
   const labels = { motion: 'Imitar movimento' };
-  btnText.textContent = hasValue ? `🎬 ${labels.motion} ⚡ (${cost}) créditos` : `🎬 ${labels.motion} (custo após o upload)`;
-  if (motionNote) {
-    motionNote.classList.remove('hidden');
-    const resolution = document.getElementById('motionResolution')?.value || '720p';
-    const creditsPerSec = getCreditsPerSecondMotion(resolution);
-    motionNote.textContent = hasValue
-      ? `${cost} créditos (${creditsPerSec} créditos/segundo, baseado na duração do vídeo)`
-      : 'Custo calculado após o upload do vídeo (baseado na duração)';
-  }
+  btnText.textContent = hasValue ? `🎬 ${labels.motion} ⚡ (${cost}) créditos` : `🎬 ${labels.motion}`;
+  if (motionNote) motionNote.classList.toggle('hidden', !hasValue);
 }
 
 function updateGenerateButtonLabel(showCredits = true) {
@@ -2034,11 +1968,13 @@ function buildRequestBody() {
   if (currentMode === 'motion') {
     const orientation = document.getElementById('motionOrientation').value;
     const mode = document.getElementById('motionResolution').value;
+    const aspectRatio = (document.getElementById('motionFormat') || document.getElementById('aspectRatio'))?.value || '9:16';
     const input = {
       input_urls: [motionCharImageUrl],
       video_urls: [motionRefVideoUrl],
       character_orientation: orientation,
-      mode
+      mode,
+      aspect_ratio: aspectRatio
     };
     const prompt = document.getElementById('prompt').value.trim();
     if (prompt) input.prompt = prompt;
@@ -2873,7 +2809,7 @@ async function generateMedia(body) {
       const userRaw = localStorage.getItem(AUTH_STORAGE);
       const user = userRaw ? JSON.parse(userRaw) : null;
       const userEmail = (user?.email || '').trim().toLowerCase();
-      const deductRes = await fetch('/api/app/deduct-credits', {
+      const deductRes = await fetch('/api/deduct-credits', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: uid || undefined, email: userEmail || undefined, amount: cost, taskId }),
@@ -2947,7 +2883,7 @@ async function generateMedia(body) {
       if (tid) { clearTimeout(tid); pollTimeouts.delete(taskId); }
       try {
         if (creditsDeducted && userId && taskId) {
-          const refundRes = await fetch('/api/app/refund-credits', {
+          const refundRes = await fetch('/api/refund-credits', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ userId, amount: amountToRefund, taskId }),
@@ -2989,7 +2925,7 @@ async function generateMedia(body) {
           const userRaw = localStorage.getItem(AUTH_STORAGE);
           const user = userRaw ? JSON.parse(userRaw) : null;
           const userEmail = (user?.email || '').trim().toLowerCase();
-          const deductRes = await fetch('/api/app/deduct-credits', {
+          const deductRes = await fetch('/api/deduct-credits', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ userId: userId || undefined, email: userEmail || undefined, amount: grokCost, taskId }),
@@ -3039,7 +2975,7 @@ async function generateMedia(body) {
       if (tid) { clearTimeout(tid); pollTimeouts.delete(taskId); }
       try {
         if (creditsDeducted && userId && taskId) {
-          const refundRes = await fetch('/api/app/refund-credits', {
+          const refundRes = await fetch('/api/refund-credits', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ userId, amount: amountToRefund, taskId }),
@@ -3081,7 +3017,7 @@ async function generateMedia(body) {
           const userRaw = localStorage.getItem(AUTH_STORAGE);
           const user = userRaw ? JSON.parse(userRaw) : null;
           const userEmail = (user?.email || '').trim().toLowerCase();
-          const deductRes = await fetch('/api/app/deduct-credits', {
+          const deductRes = await fetch('/api/deduct-credits', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ userId: userId || undefined, email: userEmail || undefined, amount: grokCost, taskId }),
@@ -3141,7 +3077,7 @@ async function generateMedia(body) {
     let refunded = false;
     if (creditsDeducted && userId && taskId) {
       try {
-        const refundRes = await fetch('/api/app/refund-credits', {
+        const refundRes = await fetch('/api/refund-credits', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ userId, amount: amountToRefund, taskId }),
@@ -3340,7 +3276,7 @@ function restoreTaskToCard(data, cardIndex) {
       const restoreCost = data.cost != null ? parseInt(data.cost, 10) : (data.mode === 'motion' ? null : 50);
       if (restoreUserId && data.taskId && restoreCost && restoreCost > 0) {
         try {
-          const refundRes = await fetch('/api/app/refund-credits', {
+          const refundRes = await fetch('/api/refund-credits', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ userId: restoreUserId, amount: restoreCost, taskId: data.taskId }),

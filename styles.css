@@ -715,8 +715,8 @@ body {
 .section-como-fazer,
 .section-creations,
 .section-samples {
-  margin-top: 24px;
-  padding-top: 24px;
+  margin-top: 32px;
+  padding-top: 32px;
   border-top: 1px solid var(--border);
 }
 
@@ -867,22 +867,17 @@ body {
 
 .prompt-suggestions-inline {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 6px;
   align-items: center;
-  min-width: 0;
-  flex: 1 1 auto;
-}
-@media (max-width: 480px) {
-  .prompt-suggestions-inline {
-    width: 100%;
-  }
+  flex-shrink: 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 .chip-inline {
-  padding: 4px 10px;
+  padding: 4px 8px;
   font-size: 0.72rem;
   white-space: nowrap;
-  flex-shrink: 0;
   background: rgba(0,0,0,0.04);
   border: 1px solid rgba(0,0,0,0.06);
   border-radius: 20px;
@@ -1445,12 +1440,19 @@ body {
 
 .prompt-actions-close {
   margin-top: 12px;
-  margin-bottom: 4px;
 }
-.motion-fields .prompt-actions-close {
+.motion-fields .prompt-actions-close,
+.create-flow + .prompt-actions-close {
   margin-top: 16px;
   margin-bottom: 4px;
-  grid-column: 1 / -1;
+}
+.motion-fields .prompt-actions-close .motion-ready-state,
+.prompt-actions-close .motion-ready-state {
+  margin: 0 0 10px;
+}
+.prompt-actions-close .motion-ready-state:empty {
+  margin: 0;
+  min-height: 0;
 }
 
 .motion-cost-note {
@@ -1856,15 +1858,8 @@ select:focus {
 .motion-ready-state {
   font-size: 0.85rem;
   color: var(--text-muted);
-  margin: 0 0 8px;
+  margin: 12px 0 0;
   min-height: 1.2em;
-}
-.prompt-actions-close .motion-ready-state {
-  margin: 0 0 10px;
-}
-.prompt-actions-close .motion-ready-state:empty {
-  margin: 0;
-  min-height: 0;
 }
 .motion-ready-state.ready {
   color: var(--success);
@@ -2740,24 +2735,24 @@ select:focus {
   .section-samples .carousel-nav { display: none; }
 }
 
-/* Biblioteca Varvos — compacto (Imitar Movimento) */
+/* Vídeos exemplo — compacto (acima do passo 2 em Imitar Movimento) */
 .samples-compact-wrap {
-  margin: 24px 0 16px;
-  padding: 20px 0 12px;
+  margin: 16px 0 20px;
+  padding: 12px 0;
   border-top: 1px solid var(--border);
 }
 
 .samples-compact-label {
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   font-weight: 600;
-  color: var(--text, #111);
-  margin: 0 0 4px;
+  color: var(--text-muted);
+  margin: 0 0 2px;
 }
 
 .samples-compact-hint {
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   color: var(--text-muted);
-  margin: 0 0 14px;
+  margin: 0 0 10px;
   opacity: 0.9;
 }
 
@@ -2766,7 +2761,7 @@ select:focus {
 }
 
 .samples-compact .samples-track {
-  gap: 12px;
+  gap: 6px;
   padding: 0 12px;
   align-items: flex-start;
 }
