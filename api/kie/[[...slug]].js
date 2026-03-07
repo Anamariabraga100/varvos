@@ -85,7 +85,7 @@ export default async function handler(req, res) {
       if (!data?.success && data?.code !== 200) {
         return res.status(resKie.status).json(data);
       }
-      const url = data?.data?.fileUrl || data?.data?.downloadUrl;
+      const url = data?.data?.fileUrl || data?.data?.downloadUrl || data?.data?.url;
       if (!url) {
         return res.status(500).json({ code: 500, msg: 'URL não retornada pela KIE' });
       }

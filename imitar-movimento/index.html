@@ -211,90 +211,10 @@
               </details>
             </div>
 
-            <!-- Imitar Movimento -->
+            <!-- Imitar Movimento — config acima, passo 1 e 2 lado a lado, botão abaixo -->
           <div id="motionFields" class="mode-fields hidden form-options form-options-compact motion-fields">
-            <div class="field">
-              <label>1. Vídeo de referência (a dança / movimento) <span class="required">*</span></label>
-              <p class="field-hint">Escolha o vídeo com o movimento que você quer imitar. Máximo 30 segundos.</p>
-              <div class="file-upload" id="motionRefVideoUpload">
-                <input type="file" id="motionRefVideoFile" accept="video/mp4,video/quicktime,.mp4,.mov,.m4v" hidden>
-                <div class="file-upload-area" id="motionRefVideoArea">
-                  <span class="file-upload-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="4" width="20" height="16" rx="2"/><polygon points="10 8 16 12 10 16 10 8"/></svg></span>
-                  <span class="file-upload-text">Clique ou arraste o vídeo de referência</span>
-                </div>
-                <div class="file-preview file-preview-motion hidden" id="motionRefVideoPreview">
-                  <div class="motion-preview-wrap">
-                    <video id="motionRefVideoPreviewVid" class="motion-preview-media" controls muted></video>
-                    <div class="motion-ref-loading-overlay hidden" id="motionRefVideoLoading" aria-hidden="true">
-                      <span class="motion-ref-loading-text">Carregando vídeo...</span>
-                    </div>
-                    <div class="upload-overlay hidden" id="motionRefVideoProgress" aria-hidden="true">
-                      <div class="upload-progress-bar-wrap"><div class="upload-progress-fill" id="motionRefVideoProgressFill"></div></div>
-                      <span class="upload-progress-pct" id="motionRefVideoProgressPct">0%</span>
-                    </div>
-                  </div>
-                  <button type="button" class="file-remove" id="motionRefVideoRemove">✕ Remover</button>
-                </div>
-              </div>
-            </div>
-            <div class="samples-compact-wrap">
-              <p class="samples-compact-label">Vídeos exemplo</p>
-              <p class="samples-compact-hint">Use como referência se quiser</p>
-              <div class="carousel-wrapper samples-wrap samples-compact">
-                <div class="carousel samples-carousel" id="samplesCarousel">
-                  <div class="carousel-track samples-track">
-                    <button type="button" class="video-card sample-video-slot sample-thumb" data-prompt="Vídeo criado com IA — use como referência para imitar movimento">
-                      <video src="https://juauagypsrgnmwsavrto.supabase.co/storage/v1/object/public/videos/cgt-20260303133820-tvb52.mp4" muted loop playsinline></video>
-                      <span class="sample-thumb-loading">Carregando...</span>
-                    </button>
-                    <button type="button" class="video-card sample-video-slot sample-thumb" data-prompt="Persona em destaque, movimento fluido para imitar">
-                      <video src="https://magai.b-cdn.net/persona-banner/2.mp4" muted loop playsinline></video>
-                      <span class="sample-thumb-loading">Carregando...</span>
-                    </button>
-                    <button type="button" class="video-card sample-video-slot sample-thumb" data-prompt="Controle de movimento estilo Kling — referência para imitação">
-                      <video src="https://cdn.higgsfield.ai/kling_motion_control_preset/062dcd0d-2b81-4e82-8757-8bb1cd491581.mp4" muted loop playsinline></video>
-                      <span class="sample-thumb-loading">Carregando...</span>
-                    </button>
-                    <button type="button" class="video-card sample-video-slot sample-thumb" data-prompt="Movimento dinâmico com IA — inspire-se para seu vídeo">
-                      <video src="https://cdn.higgsfield.ai/kling_motion_control_preset/1ad056fe-79aa-4347-afdc-2b4e360fbed1.mp4" muted loop playsinline></video>
-                      <span class="sample-thumb-loading">Carregando...</span>
-                    </button>
-                    <button type="button" class="video-card sample-video-slot sample-thumb" data-prompt="Preset de movimento para transferência de pose">
-                      <video src="https://cdn.higgsfield.ai/kling_motion_control_preset/fc0bb74c-2a62-4113-99cb-f0ee05aaacf3.mp4" muted loop playsinline></video>
-                      <span class="sample-thumb-loading">Carregando...</span>
-                    </button>
-                  </div>
-                </div>
-                <div class="carousel-nav left" id="samplesPrev">‹</div>
-                <div class="carousel-nav right" id="samplesNext">›</div>
-              </div>
-            </div>
-            <div class="field">
-              <label>2. Foto do personagem (quem vai aparecer) <span class="required">*</span></label>
-              <p class="field-hint">Escolha a foto da pessoa que vai reproduzir o movimento.</p>
-              <div class="file-upload" id="motionCharImageUpload">
-                <input type="file" id="motionCharImageFile" accept="image/jpeg,image/png,.jpg,.jpeg,.png" hidden>
-                <div class="file-upload-area" id="motionCharImageArea">
-                  <span class="file-upload-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></span>
-                  <span class="file-upload-text">Clique ou arraste a foto do personagem</span>
-                </div>
-                <div class="file-preview file-preview-motion hidden" id="motionCharImagePreview">
-                  <div class="motion-preview-wrap">
-                    <img id="motionCharImagePreviewImg" class="motion-preview-media" alt="Personagem">
-                    <div class="upload-overlay hidden" id="motionCharImageProgress" aria-hidden="true">
-                      <div class="upload-progress-bar-wrap"><div class="upload-progress-fill" id="motionCharImageProgressFill"></div></div>
-                      <span class="upload-progress-pct" id="motionCharImageProgressPct">0%</span>
-                    </div>
-                  </div>
-                  <button type="button" class="file-remove" id="motionCharImageRemove">✕ Remover</button>
-                </div>
-              </div>
-            </div>
-            <p class="field-hint-small motion-orientation-hint">Imagem: usa a pose da foto. Vídeo: usa a pose do vídeo de referência.</p>
-            <div id="motionReadyState" class="motion-ready-state" aria-live="polite"></div>
-
-            <!-- Cards Formato, Orientação, Resolução — logo acima do botão -->
-            <div class="config-main-options config-above-btn motion-config-cards mode-fields">
+            <!-- Config Formato, Origem, Resolução — mesma linha acima do passo 1 -->
+            <div class="config-main-options config-above-btn motion-config-cards motion-config-inline mode-fields">
               <div class="config-card" data-target="motionFormat">
                 <div class="config-card-row">
                   <span class="config-card-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18"/></svg></span>
@@ -339,6 +259,87 @@
                 </div>
               </div>
             </div>
+            <div class="motion-uploads-grid">
+              <div class="field motion-upload-card">
+                <label>1. Vídeo de referência <span class="required">*</span></label>
+                <p class="field-hint">O movimento a imitar. Máx. 30s. MP4 ou MOV.</p>
+                <div class="file-upload" id="motionRefVideoUpload">
+                  <input type="file" id="motionRefVideoFile" accept="video/mp4,video/quicktime,.mp4,.mov,.m4v" hidden>
+                  <div class="file-upload-area" id="motionRefVideoArea">
+                    <span class="file-upload-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="4" width="20" height="16" rx="2"/><polygon points="10 8 16 12 10 16 10 8"/></svg></span>
+                    <span class="file-upload-text">Escolher vídeo</span>
+                  </div>
+                  <div class="file-preview file-preview-motion hidden" id="motionRefVideoPreview">
+                    <div class="motion-preview-wrap">
+                      <video id="motionRefVideoPreviewVid" class="motion-preview-media" controls muted></video>
+                      <div class="motion-ref-loading-overlay hidden" id="motionRefVideoLoading" aria-hidden="true">
+                        <span class="motion-ref-loading-text">Carregando vídeo...</span>
+                      </div>
+                      <div class="upload-overlay hidden" id="motionRefVideoProgress" aria-hidden="true">
+                        <div class="upload-progress-bar-wrap"><div class="upload-progress-fill" id="motionRefVideoProgressFill"></div></div>
+                        <span class="upload-progress-pct" id="motionRefVideoProgressPct">0%</span>
+                      </div>
+                    </div>
+                    <button type="button" class="file-remove" id="motionRefVideoRemove">✕ Remover</button>
+                  </div>
+                </div>
+              </div>
+              <div class="field motion-upload-card">
+                <label>2. Foto do personagem <span class="required">*</span></label>
+                <p class="field-hint">Quem vai aparecer no vídeo. JPG ou PNG.</p>
+                <div class="file-upload" id="motionCharImageUpload">
+                  <input type="file" id="motionCharImageFile" accept="image/jpeg,image/png,.jpg,.jpeg,.png" hidden>
+                  <div class="file-upload-area" id="motionCharImageArea">
+                    <span class="file-upload-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></span>
+                    <span class="file-upload-text">Escolher foto</span>
+                  </div>
+                  <div class="file-preview file-preview-motion hidden" id="motionCharImagePreview">
+                    <div class="motion-preview-wrap">
+                      <img id="motionCharImagePreviewImg" class="motion-preview-media" alt="Personagem">
+                      <div class="upload-overlay hidden" id="motionCharImageProgress" aria-hidden="true">
+                        <div class="upload-progress-bar-wrap"><div class="upload-progress-fill" id="motionCharImageProgressFill"></div></div>
+                        <span class="upload-progress-pct" id="motionCharImageProgressPct">0%</span>
+                      </div>
+                    </div>
+                    <button type="button" class="file-remove" id="motionCharImageRemove">✕ Remover</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="samples-compact-wrap">
+              <p class="samples-compact-label">Biblioteca Varvos</p>
+              <p class="samples-compact-hint">Use como referência se quiser</p>
+              <div class="carousel-wrapper samples-wrap samples-compact">
+                <div class="carousel samples-carousel" id="samplesCarousel">
+                  <div class="carousel-track samples-track">
+                    <button type="button" class="video-card sample-video-slot sample-thumb" data-prompt="Vídeo criado com IA — use como referência para imitar movimento">
+                      <video src="https://juauagypsrgnmwsavrto.supabase.co/storage/v1/object/public/videos/cgt-20260303133820-tvb52.mp4" muted loop playsinline></video>
+                      <span class="sample-thumb-loading">Carregando...</span>
+                    </button>
+                    <button type="button" class="video-card sample-video-slot sample-thumb" data-prompt="Persona em destaque, movimento fluido para imitar">
+                      <video src="https://magai.b-cdn.net/persona-banner/2.mp4" muted loop playsinline></video>
+                      <span class="sample-thumb-loading">Carregando...</span>
+                    </button>
+                    <button type="button" class="video-card sample-video-slot sample-thumb" data-prompt="Controle de movimento estilo Kling — referência para imitação">
+                      <video src="https://cdn.higgsfield.ai/kling_motion_control_preset/062dcd0d-2b81-4e82-8757-8bb1cd491581.mp4" muted loop playsinline></video>
+                      <span class="sample-thumb-loading">Carregando...</span>
+                    </button>
+                    <button type="button" class="video-card sample-video-slot sample-thumb" data-prompt="Movimento dinâmico com IA — inspire-se para seu vídeo">
+                      <video src="https://cdn.higgsfield.ai/kling_motion_control_preset/1ad056fe-79aa-4347-afdc-2b4e360fbed1.mp4" muted loop playsinline></video>
+                      <span class="sample-thumb-loading">Carregando...</span>
+                    </button>
+                    <button type="button" class="video-card sample-video-slot sample-thumb" data-prompt="Preset de movimento para transferência de pose">
+                      <video src="https://cdn.higgsfield.ai/kling_motion_control_preset/fc0bb74c-2a62-4113-99cb-f0ee05aaacf3.mp4" muted loop playsinline></video>
+                      <span class="sample-thumb-loading">Carregando...</span>
+                    </button>
+                  </div>
+                </div>
+                <div class="carousel-nav left" id="samplesPrev">‹</div>
+                <div class="carousel-nav right" id="samplesNext">›</div>
+              </div>
+            </div>
+            <div id="motionReadyState" class="motion-ready-state" aria-live="polite"></div>
           </div>
 
             <div class="prompt-actions prompt-actions-close">
@@ -346,7 +347,7 @@
                 <span id="btnGenerateText">Gerar vídeo</span>
                 <span class="btn-credits">✨</span>
               </button>
-              <p class="motion-cost-note">Valor baseado no tamanho do vídeo</p>
+              <p class="motion-cost-note" id="motionCostNote">Custo calculado após o upload do vídeo (baseado na duração)</p>
             </div>
         </form>
       </section>

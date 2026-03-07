@@ -24,6 +24,7 @@ let refImageUploading = false;  // Upload em andamento
 let imgRefUrl = '';   // Image reference (uploaded)
 let motionCharImageUrl = '';  // Kling: character image
 let motionRefVideoUrl = '';   // Kling: reference video
+let motionRefVideoUploading = false;  // Upload em segundo plano (preview já visível)
 
 // Toast de aviso (substitui alert — mais discreto)
 let noticeToastTimeout = null;
@@ -1274,6 +1275,18 @@ function applyMode(mode) {
   document.getElementById('videoFields')?.classList.toggle('hidden', currentMode !== 'video');
   document.getElementById('imageFields')?.classList.toggle('hidden', currentMode !== 'image');
   document.getElementById('motionFields')?.classList.toggle('hidden', currentMode !== 'motion');
+  // No modo motion: botão logo abaixo do grid; no vídeo: botão no final do form
+  const closeActions = document.querySelector('.prompt-actions-close');
+  const motionFields = document.getElementById('motionFields');
+  const grid = document.querySelector('.motion-uploads-grid');
+  const createFlow = document.querySelector('.create-flow');
+  if (closeActions && motionFields && grid && createFlow) {
+    if (currentMode === 'motion') {
+      motionFields.insertBefore(closeActions, grid.nextSibling);
+    } else {
+      createFlow.parentNode.insertBefore(closeActions, createFlow.nextSibling);
+    }
+  }
   const configMain = document.getElementById('configMainOptions');
   if (configMain) configMain.classList.toggle('hidden', currentMode !== 'video');
   const configRef = document.getElementById('configRefWrap');
@@ -1299,8 +1312,7 @@ function applyMode(mode) {
   updateGenerateButtonLabel(true);
   updatePromptWrapValue();
   const motionNote = document.querySelector('.motion-cost-note');
-  const motionHasValue = currentMode === 'motion' && motionRefVideoUrl && getCreditsCostForBody({ model: 'kling-2.6/motion-control' }) > 0;
-  if (motionNote) motionNote.classList.toggle('hidden', currentMode !== 'motion' || !motionHasValue);
+  if (motionNote) motionNote.classList.toggle('hidden', currentMode !== 'motion');
   document.getElementById('prompt').required = currentMode !== 'motion';
   if (currentMode === 'motion') setTimeout(updateMotionReadyState, 0);
   else if (btnGenerate) { if (currentMode === 'video') updateRefImageReadyState(); else btnGenerate.disabled = false; }
@@ -1722,6 +1734,7 @@ function setupFileUpload(config) {
         setUploadStatus?.();
         onReady?.();
         onUploadEnd?.();
+        if (typeof updateMotionReadyState === 'function') setTimeout(updateMotionReadyState, 0);
       }
     } catch (err) {
       if (!hideProgressUI) {
@@ -1790,10 +1803,11 @@ setupFileUpload({ inputId: 'imgRefFile', areaId: 'imgRefArea', previewId: 'imgRe
 function updateMotionReadyState(forceState) {
   const el = document.getElementById('motionReadyState');
   const btn = document.getElementById('btnGenerate');
-  if (!el) return;
+  if (el) {
   if (forceState?.uploading) {
-    el.textContent = '';
-    el.className = 'motion-ready-state';
+    const label = forceState.uploading === 'video' ? 'Enviando vídeo…' : forceState.uploading === 'image' ? 'Enviando imagem…' : 'Enviando…';
+    el.textContent = label;
+    el.className = 'motion-ready-state uploading';
   } else if (forceState?.error) {
     el.textContent = '⚠ ' + forceState.error;
     el.className = 'motion-ready-state error';
@@ -1802,9 +1816,10 @@ function updateMotionReadyState(forceState) {
     el.textContent = ok ? '✓ Imagem e vídeo enviados — prontos para gerar' : '';
     el.className = 'motion-ready-state' + (ok ? ' ready' : '');
   }
+  }
   const p1 = document.getElementById('motionRefVideoProgress');
   const p2 = document.getElementById('motionCharImageProgress');
-  const hasUploading = (p1 && !p1.classList.contains('hidden')) || (p2 && p2.classList.contains('uploading'));
+  const hasUploading = motionRefVideoUploading || (p1 && !p1.classList.contains('hidden')) || (p2 && p2.classList.contains('uploading'));
   if (btn && currentMode === 'motion') btn.disabled = hasUploading || !(motionCharImageUrl && motionRefVideoUrl);
   if (currentMode === 'motion') { updateMotionButtonCredits(); updatePromptWrapValue(); }
 }
@@ -1813,7 +1828,7 @@ setupFileUpload({ inputId: 'motionCharImageFile', areaId: 'motionCharImageArea',
 const MOTION_REF_MAX_DURATION_SECONDS = 30;
 
 function setupVideoUpload(config) {
-  const { inputId, areaId, previewId, videoId, removeId, setUrl, maxMb = 50, maxDurationSeconds, onReady, uploadFn, onRemove, uploadStatusLabel, setUploadStatus, progressElId } = config;
+  const { inputId, areaId, previewId, videoId, removeId, setUrl, maxMb = 50, maxDurationSeconds, onReady, uploadFn, onRemove, uploadStatusLabel, setUploadStatus, progressElId, onUploadStart, onUploadEnd } = config;
   const input = document.getElementById(inputId);
   const area = document.getElementById(areaId);
   const preview = document.getElementById(previewId);
@@ -1890,23 +1905,27 @@ function setupVideoUpload(config) {
       }
     }
     try {
+      // Mostrar o vídeo imediatamente (blob) — não esperar o upload terminar
+      cancelProgress();
+      setProgress(false);
+      const media = progressEl?.closest('.motion-preview-wrap')?.querySelector('.motion-preview-media');
+      if (media) media.classList.remove('loading');
+      setUploadStatus?.({ uploading: uploadStatusLabel });
+      onUploadStart?.();
       const upload = uploadFn || uploadFileToVidgo;
       const url = await upload(file);
       setUrl(url);
-      cancelProgress();
-      const fill = progressEl?.querySelector('.upload-progress-fill');
-      const pct = progressEl?.querySelector('.upload-progress-pct');
-      const media = progressEl?.closest('.motion-preview-wrap')?.querySelector('.motion-preview-media');
-      if (fill) fill.style.width = '100%';
-      if (pct) pct.textContent = '100%';
-      media?.classList.remove('loading');
-      // Usar a URL retornada pela API em vez do blob — evita que o vídeo "suma" se o blob for revogado
+      // Trocar para URL da API (evita que o vídeo "suma" se o blob for revogado)
       if (previewVideo && url) previewVideo.src = url;
-      setTimeout(() => { setProgress(false); setUploadStatus?.(); onReady?.(); }, 400);
+      onUploadEnd?.();
+      setUploadStatus?.();
+      onReady?.();
+      setTimeout(updateMotionReadyState, 0);
     } catch (err) {
+      onUploadEnd?.();
       cancelProgress();
       const media = progressEl?.closest('.motion-preview-wrap')?.querySelector('.motion-preview-media');
-      media?.classList.remove('loading');
+      if (media) media.classList.remove('loading');
       setProgress(false);
       if (setUploadStatus) setUploadStatus({ error: err.message });
       else alert('Erro no upload: ' + err.message);
@@ -1917,6 +1936,7 @@ function setupVideoUpload(config) {
   const reset = () => {
     if (onRemove) onRemove().catch(() => {});
     setUrl('');
+    onUploadEnd?.();
     cancelProgress();
     const media = progressEl?.closest('.motion-preview-wrap')?.querySelector('.motion-preview-media');
     if (media) media.classList.remove('loading');
@@ -1941,18 +1961,25 @@ function setupVideoUpload(config) {
   });
 }
 
-setupVideoUpload({ inputId: 'motionRefVideoFile', areaId: 'motionRefVideoArea', previewId: 'motionRefVideoPreview', videoId: 'motionRefVideoPreviewVid', removeId: 'motionRefVideoRemove', setUrl: (v) => motionRefVideoUrl = v, maxMb: 100, maxDurationSeconds: MOTION_REF_MAX_DURATION_SECONDS, onReady: updateMotionReadyState, uploadFn: (f) => uploadMotionFileToKie(f, 'videos'), uploadStatusLabel: 'video', setUploadStatus: updateMotionReadyState, progressElId: 'motionRefVideoProgress' });
+setupVideoUpload({ inputId: 'motionRefVideoFile', areaId: 'motionRefVideoArea', previewId: 'motionRefVideoPreview', videoId: 'motionRefVideoPreviewVid', removeId: 'motionRefVideoRemove', setUrl: (v) => motionRefVideoUrl = v, maxMb: 100, maxDurationSeconds: MOTION_REF_MAX_DURATION_SECONDS, onReady: updateMotionReadyState, uploadFn: (f) => uploadMotionFileToKie(f, 'videos'), uploadStatusLabel: 'video', setUploadStatus: updateMotionReadyState, progressElId: 'motionRefVideoProgress', onUploadStart: () => { motionRefVideoUploading = true; updateMotionReadyState(); }, onUploadEnd: () => { motionRefVideoUploading = false; updateMotionReadyState(); } });
 
 function updateMotionButtonCredits() {
   if (currentMode !== 'motion') return;
   const btnText = document.getElementById('btnGenerateText');
-  const motionNote = document.querySelector('.motion-cost-note');
+  const motionNote = document.getElementById('motionCostNote') || document.querySelector('.motion-cost-note');
   if (!btnText) return;
   const cost = getCreditsCostForBody({ model: 'kling-2.6/motion-control' });
   const hasValue = motionRefVideoUrl && cost > 0;
   const labels = { motion: 'Imitar movimento' };
-  btnText.textContent = hasValue ? `🎬 ${labels.motion} ⚡ (${cost}) créditos` : `🎬 ${labels.motion}`;
-  if (motionNote) motionNote.classList.toggle('hidden', !hasValue);
+  btnText.textContent = hasValue ? `🎬 ${labels.motion} ⚡ (${cost}) créditos` : `🎬 ${labels.motion} (custo após o upload)`;
+  if (motionNote) {
+    motionNote.classList.remove('hidden');
+    const resolution = document.getElementById('motionResolution')?.value || '720p';
+    const creditsPerSec = getCreditsPerSecondMotion(resolution);
+    motionNote.textContent = hasValue
+      ? `${cost} créditos (${creditsPerSec} créditos/segundo, baseado na duração do vídeo)`
+      : 'Custo calculado após o upload do vídeo (baseado na duração)';
+  }
 }
 
 function updateGenerateButtonLabel(showCredits = true) {
