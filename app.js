@@ -442,7 +442,10 @@ function openVideoModalForResult(src, downloadBtnOrHref, downloadName, aspectRat
   videoModal.dataset.videoSrc = src || '';
   videoModal.dataset.context = 'result';
   const playerWrap = videoModal?.querySelector('.video-modal-player');
-  if (playerWrap) playerWrap.style.aspectRatio = '9/16';
+  if (playerWrap) {
+    const ratio = aspectRatio === '16:9' ? '16/9' : aspectRatio === '1:1' ? '1/1' : '9/16';
+    playerWrap.style.aspectRatio = ratio;
+  }
   const promptEl = document.getElementById('videoModalPrompt');
   if (promptEl) {
     promptEl.textContent = prompt || '';
