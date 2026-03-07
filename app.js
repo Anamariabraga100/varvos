@@ -1600,15 +1600,15 @@ async function uploadFileToVidgo(file) {
   });
 }
 
-// Upload para Imitar Movimento: Supabase Storage (aceita MOV, MP4, JPG, PNG)
-async function uploadMotionFileToSupabase(file, bucket) {
+// Upload para Imitar Movimento: KIE File Stream API (aceita MOV, MP4, JPG, PNG)
+async function uploadMotionFileToKie(file, bucket) {
   validateMotionFileType(file, bucket);
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = async () => {
       const base64Data = reader.result;
       try {
-        const res = await fetch(window.location.origin + '/api/upload-motion', {
+        const res = await fetch(window.location.origin + '/api/kie/upload-file', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -1618,8 +1618,8 @@ async function uploadMotionFileToSupabase(file, bucket) {
           }),
         });
         const data = await res.json();
-        if (!res.ok) throw new Error(data?.error || data?.msg || `Erro ${res.status}`);
-        const url = data?.url;
+        if (!res.ok) throw new Error(data?.msg || data?.error || `Erro ${res.status}`);
+        const url = data?.url || data?.data?.downloadUrl || data?.data?.fileUrl;
         if (url) resolve(url);
         else reject(new Error('URL não retornada'));
       } catch (e) {
@@ -1802,7 +1802,7 @@ function updateMotionReadyState(forceState) {
   if (btn && currentMode === 'motion') btn.disabled = hasUploading || !(motionCharImageUrl && motionRefVideoUrl);
   if (currentMode === 'motion') { updateMotionButtonCredits(); updatePromptWrapValue(); }
 }
-setupFileUpload({ inputId: 'motionCharImageFile', areaId: 'motionCharImageArea', previewId: 'motionCharImagePreview', imgId: 'motionCharImagePreviewImg', removeId: 'motionCharImageRemove', setUrl: (v) => motionCharImageUrl = v, onReady: updateMotionReadyState, uploadFn: (f) => uploadMotionFileToSupabase(f, 'images'), uploadStatusLabel: 'image', setUploadStatus: updateMotionReadyState, progressElId: 'motionCharImageProgress', hideProgressUI: true });
+setupFileUpload({ inputId: 'motionCharImageFile', areaId: 'motionCharImageArea', previewId: 'motionCharImagePreview', imgId: 'motionCharImagePreviewImg', removeId: 'motionCharImageRemove', setUrl: (v) => motionCharImageUrl = v, onReady: updateMotionReadyState, uploadFn: (f) => uploadMotionFileToKie(f, 'images'), uploadStatusLabel: 'image', setUploadStatus: updateMotionReadyState, progressElId: 'motionCharImageProgress', hideProgressUI: true });
 
 const MOTION_REF_MAX_DURATION_SECONDS = 30;
 
@@ -1934,7 +1934,7 @@ function setupVideoUpload(config) {
   });
 }
 
-setupVideoUpload({ inputId: 'motionRefVideoFile', areaId: 'motionRefVideoArea', previewId: 'motionRefVideoPreview', videoId: 'motionRefVideoPreviewVid', removeId: 'motionRefVideoRemove', setUrl: (v) => motionRefVideoUrl = v, maxMb: 100, maxDurationSeconds: MOTION_REF_MAX_DURATION_SECONDS, onReady: updateMotionReadyState, uploadFn: (f) => uploadMotionFileToSupabase(f, 'videos'), uploadStatusLabel: 'video', setUploadStatus: updateMotionReadyState, progressElId: 'motionRefVideoProgress' });
+setupVideoUpload({ inputId: 'motionRefVideoFile', areaId: 'motionRefVideoArea', previewId: 'motionRefVideoPreview', videoId: 'motionRefVideoPreviewVid', removeId: 'motionRefVideoRemove', setUrl: (v) => motionRefVideoUrl = v, maxMb: 100, maxDurationSeconds: MOTION_REF_MAX_DURATION_SECONDS, onReady: updateMotionReadyState, uploadFn: (f) => uploadMotionFileToKie(f, 'videos'), uploadStatusLabel: 'video', setUploadStatus: updateMotionReadyState, progressElId: 'motionRefVideoProgress' });
 
 function updateMotionButtonCredits() {
   if (currentMode !== 'motion') return;

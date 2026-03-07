@@ -70,31 +70,49 @@ export default async function handler(req, res) {
     }
   }
 
-  if (route === 'upload-file') {
+  // Upload via KIE File Stream API — multipart/binary, aceita vídeo (MOV/MP4) e imagem
+  if (route === 'upload-file' || route === 'upload-stream') {
     if (req.method !== 'POST') return res.status(405).json({ code: 405, msg: 'Método não permitido' });
-    const { base64Data, uploadPath, fileName } = req.body || {};
+    const { base64Data, uploadPath, fileName, bucket } = req.body || {};
     if (!base64Data) return res.status(400).json({ code: 400, msg: 'base64Data é obrigatório' });
+
+    let raw = base64Data;
+    if (typeof raw === 'string' && raw.includes(',')) raw = raw.split(',')[1] || raw;
+
+    let buffer;
     try {
-      const resKie = await fetch(`${KIE_UPLOAD_BASE}/api/file-base64-upload`, {
+      buffer = Buffer.from(raw, 'base64');
+    } catch (e) {
+      return res.status(400).json({ code: 400, msg: 'Base64 inválido' });
+    }
+    if (buffer.length === 0) return res.status(400).json({ code: 400, msg: 'Arquivo vazio' });
+
+    const path = uploadPath || (bucket === 'images' ? 'motion-images' : 'motion-uploads');
+    const ext = (fileName || '').split('.').pop()?.toLowerCase() || (bucket === 'images' ? 'jpg' : 'mp4');
+    const safeExt = ['mp4', 'mov', 'm4v', 'jpg', 'jpeg', 'png'].includes(ext) ? ext : (bucket === 'images' ? 'jpg' : 'mp4');
+    const name = fileName || `${Date.now()}-${Math.random().toString(36).slice(2, 10)}.${safeExt}`;
+
+    const mime = bucket === 'images'
+      ? (safeExt === 'png' ? 'image/png' : 'image/jpeg')
+      : (['mov', 'm4v'].includes(safeExt) ? 'video/quicktime' : 'video/mp4');
+
+    try {
+      const formData = new FormData();
+      formData.append('file', new Blob([buffer], { type: mime }), name);
+      formData.append('uploadPath', path);
+
+      const resKie = await fetch(`${KIE_UPLOAD_BASE}/api/file-stream-upload`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-          base64Data,
-          uploadPath: uploadPath || 'motion-uploads',
-          fileName: fileName || undefined,
-        }),
+        headers: { Authorization: `Bearer ${apiKey}` },
+        body: formData,
       });
+
       const data = await resKie.json();
       if (!data?.success && data?.code !== 200) {
         return res.status(resKie.status).json(data);
       }
-      const url = data?.data?.fileUrl || data?.data?.downloadUrl || data?.data?.url || data?.downloadUrl || data?.fileUrl;
-      if (!url) {
-        return res.status(500).json({ code: 500, msg: 'URL não retornada pela KIE' });
-      }
+      const url = data?.data?.downloadUrl || data?.data?.fileUrl || data?.data?.url || data?.downloadUrl || data?.fileUrl;
+      if (!url) return res.status(500).json({ code: 500, msg: 'URL não retornada pela KIE' });
       return res.status(200).json({ success: true, url });
     } catch (err) {
       console.error('[api/kie/upload-file]', err);
