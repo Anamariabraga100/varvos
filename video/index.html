@@ -96,40 +96,9 @@
             </div>
           </div>
 
-          <!-- Fluxo: Sugestões (4, acima) → Caixa → Opções → Botão -->
+          <!-- Fluxo: Configurações (topo) → Caixa de criação → Resultado -->
           <div class="create-flow">
-            <div id="createPromptBlock">
-            <div id="promptSuggestionsVideo" class="prompt-suggestions prompt-suggestions-themes">
-              <span class="suggestions-label">Sugestões rápidas</span>
-              <div class="suggestion-theme-boxes">
-                <button type="button" class="suggestion-theme-box" data-prompt="Vendedor animado apresentando produto à câmera, gestos expressivos, tom de pitch de vendas">UGC</button>
-                <button type="button" class="suggestion-theme-box" data-prompt="Mulher fazendo unboxing, abrindo caixa do produto com reação de surpresa e alegria">Produto</button>
-                <button type="button" class="suggestion-theme-box" data-prompt="Antes e depois em split screen mostrando resultado do uso do produto">Depoimentos</button>
-                <button type="button" class="suggestion-theme-box" data-prompt="Depoimento autêntico falando à câmera, sorrindo e segurando o produto">Review</button>
-              </div>
-            </div>
-            <div id="promptSuggestionsImage" class="prompt-suggestions prompt-suggestions-themes hidden">
-              <span class="suggestions-label">Sugestões rápidas</span>
-              <div class="suggestion-theme-boxes">
-                <button type="button" class="suggestion-theme-box chip" data-prompt="Produto em mesa com reflexos e gotas de água, superfície elegante">Produto</button>
-                <button type="button" class="suggestion-theme-box chip" data-prompt="Produto em ambiente luxuoso, vapor suave, espelhos ao fundo">Cenário</button>
-                <button type="button" class="suggestion-theme-box chip" data-prompt="Produto em ambiente minimalista, fundo clean e elegante">Minimalista</button>
-                <button type="button" class="suggestion-theme-box chip" data-prompt="Produto com gelo e condensação, atmosfera refrescante">Refrescante</button>
-              </div>
-            </div>
-            <div id="promptInputWrap" class="prompt-hero">
-              <div class="prompt-field-wrap">
-                <div id="promptPlaceholderAnimated" class="prompt-placeholder-animated" aria-hidden="true"></div>
-                <textarea id="prompt" name="prompt" rows="5" placeholder=" " required></textarea>
-                <div class="prompt-field-bar">
-                  <button type="button" class="btn-clear-prompt" id="btnClearPrompt" title="Limpar">Limpar</button>
-                  <span class="prompt-powered">Powered by VARVOS AI</span>
-                </div>
-              </div>
-            </div>
-            </div>
-
-            <!-- Modelo, Formato, Duração — cards verticais estilo print -->
+            <!-- Configurações de vídeo (no lugar das antigas sugestões) -->
             <div id="configMainOptions" class="config-main-options config-above-btn">
             <div id="videoFields" class="mode-fields">
               <div class="config-card config-card-model field-model" data-target="videoModel">
@@ -137,13 +106,13 @@
                   <span class="config-card-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 2L11 13"/><path d="M22 2L15 22L11 13L2 9L22 2Z"/></svg></span>
                   <div class="config-card-content">
                     <span class="config-card-label">Modelo</span>
-                    <span class="config-card-value" id="videoModelDisplay">Grok</span>
+                    <span class="config-card-value" id="videoModelDisplay">Varvos Fast</span>
                   </div>
                   <span class="config-card-chevron">›</span>
                   <select id="videoModel" name="video_model" class="config-card-select">
-                    <option value="grok-imagine/image-to-video" selected>Grok</option>
-                    <option value="veo3.1-fast">VEO 3.1 Fast</option>
-                    <option value="sora-2">Sora 2</option>
+                    <option value="grok-imagine/image-to-video" selected>Varvos Fast</option>
+                    <option value="veo3.1-fast">Varvos Pro</option>
+                    <option value="sora-2">Varvos Ultra</option>
                   </select>
                 </div>
               </div>
@@ -240,9 +209,9 @@
             </div>
             </div>
 
-            <!-- Imagem de Referência (opcional) — visível como no print -->
+            <!-- Imagem de Referência -->
             <div id="configRefWrap" class="config-ref-wrap">
-              <label class="config-ref-label">Imagem de Referência <span class="config-ref-optional" id="configRefOptional">(opcional)</span><span class="config-ref-required hidden" id="configRefRequired">(obrigatório para Grok)</span></label>
+              <label class="config-ref-label">Imagem de Referência <span class="config-ref-optional" id="configRefOptional">(opcional)</span><span class="config-ref-required hidden" id="configRefRequired">(obrigatório para Varvos Fast)</span></label>
               <div class="config-ref-slots">
                 <div class="file-upload file-upload-compact" id="imageRefUpload">
                   <input type="file" id="imageRefFile" accept="image/jpeg,image/png,image/webp" hidden>
@@ -299,7 +268,32 @@
                   </div>
                 </div>
               </div>
-              <p class="config-ref-veo3-hint hidden" id="veo3RefsHint">VEO 3: 2 imagens = frame (início→fim). 3 imagens = referência.</p>
+              <p class="config-ref-veo3-hint hidden" id="veo3RefsHint">Varvos Pro: 2 imagens = frame (início→fim). 3 imagens = referência.</p>
+            </div>
+
+            <!-- Caixa de criação de vídeo + botão integrado -->
+            <div id="createPromptBlock" class="prompt-create-card">
+            <div id="promptInputWrap" class="prompt-hero">
+              <div class="prompt-field-wrap">
+                <div id="promptPlaceholderAnimated" class="prompt-placeholder-animated" aria-hidden="true"></div>
+                <textarea id="prompt" name="prompt" rows="5" placeholder=" " required></textarea>
+                <div class="prompt-field-bar">
+                  <button type="button" class="btn-clear-prompt" id="btnClearPrompt" title="Limpar">Limpar</button>
+                  <div class="prompt-suggestions-inline">
+                    <button type="button" class="chip chip-inline" data-prompt="Cena cinematográfica com iluminação dramática, movimento de câmera lento e suave, profundidade de campo, cores saturadas em tons âmbar e azul, atmosfera cinematográfica de filme, personagem em close-up com expressão intensa">Cinemático</button>
+                    <button type="button" class="chip chip-inline" data-prompt="Personagens de desenho, algo fantasioso, estilo animado 3D, movimento fluido e expressivo, cores vibrantes e saturadas, cenário criativo e fantástico, iluminação suave, animação de alta qualidade">Animação</button>
+                    <button type="button" class="chip chip-inline" data-prompt="Unboxing de produto com reação genuína de surpresa e alegria, mãos abrindo a caixa em close-up, luz natural suave, fundo clean e minimalista, foco total no produto">Produto</button>
+                    <button type="button" class="chip chip-inline" data-prompt="Propaganda comercial de produto, cenário premium com iluminação profissional, produto em destaque central, movimento dinâmico de câmera, cores de alto contraste, tom persuasivo e impactante">Propaganda</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="prompt-actions prompt-actions-inside">
+              <button type="submit" class="btn-generate btn-generate-inline" id="btnGenerate">
+                <span id="btnGenerateText">🎬 Gerar vídeo</span>
+              </button>
+              <p class="motion-cost-note hidden">Valor baseado no tamanho do vídeo</p>
+            </div>
             </div>
 
             <!-- Image fields -->
@@ -413,18 +407,10 @@
             </div>
             <div id="motionReadyState" class="motion-ready-state" aria-live="polite"></div>
           </div>
-
-            <div class="prompt-actions prompt-actions-close">
-              <button type="submit" class="btn-generate btn-generate-inline" id="btnGenerate">
-                <span id="btnGenerateText">Gerar vídeo</span>
-                <span class="btn-credits">✨</span>
-              </button>
-              <p class="motion-cost-note hidden">Valor baseado no tamanho do vídeo</p>
-            </div>
         </form>
       </section>
 
-      <!-- Resultado atual -->
+      <!-- Resultado — logo abaixo da caixa de criação -->
       <section class="section-result" id="currentResultSection">
         <h3 class="section-title">Resultado</h3>
         <div id="outputPlaceholder" class="output-placeholder">
@@ -621,6 +607,12 @@
         </div>
       </section>
     </main>
+  </div>
+
+  <!-- Toast de aviso (substitui alert) -->
+  <div id="noticeToast" class="notice-toast hidden" role="status" aria-live="polite">
+    <p class="notice-toast-text" id="noticeToastText"></p>
+    <button type="button" class="notice-toast-close" id="noticeToastClose" aria-label="Fechar">×</button>
   </div>
 
   <!-- Modal sem créditos -->
@@ -831,7 +823,7 @@
           <h4 class="plans-faq-title">Informações</h4>
           <details class="plans-faq-item">
             <summary>Existem diferentes tipos de IA para gerar vídeos?</summary>
-            <p>Sim! A VARVOS oferece vários modelos de IA (Grok, VEO, Sora e outros) que geram diferentes tipos de vídeo realista. Cada modelo tem características e preços diferentes em créditos — você escolhe o que melhor atende seu projeto.</p>
+            <p>Sim! A VARVOS oferece vários modelos de IA (Varvos Fast, Pro, Ultra e outros) que geram diferentes tipos de vídeo realista. Cada modelo tem características e preços diferentes em créditos — você escolhe o que melhor atende seu projeto.</p>
           </details>
           <details class="plans-faq-item">
             <summary>Como funcionam os créditos?</summary>

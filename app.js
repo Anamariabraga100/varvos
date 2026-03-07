@@ -27,6 +27,69 @@ let imgRefUrl = '';   // Image reference (uploaded)
 let motionCharImageUrl = '';  // Kling: character image
 let motionRefVideoUrl = '';   // Kling: reference video
 
+// Toast de aviso (substitui alert — mais discreto)
+let noticeToastTimeout = null;
+let noticeToastInitialized = false;
+function showNoticeToast(message, action) {
+  let el = document.getElementById('noticeToast');
+  let textEl = el?.querySelector('.notice-toast-text') || document.getElementById('noticeToastText');
+  let closeBtn = el?.querySelector('.notice-toast-close') || document.getElementById('noticeToastClose');
+  let actionWrap = el?.querySelector('.notice-toast-action');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'noticeToast';
+    el.className = 'notice-toast hidden';
+    el.setAttribute('role', 'status');
+    el.setAttribute('aria-live', 'polite');
+    textEl = document.createElement('p');
+    textEl.className = 'notice-toast-text';
+    closeBtn = document.createElement('button');
+    closeBtn.type = 'button';
+    closeBtn.className = 'notice-toast-close';
+    closeBtn.setAttribute('aria-label', 'Fechar');
+    closeBtn.textContent = '×';
+    el.appendChild(textEl);
+    el.appendChild(closeBtn);
+    document.body.appendChild(el);
+  }
+  if (!noticeToastInitialized && closeBtn) {
+    noticeToastInitialized = true;
+    closeBtn.addEventListener('click', () => {
+      el.classList.add('hidden');
+      if (noticeToastTimeout) clearTimeout(noticeToastTimeout);
+    });
+  }
+  textEl.textContent = message;
+  if (action) {
+    if (!actionWrap) {
+      actionWrap = document.createElement('div');
+      actionWrap.className = 'notice-toast-action';
+      el.insertBefore(actionWrap, closeBtn);
+    }
+    actionWrap.innerHTML = '';
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'notice-toast-btn';
+    btn.textContent = action.label;
+    btn.addEventListener('click', () => {
+      el.classList.add('hidden');
+      if (noticeToastTimeout) clearTimeout(noticeToastTimeout);
+      action.onClick();
+    });
+    actionWrap.appendChild(btn);
+    actionWrap.classList.remove('hidden');
+  } else if (actionWrap) {
+    actionWrap.classList.add('hidden');
+    actionWrap.innerHTML = '';
+  }
+  el.classList.remove('hidden');
+  if (noticeToastTimeout) clearTimeout(noticeToastTimeout);
+  noticeToastTimeout = setTimeout(() => {
+    el.classList.add('hidden');
+    noticeToastTimeout = null;
+  }, 6000);
+}
+
 // Elements
 const generateForm = document.getElementById('generateForm');
 const btnGenerate = document.getElementById('btnGenerate');
@@ -145,11 +208,10 @@ document.querySelectorAll('.chip, .suggestion-theme-box').forEach(btn => {
 
 // Placeholder animado — digita e apaga exemplos em quase transparente
 const PROMPT_EXAMPLES = [
-  'Mulher no mercado sorrindo com produto, luz natural, ambiente acolhedor',
-  'Vendedor animado apresentando produto à câmera, gestos expressivos, pitch de vendas',
+  'Cena cinematográfica com iluminação dramática e movimento de câmera lento',
+  'Estilo animado 3D com cores vibrantes e movimento fluido',
   'Unboxing com reação de surpresa ao abrir a caixa do produto',
-  'Antes e depois em split screen mostrando resultado do uso do produto',
-  'Personal trainer na academia falando sobre treino, ambiente fitness'
+  'Propaganda comercial com produto em destaque e cenário premium'
 ];
 let promptExampleIndex = 0;
 let promptExampleCharIndex = 0;
@@ -188,7 +250,12 @@ function runPromptPlaceholderAnimation() {
 function updatePromptWrapValue() {
   const wrap = document.querySelector('.prompt-field-wrap');
   const prompt = document.getElementById('prompt');
+  const actions = document.querySelector('.prompt-actions-inside');
   if (wrap && prompt) wrap.classList.toggle('has-value', !!prompt.value.trim());
+  if (actions) {
+    const hasPrompt = currentMode === 'motion' ? !!(motionCharImageUrl && motionRefVideoUrl) : !!prompt?.value.trim();
+    actions.classList.toggle('has-prompt', hasPrompt);
+  }
 }
 
 document.getElementById('prompt')?.addEventListener('focus', () => {
@@ -260,9 +327,9 @@ function updateVideoModelUI() {
 document.getElementById('videoModel')?.addEventListener('change', updateVideoModelUI);
 
 const MODEL_OPTIONS = [
-  { value: 'grok-imagine/image-to-video', label: 'Grok', hideKey: 'hideModelGrok' },
-  { value: 'veo3.1-fast', label: 'VEO 3.1 Fast', hideKey: 'hideModelVeo3' },
-  { value: 'sora-2', label: 'Sora 2', hideKey: 'hideModelSora2' }
+  { value: 'grok-imagine/image-to-video', label: 'Varvos Fast', hideKey: 'hideModelGrok' },
+  { value: 'veo3.1-fast', label: 'Varvos Pro', hideKey: 'hideModelVeo3' },
+  { value: 'sora-2', label: 'Varvos Ultra', hideKey: 'hideModelSora2' }
 ];
 
 function getEffectiveModel() {
@@ -1249,17 +1316,9 @@ function applyMode(mode) {
   const configRef = document.getElementById('configRefWrap');
   if (configRef) configRef.classList.toggle('hidden', currentMode !== 'video');
   const promptBlock = document.getElementById('createPromptBlock');
-  if (promptBlock) promptBlock.classList.toggle('hidden', currentMode === 'motion');
-  const promptSuggestionsVideo = document.getElementById('promptSuggestionsVideo');
-  const promptSuggestionsImage = document.getElementById('promptSuggestionsImage');
   const promptInputWrap = document.getElementById('promptInputWrap');
-  if (promptSuggestionsVideo) {
-    if (currentMode === 'video') promptSuggestionsVideo.classList.remove('hidden');
-    else promptSuggestionsVideo.classList.add('hidden');
-  }
-  if (promptSuggestionsImage) {
-    if (currentMode === 'image') promptSuggestionsImage.classList.remove('hidden');
-    else promptSuggestionsImage.classList.add('hidden');
+  if (promptBlock) {
+    promptBlock.classList.toggle('prompt-create-card-motion', currentMode === 'motion');
   }
   if (promptInputWrap) {
     if (currentMode === 'motion') promptInputWrap.classList.add('hidden');
@@ -1274,35 +1333,8 @@ function applyMode(mode) {
   if (howto) { howto.classList.remove('hidden'); howto.open = true; }
   if (currentMode === 'motion') setTimeout(updateMotionReadyState, 0);
   document.getElementById('mode').value = currentMode;
-  const labels = { video: 'Gerar vídeo', image: 'Gerar imagem', motion: 'Imitar movimento' };
-  const btnText = document.getElementById('btnGenerateText');
-  if (btnText) {
-    let cost = CREDITS_COST_VIDEO;
-    let hasValue = true;
-    if (currentMode === 'motion') {
-      cost = getCreditsCostForBody({ model: 'kling-2.6/motion-control' });
-      const motionMinRate = getCreditsPerSecondMotion(document.getElementById('motionResolution')?.value || '720p');
-      if (cost <= motionMinRate && !motionRefVideoUrl) {
-        cost = '—';
-        hasValue = false;
-      }
-  } else if (currentMode === 'video') {
-    const model = document.getElementById('videoModel')?.value || 'veo3.1-fast';
-    if (model === 'grok-imagine/image-to-video') {
-      const duration = document.getElementById('grokDuration')?.value || '6';
-      const resolution = document.getElementById('grokResolution')?.value || '480p';
-      cost = getCreditsCostForBody({ model, input: { duration, resolution } });
-    } else {
-      const resolution = document.getElementById('veoResolution')?.value || '720p';
-      cost = getCreditsCostForBody({ model, input: { resolution } });
-    }
-  } else if (currentMode === 'image') {
-    cost = CREDITS_COST_VIDEO;
-  }
-    btnText.textContent = hasValue ? `${labels[currentMode] || 'Gerar'} · ${cost} créditos` : labels[currentMode] || 'Gerar';
-  }
-  const btnCredits = document.querySelector('.btn-credits');
-  if (btnCredits) btnCredits.textContent = '✨';
+  updateGenerateButtonLabel(true);
+  updatePromptWrapValue();
   const motionNote = document.querySelector('.motion-cost-note');
   const motionHasValue = currentMode === 'motion' && motionRefVideoUrl && getCreditsCostForBody({ model: 'kling-2.6/motion-control' }) > 0;
   if (motionNote) motionNote.classList.toggle('hidden', currentMode !== 'motion' || !motionHasValue);
@@ -1753,9 +1785,7 @@ function setupFileUpload(config) {
 function updateRefImageReadyState() {
   const btn = document.getElementById('btnGenerate');
   if (btn && currentMode === 'video') {
-    const model = document.getElementById('videoModel')?.value || 'veo3.1-fast';
-    const grokNeedsImage = model === 'grok-imagine/image-to-video' && !refImageUrl;
-    btn.disabled = refImageUploading || grokNeedsImage;
+    btn.disabled = refImageUploading;
   }
 }
 setupFileUpload({
@@ -1811,7 +1841,7 @@ function updateMotionReadyState(forceState) {
   const p2 = document.getElementById('motionCharImageProgress');
   const hasUploading = (p1 && !p1.classList.contains('hidden')) || (p2 && p2.classList.contains('uploading'));
   if (btn && currentMode === 'motion') btn.disabled = hasUploading || !(motionCharImageUrl && motionRefVideoUrl);
-  if (currentMode === 'motion') updateMotionButtonCredits();
+  if (currentMode === 'motion') { updateMotionButtonCredits(); updatePromptWrapValue(); }
 }
 setupFileUpload({ inputId: 'motionCharImageFile', areaId: 'motionCharImageArea', previewId: 'motionCharImagePreview', imgId: 'motionCharImagePreviewImg', removeId: 'motionCharImageRemove', setUrl: (v) => motionCharImageUrl = v, onReady: updateMotionReadyState, uploadFn: (f) => uploadMotionFileToVidgo(f, 'images'), uploadStatusLabel: 'image', setUploadStatus: updateMotionReadyState, progressElId: 'motionCharImageProgress', hideProgressUI: true });
 
@@ -1954,18 +1984,22 @@ function updateMotionButtonCredits() {
   const cost = getCreditsCostForBody({ model: 'kling-2.6/motion-control' });
   const hasValue = motionRefVideoUrl && cost > 0;
   const labels = { motion: 'Imitar movimento' };
-  btnText.textContent = hasValue ? `${labels.motion} · ${cost} créditos` : labels.motion;
+  btnText.textContent = hasValue ? `🎬 ${labels.motion} ⚡ (${cost}) créditos` : `🎬 ${labels.motion}`;
   if (motionNote) motionNote.classList.toggle('hidden', !hasValue);
 }
 
 function updateGenerateButtonLabel(showCredits = true) {
   const btnText = document.getElementById('btnGenerateText');
+  const creditsNum = document.getElementById('generateCreditsNum');
+  const creditsSpan = creditsNum?.closest('.generate-sticky-credits');
   if (!btnText) return;
+  const labels = { video: 'Gerar vídeo', image: 'Gerar imagem', motion: 'Imitar movimento' };
+  const labelMain = labels[currentMode] || 'Gerar';
   if (!showCredits) {
     btnText.textContent = 'Gerando...';
+    if (creditsSpan) creditsSpan.classList.add('hidden');
     return;
   }
-  const labels = { video: 'Gerar vídeo', image: 'Gerar imagem', motion: 'Imitar movimento' };
   let cost = CREDITS_COST_VIDEO;
   let hasValue = true;
   if (currentMode === 'motion') {
@@ -1988,7 +2022,13 @@ function updateGenerateButtonLabel(showCredits = true) {
   } else if (currentMode === 'image') {
     cost = CREDITS_COST_VIDEO;
   }
-  btnText.textContent = hasValue ? `${labels[currentMode] || 'Gerar'} · ${cost} créditos` : labels[currentMode] || 'Gerar';
+  if (creditsNum) {
+    btnText.textContent = `🎬 ${labelMain}`;
+    creditsNum.textContent = hasValue ? cost : '—';
+    if (creditsSpan) creditsSpan.classList.toggle('hidden', !hasValue);
+  } else {
+    btnText.textContent = hasValue ? `🎬 ${labelMain} ⚡ (${cost}) créditos` : `🎬 ${labelMain}`;
+  }
 }
 document.getElementById('motionRefVideoPreviewVid')?.addEventListener('loadedmetadata', updateMotionButtonCredits);
 
@@ -3070,23 +3110,23 @@ generateForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   if (currentMode === 'motion') {
     if (!motionCharImageUrl || !motionRefVideoUrl) {
-      alert('Selecione a imagem do personagem e o vídeo de referência.');
+      showNoticeToast('Selecione a imagem do personagem e o vídeo de referência.');
       return;
     }
     const duration = getMotionRefVideoDuration();
     if (duration <= 0) {
-      alert('Aguarde o carregamento do vídeo de referência.');
+      showNoticeToast('Aguarde o carregamento do vídeo de referência.');
       return;
     }
     if (duration > MOTION_REF_MAX_DURATION_SECONDS) {
-      alert(`O vídeo de referência tem ${Math.ceil(duration)} segundos. O limite é ${MOTION_REF_MAX_DURATION_SECONDS} segundos. Remova o vídeo e envie um mais curto.`);
+      showNoticeToast(`O vídeo tem ${Math.ceil(duration)}s. O limite é ${MOTION_REF_MAX_DURATION_SECONDS}s. Envie um vídeo mais curto.`);
       return;
     }
     lastPrompt = document.getElementById('prompt').value.trim() || 'Motion transfer';
   } else {
     const prompt = document.getElementById('prompt').value.trim();
     if (!prompt) {
-      alert('Preencha o prompt.');
+      showNoticeToast('Preencha o prompt para gerar.');
       return;
     }
     // Imagem de ref selecionada mas upload ainda em andamento?
@@ -3097,13 +3137,13 @@ generateForm.addEventListener('submit', async (e) => {
     ];
     for (const { el, url } of previews) {
       if (el && !el.classList.contains('hidden') && !url) {
-        alert('Aguarde o upload da imagem terminar antes de gerar.');
+        showNoticeToast('Aguarde o upload da imagem terminar antes de gerar.');
         return;
       }
     }
     const model = getEffectiveModel();
     if (model === 'grok-imagine/image-to-video' && !refImageUrl) {
-      alert('O Grok requer uma imagem de referência. Envie uma imagem.');
+      showNoticeToast('O Varvos Fast precisa de uma imagem de referência.');
       return;
     }
     lastPrompt = prompt;
