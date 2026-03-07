@@ -1875,12 +1875,43 @@ select:focus {
   min-height: auto;
 }
 .media-container.is-loading .loading-placeholder-bg {
-  display: none;
+  display: block;
+}
+.media-container.is-loading .loading-placeholder {
+  min-height: 200px;
 }
 .media-container.is-loading .loading-placeholder-overlay {
   flex: none;
   padding: 20px 16px;
-  background: transparent;
+  background: rgba(0,0,0,0.6);
+  border-radius: var(--radius);
+  margin: 12px;
+}
+.loading-placeholder-progress {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+.loading-progress-pct {
+  font-size: 0.9rem;
+  color: rgba(255,255,255,0.9);
+}
+.loading-progress-bar {
+  width: 100%;
+  max-width: 200px;
+  height: 6px;
+  background: rgba(255,255,255,0.2);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.loading-progress-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #3b82f6, #60a5fa);
+  border-radius: 3px;
+  transition: width 0.3s ease;
 }
 
 /* Erro: manter layout compacto (não voltar ao retângulo grande) */

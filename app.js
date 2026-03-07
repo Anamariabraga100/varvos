@@ -102,6 +102,8 @@ function getCardRefs(cardEl) {
     loadingPlaceholder: cardEl.querySelector('.loading-placeholder'),
     loadingPlaceholderBg: cardEl.querySelector('.loading-placeholder-bg'),
     loadingTextEl: cardEl.querySelector('.loading-placeholder-text'),
+    loadingProgressPct: cardEl.querySelector('.loading-progress-pct'),
+    loadingProgressFill: cardEl.querySelector('.loading-progress-fill'),
     loadingPromptWrap: cardEl.querySelector('.loading-placeholder-prompt'),
     loadingPromptText: cardEl.querySelector('.loading-prompt-text'),
     videoPlayer: cardEl.querySelector('.media-output'),
@@ -2124,7 +2126,7 @@ function startLoadingForCard(cardRefs, mode, opts = {}) {
   const mediaContainer = cardRefs.loadingPlaceholder.closest('.media-container');
   if (mediaContainer) mediaContainer.classList.add('is-loading');
   cardRefs.loadingPlaceholder.classList.remove('hidden');
-  const imgUrl = opts.refImageUrl ?? (mode === 'motion' ? motionCharImageUrl : refImageUrl);
+  const imgUrl = opts.refImageUrl ?? (mode === 'motion' ? motionCharImageUrl : [refImageUrl, refImageUrl2, refImageUrl3].find(Boolean) || refImageUrl);
   const prompt = opts.prompt || lastPrompt || '';
   const bg = cardRefs.loadingPlaceholderBg;
   if (bg) {
@@ -2146,6 +2148,8 @@ function startLoadingForCard(cardRefs, mode, opts = {}) {
     const toggle = promptWrap?.querySelector('.loading-prompt-toggle');
     if (toggle) toggle.setAttribute('aria-expanded', 'false');
   }
+  if (cardRefs.loadingProgressPct) cardRefs.loadingProgressPct.textContent = '0%';
+  if (cardRefs.loadingProgressFill) cardRefs.loadingProgressFill.style.width = '0%';
   const phrases = LOADING_PHRASES[mode] || LOADING_PHRASES.video;
   let idx = 0;
   if (cardRefs.loadingTextEl) cardRefs.loadingTextEl.textContent = phrases[0];
@@ -2321,7 +2325,7 @@ function showGenerationErrorWithRetry(cardRefs, displayMsg, body) {
 
 function updateOutputUI(data, cardRefs, startTime) {
   if (!cardRefs) return;
-  const { taskStatusEl, taskProgressEl, progressFill, loadingPlaceholder, loadingTextEl, videoPlayer, imageGallery, creationDisclaimer, statusMessage, downloadWarning, downloadBtn, resultPromptEl } = cardRefs;
+  const { taskStatusEl, taskProgressEl, progressFill, loadingPlaceholder, loadingTextEl, loadingProgressPct, loadingProgressFill, videoPlayer, imageGallery, creationDisclaimer, statusMessage, downloadWarning, downloadBtn, resultPromptEl } = cardRefs;
   const status = data.status || '';
   if (taskStatusEl) {
     taskStatusEl.textContent = STATUS_PT[status] || status;
@@ -2330,6 +2334,8 @@ function updateOutputUI(data, cardRefs, startTime) {
   const apiProgress = data.progress || 0;
   if (taskProgressEl) taskProgressEl.textContent = apiProgress + '%';
   if (progressFill) progressFill.style.width = apiProgress + '%';
+  if (loadingProgressPct) loadingProgressPct.textContent = apiProgress + '%';
+  if (loadingProgressFill) loadingProgressFill.style.width = apiProgress + '%';
   if (apiProgress >= 95 && loadingTextEl) {
     loadingTextEl.textContent = 'Preparando seu download…';
     const tid = cardRefs.card && loadingIntervals.get(cardRefs.card);
