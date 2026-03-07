@@ -7,7 +7,7 @@ window.VARVOS_CONFIG = {
   // Supabase (https://supabase.com/dashboard) — Project Settings > API
   supabaseUrl: 'https://seu-projeto.supabase.co',
   supabaseAnonKey: 'sua-anon-key-aqui',
-  adminPassword: 'senha-secreta-admin',
+  // adminPassword: não é mais usado no client — login via /api/admin/login (ADMIN_PASSWORD no servidor)
   // Pagar.me (https://dashboard.pagar.me) — Configurações > Chaves
   pagarMePublicKey: 'pk_test_xxxx',   // Chave pública (pk_test_ ou pk_live_) — obrigatório para cartão
   pagarMeEncryptionKey: 'ek_test_xxxx' // Chave de criptografia (legado; tokenizecard usa publicKey)

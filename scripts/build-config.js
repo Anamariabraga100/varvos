@@ -10,7 +10,7 @@ const config = {
   googleClientId: process.env.GOOGLE_CLIENT_ID || '',
   supabaseUrl: process.env.SUPABASE_URL || '',
   supabaseAnonKey: process.env.SUPABASE_ANON_KEY || '',
-  adminPassword: process.env.ADMIN_PASSWORD || '',
+  // adminPassword NÃO é enviado ao client — login via /api/admin/login
   pagarMePublicKey: process.env.PAGAR_ME_PUBLIC_KEY || '',
   pagarMeEncryptionKey: process.env.PAGAR_ME_ENCRYPTION_KEY || ''
 };
