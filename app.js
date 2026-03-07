@@ -2351,19 +2351,6 @@ function showGenerationErrorWithRetry(cardRefs, displayMsg, body) {
   cardRefs.statusMessage.className = 'status-message error';
   cardRefs.statusMessage.classList.remove('hidden');
   cardRefs.card.querySelector('.status-retry-wrap')?.remove();
-  const wrap = document.createElement('div');
-  wrap.className = 'status-retry-wrap';
-  const btn = document.createElement('button');
-  btn.type = 'button';
-  btn.className = 'btn-retry-generation';
-  btn.textContent = 'Gerar novamente';
-  wrap.appendChild(btn);
-  cardRefs.statusMessage.insertAdjacentElement('afterend', wrap);
-  try {
-    cardRefs.card.dataset.retryBody = JSON.stringify(body);
-  } catch (_) {
-    cardRefs.card.removeAttribute('data-retry-body');
-  }
 }
 
 function updateOutputUI(data, cardRefs, startTime) {
