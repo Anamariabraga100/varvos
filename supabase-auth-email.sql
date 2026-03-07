@@ -1,8 +1,14 @@
 -- Autenticação por e-mail/senha (execute no Supabase SQL Editor)
 -- Rode APÓS o supabase-schema.sql
 --
--- IMPORTANTE: Desative confirmação de e-mail no Supabase para cadastro imediato.
--- Dashboard → Authentication → Providers → Email → desmarque "Confirm email"
+-- ═══════════════════════════════════════════════════════════════════════════
+-- OBRIGATÓRIO: Desative confirmação de e-mail para evitar "Error sending confirmation email"
+-- 1. Supabase Dashboard → Authentication → Providers
+-- 2. Clique em "Email"
+-- 3. DESMARQUE "Confirm email"
+-- 4. Salve
+-- Sem isso, o signup tenta enviar e-mail de confirmação e falha se SMTP não estiver configurado.
+-- ═══════════════════════════════════════════════════════════════════════════
 
 -- Verifica se o e-mail já está cadastrado no Supabase Auth
 CREATE OR REPLACE FUNCTION public.check_email_registered(p_email TEXT)

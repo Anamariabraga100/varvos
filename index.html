@@ -353,10 +353,16 @@
             <div id="passwordStep" class="hidden">
               <p class="auth-step-hint hidden" id="passwordStepHint"></p>
               <label for="password" id="passwordLabel">Senha</label>
-              <input type="password" id="password" name="password" placeholder="Digite sua senha" autocomplete="current-password">
+              <div class="password-input-wrap">
+                <input type="password" id="password" name="password" placeholder="Digite sua senha" autocomplete="current-password">
+                <button type="button" class="password-toggle" aria-label="Mostrar senha" title="Mostrar senha"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+              </div>
               <div id="passwordConfirmWrap" class="hidden">
                 <label for="passwordConfirm">Confirmar senha</label>
-                <input type="password" id="passwordConfirm" name="password_confirm" placeholder="Repita a senha" autocomplete="new-password">
+                <div class="password-input-wrap">
+                  <input type="password" id="passwordConfirm" name="password_confirm" placeholder="Repita a senha" autocomplete="new-password">
+                  <button type="button" class="password-toggle" aria-label="Mostrar senha" title="Mostrar senha"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+                </div>
               </div>
               <p class="auth-errors hidden" id="authErrorsStep2"></p>
               <button type="button" class="auth-btn auth-btn-submit" id="btnPasswordSubmit">Entrar</button>

@@ -161,6 +161,19 @@ document.querySelectorAll('.auth-trigger').forEach(el => {
 authModalClose?.addEventListener('click', closeAuthModal);
 authModalBackdrop?.addEventListener('click', closeAuthModal);
 
+document.querySelectorAll('.password-toggle').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const wrap = btn.closest('.password-input-wrap');
+    const input = wrap?.querySelector('input');
+    if (!input) return;
+    const isVisible = input.type === 'text';
+    input.type = isVisible ? 'password' : 'text';
+    btn.setAttribute('aria-label', isVisible ? 'Mostrar senha' : 'Ocultar senha');
+    btn.setAttribute('title', isVisible ? 'Mostrar senha' : 'Ocultar senha');
+    btn.setAttribute('aria-pressed', !isVisible);
+  });
+});
+
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && authModal && !authModal.classList.contains('hidden')) {
     closeAuthModal();

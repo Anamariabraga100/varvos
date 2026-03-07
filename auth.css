@@ -222,6 +222,36 @@ body {
   box-shadow: 0 0 0 1px #1a1a1a;
 }
 
+.password-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.password-input-wrap input {
+  padding-right: 48px;
+  flex: 1;
+}
+.password-toggle {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #5f6368;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: color 0.2s, background 0.2s;
+}
+.password-toggle:hover {
+  color: #1a1a1a;
+  background: #f1f3f4;
+}
+
 .auth-errors {
   margin: 0;
   font-size: 0.8125rem;

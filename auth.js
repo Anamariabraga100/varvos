@@ -145,6 +145,18 @@ function validatePassword(password, passwordConfirm) {
   return errors;
 }
 
+document.querySelectorAll('.password-toggle').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const wrap = btn.closest('.password-input-wrap');
+    const input = wrap?.querySelector('input');
+    if (!input) return;
+    const isVisible = input.type === 'text';
+    input.type = isVisible ? 'password' : 'text';
+    btn.setAttribute('aria-label', isVisible ? 'Mostrar senha' : 'Ocultar senha');
+    btn.setAttribute('title', isVisible ? 'Mostrar senha' : 'Ocultar senha');
+  });
+});
+
 document.getElementById('emailForm')?.addEventListener('submit', (e) => {
   e.preventDefault();
   const email = document.getElementById('email').value.trim();

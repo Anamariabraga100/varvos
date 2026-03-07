@@ -227,6 +227,39 @@
   transition: border-color 0.15s, box-shadow 0.15s;
 }
 
+.auth-modal .password-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.auth-modal .password-input-wrap input {
+  padding-right: 48px;
+  flex: 1;
+}
+.auth-modal .password-toggle {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #5f6368;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: color 0.2s, background 0.2s;
+}
+.auth-modal .password-toggle:hover {
+  color: #1a1a1a;
+  background: #f1f3f4;
+}
+.auth-modal .password-toggle[aria-pressed="true"] svg {
+  opacity: 0.7;
+}
+
 .auth-modal .auth-email-form input::placeholder {
   color: #5f6368;
 }
