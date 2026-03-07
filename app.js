@@ -556,7 +556,7 @@ function setMotionRefVideoFromUrl(url) {
   }
   previewVid.classList.add('loading');
   const isExternal = /^https?:\/\//i.test(url) && !url.includes(window.location.hostname);
-  const previewSrc = isExternal ? (window.location.origin + '/api/proxy-video?url=' + encodeURIComponent(url)) : url;
+  const previewSrc = isExternal ? (window.location.origin + '/api/kie/proxy-video?url=' + encodeURIComponent(url)) : url;
   previewVid.src = previewSrc;
   const hideLoading = () => {
     if (loadingOverlay) {
@@ -846,7 +846,7 @@ async function refreshCreditsFromSupabase() {
     let ok = false;
     // Usa API get-credits: retorna credits + plan e infere plano de contas antigas via payments
     const qs = userId ? 'userId=' + encodeURIComponent(userId) : 'email=' + encodeURIComponent(userEmail);
-    const r = await fetch(window.location.origin + '/api/get-credits?' + qs);
+    const r = await fetch(window.location.origin + '/api/app/get-credits?' + qs);
     if (r.ok) {
       const data = await r.json();
       if (data.credits != null) user.credits = data.credits;
@@ -2873,7 +2873,7 @@ async function generateMedia(body) {
       const userRaw = localStorage.getItem(AUTH_STORAGE);
       const user = userRaw ? JSON.parse(userRaw) : null;
       const userEmail = (user?.email || '').trim().toLowerCase();
-      const deductRes = await fetch('/api/deduct-credits', {
+      const deductRes = await fetch('/api/app/deduct-credits', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: uid || undefined, email: userEmail || undefined, amount: cost, taskId }),
@@ -2947,7 +2947,7 @@ async function generateMedia(body) {
       if (tid) { clearTimeout(tid); pollTimeouts.delete(taskId); }
       try {
         if (creditsDeducted && userId && taskId) {
-          const refundRes = await fetch('/api/refund-credits', {
+          const refundRes = await fetch('/api/app/refund-credits', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ userId, amount: amountToRefund, taskId }),
@@ -2989,7 +2989,7 @@ async function generateMedia(body) {
           const userRaw = localStorage.getItem(AUTH_STORAGE);
           const user = userRaw ? JSON.parse(userRaw) : null;
           const userEmail = (user?.email || '').trim().toLowerCase();
-          const deductRes = await fetch('/api/deduct-credits', {
+          const deductRes = await fetch('/api/app/deduct-credits', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ userId: userId || undefined, email: userEmail || undefined, amount: grokCost, taskId }),
@@ -3039,7 +3039,7 @@ async function generateMedia(body) {
       if (tid) { clearTimeout(tid); pollTimeouts.delete(taskId); }
       try {
         if (creditsDeducted && userId && taskId) {
-          const refundRes = await fetch('/api/refund-credits', {
+          const refundRes = await fetch('/api/app/refund-credits', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ userId, amount: amountToRefund, taskId }),
@@ -3081,7 +3081,7 @@ async function generateMedia(body) {
           const userRaw = localStorage.getItem(AUTH_STORAGE);
           const user = userRaw ? JSON.parse(userRaw) : null;
           const userEmail = (user?.email || '').trim().toLowerCase();
-          const deductRes = await fetch('/api/deduct-credits', {
+          const deductRes = await fetch('/api/app/deduct-credits', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ userId: userId || undefined, email: userEmail || undefined, amount: grokCost, taskId }),
@@ -3141,7 +3141,7 @@ async function generateMedia(body) {
     let refunded = false;
     if (creditsDeducted && userId && taskId) {
       try {
-        const refundRes = await fetch('/api/refund-credits', {
+        const refundRes = await fetch('/api/app/refund-credits', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ userId, amount: amountToRefund, taskId }),
@@ -3340,7 +3340,7 @@ function restoreTaskToCard(data, cardIndex) {
       const restoreCost = data.cost != null ? parseInt(data.cost, 10) : (data.mode === 'motion' ? null : 50);
       if (restoreUserId && data.taskId && restoreCost && restoreCost > 0) {
         try {
-          const refundRes = await fetch('/api/refund-credits', {
+          const refundRes = await fetch('/api/app/refund-credits', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ userId: restoreUserId, amount: restoreCost, taskId: data.taskId }),

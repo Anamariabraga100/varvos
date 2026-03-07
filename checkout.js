@@ -433,7 +433,7 @@
                   clearInterval(pollInterval);
                   return;
                 }
-                fetch(getApiBase() + '/order-status?orderId=' + encodeURIComponent(orderId))
+                fetch(getApiBase() + '/app/order-status?orderId=' + encodeURIComponent(orderId))
                   .then(function (r) { return r.json(); })
                   .then(function (data) {
                     if (data.paid) {

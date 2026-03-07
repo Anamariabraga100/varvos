@@ -19,13 +19,31 @@ function getRoute(req) {
 
 export default async function handler(req, res) {
   const route = getRoute(req);
-  const apiKey = process.env.KIE_API_KEY;
 
-  if (!apiKey) {
-    return res.status(500).json({
-      code: 500,
-      msg: 'KIE_API_KEY não configurada',
-    });
+  // proxy-video não precisa de KIE_API_KEY
+  if (route === 'proxy-video') {
+    if (req.method !== 'GET') return res.status(405).json({ code: 405, msg: 'Método não permitido' });
+    const url = req.query?.url;
+    if (!url || typeof url !== 'string') return res.status(400).json({ code: 400, msg: 'url é obrigatório' });
+    const decoded = decodeURIComponent(url);
+    if (!decoded.startsWith('http://') && !decoded.startsWith('https://')) {
+      return res.status(400).json({ code: 400, msg: 'URL inválida' });
+    }
+    try {
+      const resp = await fetch(decoded, {
+        headers: { 'User-Agent': 'Mozilla/5.0 (compatible; VARVOS/1.0)' },
+        redirect: 'follow',
+      });
+      if (!resp.ok) return res.status(resp.status).json({ code: resp.status, msg: `Erro ao buscar vídeo: ${resp.status}` });
+      const contentType = resp.headers.get('content-type') || 'video/mp4';
+      res.setHeader('Content-Type', contentType);
+      res.setHeader('Cache-Control', 'public, max-age=3600');
+      const buf = await resp.arrayBuffer();
+      return res.send(Buffer.from(buf));
+    } catch (err) {
+      console.error('[api/kie/proxy-video]', err);
+      return res.status(500).json({ code: 500, msg: err?.message || 'Erro ao buscar vídeo' });
+    }
   }
 
   if (route === 'record-info') {
@@ -62,6 +80,14 @@ export default async function handler(req, res) {
       console.error('[api/kie/create-task]', err);
       return res.status(500).json({ code: 500, msg: err?.message || 'Erro ao chamar Kie AI' });
     }
+  }
+
+  const apiKey = process.env.KIE_API_KEY;
+  if (!apiKey) {
+    return res.status(500).json({
+      code: 500,
+      msg: 'KIE_API_KEY não configurada',
+    });
   }
 
   if (route === 'upload-file') {
