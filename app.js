@@ -866,7 +866,7 @@ function getPlanDisplay(planId) {
   const plans = window.VARVOS_PLANS?.mensais;
   if (!plans || !planId) return null;
   const p = plans[planId];
-  return p ? { name: p.name, credits: p.credits, description: p.description } : null;
+  return p ? { name: p.name, credits: p.credits, description: p.description, amount: p.amount } : null;
 }
 
 function updateUserMenuPlan() {
@@ -932,7 +932,6 @@ function openPlansModal() {
       if (!hasPurchased) startPlansModalTimer();
     });
     updatePlansActiveSection();
-    updatePlanCardsActiveState();
     m.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
     // Abre em Planos Mensais por padrão (mais lucrativo)
@@ -948,77 +947,14 @@ function openPlansModal() {
   }
 }
 
-const PLAN_ORDER = ['start', 'pro', 'agency'];
-
-function isPlanUpgrade(planId, activePlanId) {
-  if (!activePlanId) return false;
-  const a = PLAN_ORDER.indexOf(activePlanId);
-  const b = PLAN_ORDER.indexOf(planId);
-  return a >= 0 && b >= 0 && b > a;
-}
-
-function updatePlanCardsActiveState() {
-  const container = document.getElementById('plansMensais');
-  if (!container) return;
-  try {
-    const raw = localStorage.getItem(AUTH_STORAGE);
-    const user = raw ? JSON.parse(raw) : null;
-    const activePlanId = user?.plan;
-    container.querySelectorAll('.plan-card[data-plan-id]').forEach(function (card) {
-      const planId = card.dataset.planId;
-      const ctaSlot = card.querySelector('.plan-cta, .plan-cta-active');
-      let badge = card.querySelector('.plan-badge-ativo');
-      const isActive = planId === activePlanId;
-      if (isActive) {
-        if (!badge) {
-          badge = document.createElement('span');
-          badge.className = 'plan-badge plan-badge-ativo';
-          badge.textContent = 'ATIVO';
-          card.insertBefore(badge, card.firstChild);
-        }
-        badge.classList.remove('hidden');
-        if (ctaSlot && ctaSlot.tagName === 'A') {
-          if (!card.dataset.originalCta) card.dataset.originalCta = ctaSlot.outerHTML;
-          ctaSlot.outerHTML = '<span class="plan-cta plan-cta-active">PLANO ATIVO</span>';
-        }
-      } else {
-        if (badge) badge.classList.add('hidden');
-        const activeSpan = card.querySelector('.plan-cta-active');
-        const ctaLink = card.querySelector('a.plan-cta');
-        const showUpgrade = activePlanId && isPlanUpgrade(planId, activePlanId);
-        if (activeSpan) {
-          if (!card.dataset.originalCta) return;
-          const orig = card.dataset.originalCta;
-          const wrap = document.createElement('div');
-          if (showUpgrade) {
-            const hrefMatch = orig.match(/href="([^"]+)"/);
-            const href = hrefMatch ? hrefMatch[1] : '/checkout?plano=' + planId;
-            wrap.innerHTML = '<a href="' + href + '" class="plan-cta">Fazer upgrade</a>';
-          } else {
-            wrap.innerHTML = orig;
-          }
-          activeSpan.replaceWith(wrap.firstChild);
-        } else if (ctaLink) {
-          if (!card.dataset.originalCta) card.dataset.originalCta = ctaLink.outerHTML;
-          if (!card.dataset.originalCtaText) card.dataset.originalCtaText = ctaLink.textContent;
-          ctaLink.textContent = showUpgrade ? 'Fazer upgrade' : card.dataset.originalCtaText;
-        }
-      }
-    });
-  } catch (_) {}
-}
-
 var CREDITS_PER_VIDEO = 15;
 
 function updatePlansActiveSection() {
   const section = document.getElementById('plansActiveSection');
-  const nameEl = document.getElementById('plansActiveName');
+  const priceEl = document.getElementById('plansActivePrice');
+  const nextBillingEl = document.getElementById('plansActiveNextBilling');
   const creditsEl = document.getElementById('plansActiveCredits');
-  const videosEl = document.getElementById('plansActiveVideos');
-  const progressFill = document.getElementById('plansActiveProgressFill');
-  const pctEl = document.getElementById('plansActivePct');
-  const socialProof = document.getElementById('plansActiveSocialProof');
-  if (!section || !nameEl) return;
+  if (!section || !creditsEl) return;
   try {
     const raw = localStorage.getItem(AUTH_STORAGE);
     const user = raw ? JSON.parse(raw) : null;
@@ -1029,24 +965,41 @@ function updatePlansActiveSection() {
       return;
     }
     section.classList.remove('hidden');
-    nameEl.textContent = plan.name;
+    if (priceEl && plan.amount != null) {
+      priceEl.textContent = 'R$ ' + (plan.amount / 100).toFixed(2).replace('.', ',') + '/mês';
+    } else if (priceEl) priceEl.textContent = '—';
+    if (nextBillingEl) nextBillingEl.textContent = user?.next_billing_date || '—';
     const credits = Number(user?.credits ?? 0);
     creditsEl.textContent = String(credits);
-    const videosApprox = Math.floor(credits / CREDITS_PER_VIDEO);
-    if (videosEl) {
-      videosEl.textContent = videosApprox > 0 ? '≈ ' + videosApprox + ' vídeos restantes' : '';
-      videosEl.classList.toggle('hidden', videosApprox <= 0);
-    }
-    const planCredits = plan.credits || 1500;
-    const pctRemaining = Math.min(100, Math.round((credits / planCredits) * 100));
-    if (progressFill) progressFill.style.width = pctRemaining + '%';
-    if (pctEl) pctEl.textContent = pctRemaining + '% restante';
-    if (socialProof) {
-      socialProof.classList.toggle('hidden', planId !== 'start');
-    }
   } catch {
     section?.classList.add('hidden');
   }
+  updatePlansCardsVisibility();
+}
+
+function updatePlansCardsVisibility() {
+  try {
+    const raw = localStorage.getItem(AUTH_STORAGE);
+    const user = raw ? JSON.parse(raw) : null;
+    const currentPlanId = user?.plan;
+    const currentPlan = getPlanDisplay(currentPlanId);
+    const currentAmount = currentPlan?.amount ?? 0;
+    const plansMensais = document.getElementById('plansMensais');
+    if (!plansMensais) return;
+    plansMensais.querySelectorAll('.plan-card[data-plan-id]').forEach((card) => {
+      const planId = card.getAttribute('data-plan-id');
+      const cta = card.querySelector('a.plan-cta');
+      if (planId === currentPlanId) {
+        card.classList.add('hidden');
+      } else {
+        card.classList.remove('hidden');
+        if (cta && currentPlanId && window.VARVOS_PLANS?.mensais?.[planId]) {
+          const planAmount = window.VARVOS_PLANS.mensais[planId].amount ?? 0;
+          cta.textContent = planAmount > currentAmount ? 'Upgrade' : 'Downgrade';
+        }
+      }
+    });
+  } catch (_) {}
 }
 
 function closePlansModal() {
@@ -1216,7 +1169,7 @@ function switchPlansTab(t) {
   document.getElementById('plansMensais')?.classList.toggle('hidden', t !== 'mensais');
   const note = document.getElementById('plansModalCreditNote');
   if (note) note.classList.toggle('hidden', t !== 'avulsos');
-  if (t === 'mensais') updatePlanCardsActiveState();
+  if (t === 'mensais') updatePlansCardsVisibility();
 }
 document.querySelectorAll('.plans-tab').forEach(tab => {
   tab.addEventListener('click', () => switchPlansTab(tab.dataset.tab));
@@ -1227,10 +1180,6 @@ document.querySelectorAll('.plan-avulsos-link').forEach(btn => {
 
 document.getElementById('plansModalClose')?.addEventListener('click', closePlansModal);
 document.querySelector('.plans-modal-backdrop')?.addEventListener('click', closePlansModal);
-document.getElementById('plansActiveUpgradeBtn')?.addEventListener('click', function () {
-  switchPlansTab('mensais');
-  document.getElementById('plansMensais')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-});
 
 // Sync varvos_user a partir da sessão Supabase (ex.: logou por e-mail e varvos_user está incompleto)
 async function syncUserFromSupabaseSession() {

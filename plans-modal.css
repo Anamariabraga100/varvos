@@ -137,6 +137,31 @@
 }
 .plans-active-section.hidden { display: none; }
 
+/* Resumo básico do plano ativo */
+.plans-active-summary {
+  padding: 12px 14px;
+  background: rgba(248, 250, 252, 0.9);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  border-radius: 10px;
+}
+.plans-active-summary-row {
+  margin: 0 0 6px;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+.plans-active-summary-row:last-child { margin-bottom: 0; }
+.plans-active-summary-label {
+  color: var(--text-muted, #6b7280);
+  font-weight: 500;
+}
+.plans-active-summary-value {
+  font-weight: 600;
+  color: var(--text, #111827);
+}
+
+/* Card do plano atual — oculto (só mostramos os outros) */
+.plan-card.hidden { display: none !important; }
+
 /* Card de status — visual discreto (não oferta) */
 .plans-active-card {
   position: relative;
