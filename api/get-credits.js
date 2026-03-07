@@ -59,8 +59,29 @@ export default async function handler(req, res) {
   }
 
   const credits = userData.credits != null ? parseInt(userData.credits, 10) : 0;
+
+  // Próxima cobrança: data do último pagamento de assinatura + 1 mês
+  let nextBillingDate = null;
+  if (plan) {
+    const { data: lastSubPayment } = await supabase
+      .from('payments')
+      .select('created_at')
+      .eq('user_id', resolvedUserId)
+      .eq('status', 'completed')
+      .contains('metadata', { type: 'assinatura' })
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (lastSubPayment?.created_at) {
+      const d = new Date(lastSubPayment.created_at);
+      d.setMonth(d.getMonth() + 1);
+      nextBillingDate = d.toISOString().slice(0, 10); // YYYY-MM-DD
+    }
+  }
+
   return res.status(200).json({
     credits: Number.isFinite(credits) ? credits : 0,
     plan,
+    next_billing_date: nextBillingDate,
   });
 }

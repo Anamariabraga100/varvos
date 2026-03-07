@@ -137,26 +137,34 @@
 }
 .plans-active-section.hidden { display: none; }
 
-/* Resumo básico do plano ativo */
+/* Resumo básico do plano ativo — visual vibrante */
 .plans-active-summary {
-  padding: 12px 14px;
-  background: rgba(248, 250, 252, 0.9);
-  border: 1px solid rgba(226, 232, 240, 0.9);
-  border-radius: 10px;
+  padding: 16px 18px;
+  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 50%, #a7f3d0 100%);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.12);
+}
+.plans-active-congrats {
+  margin: 0 0 12px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #047857;
+  line-height: 1.4;
 }
 .plans-active-summary-row {
-  margin: 0 0 6px;
-  font-size: 0.9rem;
+  margin: 0 0 8px;
+  font-size: 0.95rem;
   line-height: 1.5;
 }
 .plans-active-summary-row:last-child { margin-bottom: 0; }
 .plans-active-summary-label {
-  color: var(--text-muted, #6b7280);
-  font-weight: 500;
+  color: #065f46;
+  font-weight: 600;
 }
 .plans-active-summary-value {
-  font-weight: 600;
-  color: var(--text, #111827);
+  font-weight: 700;
+  color: #022c22;
 }
 
 /* Card do plano atual — oculto (só mostramos os outros) */

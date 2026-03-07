@@ -842,6 +842,7 @@ async function refreshCreditsFromSupabase() {
       const data = await r.json();
       if (data.credits != null) user.credits = data.credits;
       if (data.plan != null) user.plan = data.plan;
+      if (data.next_billing_date != null) user.next_billing_date = data.next_billing_date;
       ok = true;
     } else if (window.varvosSupabase) {
       const { data } = userId
@@ -932,6 +933,7 @@ function openPlansModal() {
       if (!hasPurchased) startPlansModalTimer();
     });
     updatePlansActiveSection();
+    refreshCreditsFromSupabase().then(() => updatePlansActiveSection());
     m.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
     // Abre em Planos Mensais por padrão (mais lucrativo)
@@ -968,7 +970,15 @@ function updatePlansActiveSection() {
     if (priceEl && plan.amount != null) {
       priceEl.textContent = 'R$ ' + (plan.amount / 100).toFixed(2).replace('.', ',') + '/mês';
     } else if (priceEl) priceEl.textContent = '—';
-    if (nextBillingEl) nextBillingEl.textContent = user?.next_billing_date || '—';
+    if (nextBillingEl) {
+      const d = user?.next_billing_date;
+      if (d) {
+        const [y, m, day] = d.split('-');
+        nextBillingEl.textContent = `${day}/${m}/${y}`;
+      } else {
+        nextBillingEl.textContent = '—';
+      }
+    }
     const credits = Number(user?.credits ?? 0);
     creditsEl.textContent = String(credits);
   } catch {
