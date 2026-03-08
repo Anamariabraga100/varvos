@@ -317,7 +317,7 @@
             </div>
 
             <div class="samples-compact-wrap">
-              <p class="samples-compact-label">Biblioteca Varvos</p>
+              <p class="samples-compact-label">Exemplos criados com Varvos</p>
               <p class="samples-compact-hint">Use como referência se quiser</p>
               <div class="carousel-wrapper samples-wrap samples-compact">
                 <div class="carousel samples-carousel" id="samplesCarousel">
@@ -553,8 +553,8 @@
           <button type="button" class="btn-ver-mais" id="btnVerMais">Ver mais</button>
         </div>
         <div id="historyEmpty" class="creations-empty">
-          <p>Ainda não há criações</p>
-          <span class="history-hint">Tudo que você gerar aparecerá aqui</span>
+          <p>Seus vídeos aparecerão aqui</p>
+          <a href="#criar" class="btn-create-first" id="btnCreateFirstMotion">Crie seu primeiro vídeo agora 🚀</a>
         </div>
       </section>
     </main>
@@ -798,6 +798,19 @@
           <span class="plan-guarantee">Garantia de 7 dias</span>
         </div>
         <p class="plans-mensais-avulsos-hint">ou <button type="button" class="plan-avulsos-link" data-switch-tab="avulsos">comprar créditos avulsos</button></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de confirmação de créditos ao gerar -->
+  <div id="confirmGenerateModal" class="confirm-generate-modal hidden" role="dialog" aria-modal="true" aria-labelledby="confirmGenerateTitle">
+    <div class="confirm-generate-backdrop"></div>
+    <div class="confirm-generate-card">
+      <h2 id="confirmGenerateTitle" class="confirm-generate-title">Gerar vídeo?</h2>
+      <p id="confirmGenerateCredits" class="confirm-generate-credits">Esse vídeo irá consumir <strong id="confirmGenerateCost">—</strong> créditos.</p>
+      <div class="confirm-generate-actions">
+        <button type="button" class="confirm-generate-btn confirm-generate-cancel" id="confirmGenerateCancel">Cancelar</button>
+        <button type="button" class="confirm-generate-btn confirm-generate-submit" id="confirmGenerateSubmit">Gerar vídeo</button>
       </div>
     </div>
   </div>

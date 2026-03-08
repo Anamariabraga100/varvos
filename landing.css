@@ -876,6 +876,11 @@ header {
   margin: 0 auto;
 }
 
+.spotlight-grid.spotlight-grid-single {
+  grid-template-columns: 1fr;
+  max-width: 420px;
+}
+
 .spotlight-card {
   background: linear-gradient(135deg, #0a0a0c 0%, #1a1a1e 100%);
   border-radius: 20px;

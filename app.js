@@ -12,6 +12,8 @@ const CREDITS_STORAGE_KEY = 'varvos_credits';
 const AUTH_STORAGE = 'varvos_user';
 const ACTIVE_TASK_STORAGE = 'varvos_active_task';
 const DRAFT_STORAGE_KEY = 'varvos_draft';
+const DEFAULT_REF_IMAGE_URL = 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&q=80';
+const DEFAULT_PROMPT_EXAMPLE = 'Influencer fazendo unboxing de tênis com reação surpresa, estilo vídeo de TikTok';
 
 let selectedModel = 'veo3.1-fast';
 let hideModelGrok = false;
@@ -201,16 +203,22 @@ document.querySelectorAll('.chip, .suggestion-theme-box').forEach(btn => {
   btn.addEventListener('click', () => {
     const p = btn.dataset.prompt || '';
     const prompt = document.getElementById('prompt');
-    if (prompt && p) { prompt.value = p; updateClearPromptVisibility(); updatePromptWrapValue(); prompt.focus(); }
+    if (prompt && p) {
+      prompt.value = p;
+      updateClearPromptVisibility();
+      updatePromptWrapValue();
+      resizeChatPromptTextarea?.();
+      prompt.focus();
+    }
   });
 });
 
 // Placeholder animado — digita e apaga exemplos em quase transparente
 const PROMPT_EXAMPLES = [
-  'Cena cinematográfica com iluminação dramática e movimento de câmera lento',
-  'Estilo animado 3D com cores vibrantes e movimento fluido',
-  'Unboxing com reação de surpresa ao abrir a caixa do produto',
-  'Propaganda comercial com produto em destaque e cenário premium'
+  'Descreva o vídeo que você quer criar...',
+  'Ex: Influencer fazendo unboxing de tênis',
+  'Ex: Propaganda de perfume com modelo em estúdio',
+  'Ex: Pessoa explicando produto na câmera'
 ];
 let promptExampleIndex = 0;
 let promptExampleCharIndex = 0;
@@ -257,10 +265,6 @@ function updatePromptWrapValue() {
   }
 }
 
-document.getElementById('prompt')?.addEventListener('focus', () => {
-  if (promptTypingTimeout) clearTimeout(promptTypingTimeout);
-  updatePromptWrapValue();
-});
 document.getElementById('prompt')?.addEventListener('blur', () => {
   updatePromptWrapValue();
   promptExampleIndex = 0;
@@ -268,8 +272,17 @@ document.getElementById('prompt')?.addEventListener('blur', () => {
   promptTypingForward = true;
   promptTypingTimeout = setTimeout(runPromptPlaceholderAnimation, 800);
 });
+function resizeChatPromptTextarea() {
+  const prompt = document.getElementById('prompt');
+  if (!prompt || !prompt.closest('.chat-input-card')) return;
+  prompt.style.height = 'auto';
+  const max = 280;
+  const h = Math.min(prompt.scrollHeight, max);
+  prompt.style.height = h + 'px';
+}
 document.getElementById('prompt')?.addEventListener('input', () => {
   updatePromptWrapValue();
+  resizeChatPromptTextarea();
   if (promptTypingTimeout) clearTimeout(promptTypingTimeout);
 });
 
@@ -311,9 +324,11 @@ function updateVideoModelUI() {
   if (grokModeWrap) grokModeWrap.classList.toggle('hidden', !isGrok);
   if (configRefOptional) configRefOptional.classList.toggle('hidden', isGrok);
   if (configRefRequired) configRefRequired.classList.toggle('hidden', !isGrok);
+  const configDetailsImageNote = document.getElementById('configDetailsImageNote');
+  if (configDetailsImageNote) configDetailsImageNote.classList.toggle('hidden', !isGrok);
   if (configRefWrap && isSoraOrVeo) configRefWrap.classList.remove('hidden');
-  const imageRefAreaText = document.querySelector('#imageRefArea .file-upload-text');
-  if (imageRefAreaText) imageRefAreaText.textContent = 'Clique aqui para enviar';
+  const imageRefAreaText = document.getElementById('imageRefAreaText') || document.querySelector('#imageRefArea .file-upload-text');
+  if (imageRefAreaText) imageRefAreaText.textContent = 'Clique para enviar ou arraste aqui';
   if (noticeVeo) noticeVeo.classList.toggle('hidden', !isVEO);
   if (noticeSora) noticeSora.classList.toggle('hidden', isVEO && !isGrok);
   if (typeof syncConfigCardDisplays === 'function') syncConfigCardDisplays();
@@ -413,12 +428,24 @@ document.getElementById('prompt')?.addEventListener('change', () => {
 updateClearPromptVisibility();
 updatePromptWrapValue();
 
-// Inicia placeholder animado após carregar
+// Ajusta altura do prompt no chat; placeholder vazio
 setTimeout(() => {
-  if (document.getElementById('promptPlaceholderAnimated') && !document.querySelector('.prompt-field-wrap.has-value')) {
+  resizeChatPromptTextarea?.();
+  const placeholderEl = document.getElementById('promptPlaceholderAnimated');
+  const wrap = document.querySelector('.prompt-field-wrap');
+  const prompt = document.getElementById('prompt');
+  if (placeholderEl && !prompt?.closest('.chat-input-card') && wrap && !document.querySelector('.prompt-field-wrap.has-value')) {
     runPromptPlaceholderAnimation();
   }
 }, 600);
+
+// Fechar config dropdown ao clicar fora
+document.addEventListener('click', (e) => {
+  const configDetails = document.getElementById('configDetails');
+  if (!configDetails || !configDetails.hasAttribute('open')) return;
+  if (configDetails.contains(e.target)) return;
+  configDetails.removeAttribute('open');
+});
 
 // Sincroniza displays dos config cards
 function syncConfigCardDisplays() {
@@ -658,6 +685,8 @@ outputResultsList?.addEventListener('click', (e) => {
       if (outputPlaceholder && (!visibleCards || visibleCards.length === 0)) {
         outputPlaceholder.classList.remove('hidden');
         outputResultsList?.classList.add('hidden');
+        const resultSection = document.getElementById('currentResultSection');
+        if (resultSection) { resultSection.classList.remove('has-results'); resultSection.classList.add('section-result--hidden'); }
       }
     }
     return;
@@ -1108,7 +1137,13 @@ function closeUserMenu() {
   if (btn) btn.setAttribute('aria-expanded', 'false');
 }
 
-document.getElementById('btnAddCredits')?.addEventListener('click', () => { openPlansModal(); });
+document.getElementById('btnAddCredits')?.addEventListener('click', () => {
+  if (!isLoggedIn() && !isLocalhost()) {
+    redirectToLogin();
+    return;
+  }
+  openPlansModal();
+});
 document.getElementById('userMenuBtn')?.addEventListener('click', (e) => {
   e.stopPropagation();
   const dropdown = document.getElementById('userMenuDropdown');
@@ -1859,8 +1894,90 @@ setupFileUpload({
   onUploadEnd: () => { refImageUploading = false; updateRefImageReadyState(); },
   progressElId: 'imageRefProgress'
 });
+document.getElementById('imageRefChangeLink')?.addEventListener('click', (e) => {
+  e.preventDefault();
+  document.getElementById('imageRefFile')?.click();
+});
+
+// Preview da imagem: loading (spinner), clique para ampliar
+(function initImageRefPreviewUX() {
+  const img = document.getElementById('imageRefPreviewImg');
+  const wrap = document.getElementById('imageRefPreviewWrap');
+  const loadingEl = document.getElementById('imageRefPreviewLoading');
+  const lightbox = document.getElementById('imageLightbox');
+  const lightboxImg = document.getElementById('imageLightboxImg');
+  const lightboxClose = document.getElementById('imageLightboxClose');
+  const lightboxBackdrop = lightbox?.querySelector('.image-lightbox-backdrop');
+
+  function setPreviewLoadedState() {
+    if (loadingEl) { loadingEl.classList.add('hidden'); loadingEl.setAttribute('aria-hidden', 'true'); }
+  }
+  function setPreviewLoadingState() {
+    if (loadingEl) { loadingEl.classList.remove('hidden'); loadingEl.setAttribute('aria-hidden', 'false'); }
+  }
+
+  if (img) {
+    img.addEventListener('load', setPreviewLoadedState);
+    const obs = new MutationObserver(() => {
+      if (img.src && !img.complete) setPreviewLoadingState();
+    });
+    obs.observe(img, { attributes: true, attributeFilter: ['src'] });
+    if (img.src && img.complete) setPreviewLoadedState();
+    else if (img.src) setPreviewLoadingState();
+  }
+
+  function openImageLightbox(src) {
+    if (!lightbox || !lightboxImg) return;
+    lightboxImg.src = src;
+    lightbox.classList.remove('hidden');
+  }
+  function closeImageLightbox() {
+    if (!lightbox) return;
+    lightbox.classList.add('hidden');
+    lightboxImg.src = '';
+  }
+
+  wrap?.addEventListener('click', (e) => {
+    if (e.target.closest('.file-remove')) return;
+    const im = document.getElementById('imageRefPreviewImg');
+    if (im?.src) openImageLightbox(im.src);
+  });
+  wrap?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      const im = document.getElementById('imageRefPreviewImg');
+      if (im?.src) openImageLightbox(im.src);
+    }
+  });
+  lightboxClose?.addEventListener('click', closeImageLightbox);
+  lightboxBackdrop?.addEventListener('click', closeImageLightbox);
+})();
 setupFileUpload({ inputId: 'imgRefFile', areaId: 'imgRefArea', previewId: 'imgRefPreview', imgId: 'imgRefPreviewImg', removeId: 'imgRefRemove', setUrl: (v) => { imgRefUrl = v; saveDraft(); } });
 restoreDraft();
+
+function setDefaultRefImage() {
+  if (refImageUrl || currentMode !== 'video') return;
+  const area = document.getElementById('imageRefArea');
+  const preview = document.getElementById('imageRefPreview');
+  const img = document.getElementById('imageRefPreviewImg');
+  if (!area || !preview || !img) return;
+  refImageUrl = DEFAULT_REF_IMAGE_URL;
+  area.classList.add('hidden');
+  preview.classList.remove('hidden');
+  img.src = DEFAULT_REF_IMAGE_URL;
+  saveDraft();
+}
+setDefaultRefImage();
+
+function setDefaultPromptExample() {
+  /* Não preencher o prompt; placeholder estático "Crie alguma coisa" no chat */
+}
+setDefaultPromptExample();
+
+document.getElementById('prompt')?.addEventListener('focus', () => {
+  if (promptTypingTimeout) clearTimeout(promptTypingTimeout);
+  updatePromptWrapValue();
+});
 function updateMotionReadyState(forceState) {
   const el = document.getElementById('motionReadyState');
   const btn = document.getElementById('btnGenerate');
@@ -2029,14 +2146,17 @@ function updateMotionButtonCredits() {
 }
 
 function updateGenerateButtonLabel(showCredits = true) {
+  const btn = document.getElementById('btnGenerate');
   const btnText = document.getElementById('btnGenerateText');
   const creditsNum = document.getElementById('generateCreditsNum');
   const creditsSpan = creditsNum?.closest('.generate-sticky-credits');
   if (!btnText) return;
+  const isChatSend = btn?.classList.contains('chat-send-btn');
   const labels = { video: 'Gerar vídeo', image: 'Gerar imagem', motion: 'Imitar movimento' };
   const labelMain = labels[currentMode] || 'Gerar';
   if (!showCredits) {
-    btnText.textContent = 'Gerando...';
+    if (isChatSend && btn) btn.title = 'Gerando...';
+    else btnText.textContent = 'Gerando...';
     if (creditsSpan) creditsSpan.classList.add('hidden');
     return;
   }
@@ -2061,6 +2181,15 @@ function updateGenerateButtonLabel(showCredits = true) {
     }
   } else if (currentMode === 'image') {
     cost = CREDITS_COST_VIDEO;
+  }
+  if (isChatSend && btn) {
+    btn.title = hasValue ? `${labelMain} (${cost} créditos)` : labelMain;
+    const costBadge = document.getElementById('generateCostBadge');
+    if (costBadge) {
+      costBadge.textContent = hasValue ? `${cost} créditos` : '— créditos';
+      costBadge.classList.toggle('hidden', !hasValue);
+    }
+    return;
   }
   if (creditsNum) {
     btnText.textContent = `🎬 ${labelMain}`;
@@ -2959,6 +3088,8 @@ async function generateMedia(body) {
 
     outputPlaceholder.classList.add('hidden');
     outputResultsList.classList.remove('hidden');
+    const resultSection = document.getElementById('currentResultSection');
+    if (resultSection) { resultSection.classList.add('has-results'); resultSection.classList.remove('section-result--hidden'); }
 
     if (cardRefs.taskStatusEl) cardRefs.taskStatusEl.textContent = 'Enviando...';
     if (cardRefs.taskStatusEl) cardRefs.taskStatusEl.className = 'status-badge';
@@ -3189,7 +3320,9 @@ async function generateMedia(body) {
     if (outputPlaceholder && outputResultsList) {
       outputPlaceholder.classList.add('hidden');
       outputResultsList.classList.remove('hidden');
-      document.getElementById('currentResultSection')?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+      const resultSection = document.getElementById('currentResultSection');
+      if (resultSection) { resultSection.classList.add('has-results'); resultSection.classList.remove('section-result--hidden'); }
+      resultSection?.scrollIntoView({ behavior: 'smooth', block: 'end' });
     }
 
     let refunded = false;
@@ -3226,6 +3359,38 @@ async function generateMedia(body) {
     if (currentMode === 'video') updateRefImageReadyState(); else btnGenerate.disabled = false;
   }
 }
+
+let pendingGenerateBody = null;
+
+function openConfirmGenerateModal(body) {
+  const modal = document.getElementById('confirmGenerateModal');
+  const costEl = document.getElementById('confirmGenerateCost');
+  const titleEl = document.getElementById('confirmGenerateTitle');
+  if (!modal || !costEl) return false;
+  const cost = getCreditsCostForBody(body);
+  titleEl.textContent = 'Gerar vídeo?';
+  costEl.textContent = String(cost);
+  pendingGenerateBody = body;
+  modal.classList.remove('hidden');
+  return true;
+}
+
+function closeConfirmGenerateModal() {
+  const modal = document.getElementById('confirmGenerateModal');
+  if (modal) modal.classList.add('hidden');
+  pendingGenerateBody = null;
+}
+
+document.getElementById('confirmGenerateCancel')?.addEventListener('click', closeConfirmGenerateModal);
+document.querySelector('.confirm-generate-backdrop')?.addEventListener('click', closeConfirmGenerateModal);
+document.getElementById('confirmGenerateSubmit')?.addEventListener('click', async () => {
+  if (pendingGenerateBody) {
+    const body = pendingGenerateBody;
+    closeConfirmGenerateModal();
+    pendingGenerateBody = null;
+    await generateMedia(body);
+  }
+});
 
 generateForm.addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -3268,6 +3433,7 @@ generateForm.addEventListener('submit', async (e) => {
     lastPrompt = prompt;
   }
   const body = buildRequestBody();
+  if (isLoggedIn() && openConfirmGenerateModal(body)) return;
   await generateMedia(body);
 });
 
@@ -3283,6 +3449,16 @@ if (samplesPrev && samplesCarousel) {
 }
 if (samplesNext && samplesCarousel) {
   samplesNext.addEventListener('click', () => samplesCarousel.scrollBy({ left: 216, behavior: 'smooth' }));
+}
+
+const historyLibraryCarousel = document.getElementById('historyLibraryCarousel');
+const historyLibraryPrev = document.getElementById('historyLibraryPrev');
+const historyLibraryNext = document.getElementById('historyLibraryNext');
+if (historyLibraryPrev && historyLibraryCarousel) {
+  historyLibraryPrev.addEventListener('click', () => historyLibraryCarousel.scrollBy({ left: -120, behavior: 'smooth' }));
+}
+if (historyLibraryNext && historyLibraryCarousel) {
+  historyLibraryNext.addEventListener('click', () => historyLibraryCarousel.scrollBy({ left: 120, behavior: 'smooth' }));
 }
 
 // Load history on init (Supabase se logado, senão localStorage)
@@ -3441,6 +3617,8 @@ async function restoreActiveTask() {
   if (toRestore.length > 0) {
     outputPlaceholder.classList.add('hidden');
     outputResultsList.classList.remove('hidden');
+    const resultSection = document.getElementById('currentResultSection');
+    if (resultSection) { resultSection.classList.add('has-results'); resultSection.classList.remove('section-result--hidden'); }
     toRestore.forEach((data) => {
       const cardIndex = getAvailableCardIndex();
       if (cardIndex >= 0) restoreTaskToCard(data, cardIndex);
@@ -3461,6 +3639,8 @@ function pollActiveTasksFromOtherDevices() {
     if (newTasks.length === 0) return;
     outputPlaceholder.classList.add('hidden');
     outputResultsList.classList.remove('hidden');
+    const resultSection = document.getElementById('currentResultSection');
+    if (resultSection) { resultSection.classList.add('has-results'); resultSection.classList.remove('section-result--hidden'); }
     for (const data of newTasks) {
       const cardIndex = getAvailableCardIndex();
       if (cardIndex < 0) break;

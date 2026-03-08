@@ -81,26 +81,86 @@
         <form id="generateForm" class="create-form">
           <input type="hidden" id="mode" name="mode" value="video">
 
-          <!-- Título e modos — segmented control -->
-          <div class="create-header create-header-modes">
-            <span class="create-label">O que você quer criar?</span>
-            <div class="mode-segmented">
-              <a href="." class="mode-seg-item active" data-mode="video">
-                <span class="mode-seg-icon">🎬</span>
-                <span class="mode-seg-text">Vídeo</span>
-              </a>
-              <a href="../imitar-movimento/" class="mode-seg-item" data-mode="motion">
-                <span class="mode-seg-icon">👯</span>
-                <span class="mode-seg-text">Imitar Movimento</span>
-              </a>
-            </div>
-          </div>
+          <!-- Headline fora da caixa -->
+          <h2 class="create-hero-title create-hero-title-outside">Transforme imagens em vídeos realistas com IA.</h2>
+          <p class="create-hero-subtitle">Crie vídeos profissionais em segundos a partir de uma descrição e uma imagem.</p>
 
-          <!-- Fluxo: Configurações (topo) → Caixa de criação → Resultado -->
           <div class="create-flow">
-            <!-- Configurações de vídeo (no lugar das antigas sugestões) -->
-            <div id="configMainOptions" class="config-main-options config-above-btn">
-            <div id="videoFields" class="mode-fields">
+            <!-- Barra de input estilo ChatGPT: preview acima do texto, depois texto + enviar -->
+            <div id="createPromptBlock" class="prompt-create-card chat-input-card">
+              <div class="file-upload file-upload-compact" id="imageRefUpload">
+                <input type="file" id="imageRefFile" accept="image/jpeg,image/png,image/webp" hidden>
+                <div class="file-upload-area visually-hidden" id="imageRefArea" aria-hidden="true">
+                  <span class="file-upload-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></span>
+                  <span class="file-upload-text" id="imageRefAreaText">Clique para enviar ou arraste aqui</span>
+                </div>
+              </div>
+
+              <!-- Linha de cima: preview da imagem (quando anexada) -->
+              <div class="chat-attach-row" id="configRefWrap">
+                <div class="file-preview chat-input-preview hidden" id="imageRefPreview">
+                  <div class="motion-preview-wrap chat-preview-click-wrap" id="imageRefPreviewWrap" role="button" tabindex="0" aria-label="Ampliar imagem">
+                    <img id="imageRefPreviewImg" class="motion-preview-media" alt="Preview">
+                    <div class="upload-overlay chat-upload-overlay-spinner hidden" id="imageRefProgress" aria-hidden="true">
+                      <div class="upload-progress-bar-wrap visually-hidden"><div class="upload-progress-fill"></div></div>
+                      <span class="upload-progress-pct visually-hidden">0%</span>
+                      <span class="preview-loading-spinner" aria-hidden="true"></span>
+                    </div>
+                    <div class="preview-loading-overlay hidden" id="imageRefPreviewLoading" aria-hidden="true">
+                      <span class="preview-loading-spinner" aria-hidden="true"></span>
+                    </div>
+                    <button type="button" class="file-remove file-remove-inside-preview" id="imageRefRemove" aria-label="Remover imagem">✕</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Prompts de recomendação em scroll (marquee) -->
+              <div class="prompt-chips-marquee-wrap">
+                <div class="prompt-chips-marquee" aria-label="Sugestões de prompt">
+                  <button type="button" class="chip chip-inline" data-prompt="Influencer fazendo unboxing de tênis">Influencer fazendo unboxing de tênis</button>
+                  <button type="button" class="chip chip-inline" data-prompt="Propaganda de perfume com modelo em estúdio">Propaganda de perfume com modelo em estúdio</button>
+                  <button type="button" class="chip chip-inline" data-prompt="Pessoa explicando produto na câmera">Pessoa explicando produto na câmera</button>
+                  <button type="button" class="chip chip-inline" data-prompt="Cachorro correndo na praia">Cachorro correndo na praia</button>
+                  <button type="button" class="chip chip-inline" data-prompt="Pôr do sol sobre as montanhas">Pôr do sol sobre as montanhas</button>
+                  <button type="button" class="chip chip-inline" data-prompt="Receita de bolo em close-up">Receita de bolo em close-up</button>
+                  <!-- Duplicado para loop contínuo -->
+                  <button type="button" class="chip chip-inline" data-prompt="Influencer fazendo unboxing de tênis">Influencer fazendo unboxing de tênis</button>
+                  <button type="button" class="chip chip-inline" data-prompt="Propaganda de perfume com modelo em estúdio">Propaganda de perfume com modelo em estúdio</button>
+                  <button type="button" class="chip chip-inline" data-prompt="Pessoa explicando produto na câmera">Pessoa explicando produto na câmera</button>
+                  <button type="button" class="chip chip-inline" data-prompt="Cachorro correndo na praia">Cachorro correndo na praia</button>
+                  <button type="button" class="chip chip-inline" data-prompt="Pôr do sol sobre as montanhas">Pôr do sol sobre as montanhas</button>
+                  <button type="button" class="chip chip-inline" data-prompt="Receita de bolo em close-up">Receita de bolo em close-up</button>
+                </div>
+              </div>
+              <!-- Rótulo fora da caixa para não sobrepor a engrenagem -->
+              <p class="chat-input-label" id="promptLabel">Descreva o vídeo...</p>
+              <!-- Linha de baixo: campo de texto + botão enviar -->
+              <div class="chat-input-row">
+                <div class="chat-input-left">
+                  <button type="button" class="chat-attach-btn" id="imageRefChangeLink" title="Anexar imagem" aria-label="Anexar imagem">+</button>
+                </div>
+                <div id="promptInputWrap" class="chat-input-field-wrap">
+                  <div class="prompt-field-wrap prompt-field-wrap-seamless">
+                    <div id="promptPlaceholderAnimated" class="prompt-placeholder-animated visually-hidden" aria-hidden="true"></div>
+                    <textarea id="prompt" name="prompt" rows="1" placeholder=" " required aria-label="Descreva o vídeo"></textarea>
+                  </div>
+                </div>
+                <div class="chat-input-actions">
+                  <span class="generate-cost-badge" id="generateCostBadge" aria-live="polite">— créditos</span>
+                  <button type="submit" class="chat-send-btn" id="btnGenerate" title="Gerar vídeo" aria-label="Enviar e gerar vídeo">
+                    <span id="btnGenerateText"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"/><path d="M5 12l7-7 7 7"/></svg></span>
+                    <span id="btnGenerateDisabledText" class="btn-generate-disabled-text">Adicione créditos</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Configurações no cantinho do card -->
+              <div class="chat-card-config-corner">
+                <details id="configDetails" class="config-details config-details-inline">
+                  <summary class="config-details-summary-inline" aria-label="Configurações">⚙</summary>
+                  <div class="config-details-dropdown">
+                    <div id="configMainOptions" class="config-main-options config-above-btn">
+                    <div id="videoFields" class="mode-fields">
               <div class="config-card config-card-model field-model" data-target="videoModel">
                 <div class="config-card-row">
                   <span class="config-card-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 2L11 13"/><path d="M22 2L15 22L11 13L2 9L22 2Z"/></svg></span>
@@ -208,55 +268,15 @@
               </div>
             </div>
             </div>
-
-            <!-- Imagem de Referência -->
-            <div id="configRefWrap" class="config-ref-wrap">
-              <label class="config-ref-label">Imagem de Referência <span class="config-ref-optional" id="configRefOptional">(opcional)</span><span class="config-ref-required hidden" id="configRefRequired">(obrigatório para Varvos Fast)</span></label>
-              <div class="config-ref-slots">
-                <div class="file-upload file-upload-compact" id="imageRefUpload">
-                  <input type="file" id="imageRefFile" accept="image/jpeg,image/png,image/webp" hidden>
-                  <div class="file-upload-area" id="imageRefArea">
-                    <span class="file-upload-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></span>
-                    <span class="file-upload-text">Clique aqui para enviar</span>
-                    <span class="file-upload-hint">PNG, JPG ou WEBP (max 5MB)</span>
                   </div>
-                  <div class="file-preview file-preview-motion hidden" id="imageRefPreview">
-                    <div class="motion-preview-wrap">
-                      <img id="imageRefPreviewImg" class="motion-preview-media" alt="Preview">
-                      <div class="upload-overlay hidden" id="imageRefProgress" aria-hidden="true">
-                        <div class="upload-progress-bar-wrap"><div class="upload-progress-fill"></div></div>
-                        <span class="upload-progress-pct">0%</span>
-                      </div>
-                    </div>
-                    <button type="button" class="file-remove" id="imageRefRemove">✕</button>
-                  </div>
-                </div>
+                </details>
               </div>
             </div>
 
-            <!-- Caixa de criação de vídeo + botão integrado -->
-            <div id="createPromptBlock" class="prompt-create-card">
-            <div id="promptInputWrap" class="prompt-hero">
-              <div class="prompt-field-wrap">
-                <div id="promptPlaceholderAnimated" class="prompt-placeholder-animated" aria-hidden="true"></div>
-                <textarea id="prompt" name="prompt" rows="5" placeholder=" " required></textarea>
-                <div class="prompt-field-bar">
-                  <button type="button" class="btn-clear-prompt" id="btnClearPrompt" title="Limpar">Limpar</button>
-                  <div class="prompt-suggestions-inline">
-                    <button type="button" class="chip chip-inline" data-prompt="Cena cinematográfica com iluminação dramática, movimento de câmera lento e suave, profundidade de campo, cores saturadas em tons âmbar e azul, atmosfera cinematográfica de filme, personagem em close-up com expressão intensa">Cinemático</button>
-                    <button type="button" class="chip chip-inline" data-prompt="Personagens de desenho, algo fantasioso, estilo animado 3D, movimento fluido e expressivo, cores vibrantes e saturadas, cenário criativo e fantástico, iluminação suave, animação de alta qualidade">Animação</button>
-                    <button type="button" class="chip chip-inline" data-prompt="Unboxing de produto com reação genuína de surpresa e alegria, mãos abrindo a caixa em close-up, luz natural suave, fundo clean e minimalista, foco total no produto">Produto</button>
-                    <button type="button" class="chip chip-inline" data-prompt="Propaganda comercial de produto, cenário premium com iluminação profissional, produto em destaque central, movimento dinâmico de câmera, cores de alto contraste, tom persuasivo e impactante">Propaganda</button>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="prompt-actions prompt-actions-inside">
-              <button type="submit" class="btn-generate btn-generate-inline" id="btnGenerate">
-                <span id="btnGenerateText">🎬 Gerar vídeo</span>
-              </button>
-              <p class="motion-cost-note hidden">Valor baseado no tamanho do vídeo</p>
-            </div>
+            <!-- Obrigatório/opcional: escondido (uso em JS) -->
+            <div class="config-ref-label-row config-ref-label-below visually-hidden" id="configRefLabelRow" aria-hidden="true">
+              <span class="config-ref-optional" id="configRefOptional">(opcional)</span>
+              <span class="config-ref-required hidden" id="configRefRequired">Obrigatório para Varvos Fast</span>
             </div>
 
             <!-- Image fields -->
@@ -373,8 +393,8 @@
         </form>
       </section>
 
-      <!-- Resultado — logo abaixo da caixa de criação -->
-      <section class="section-result" id="currentResultSection">
+      <!-- Resultado — oculto até haver vídeo gerado (classe has-results via JS) -->
+      <section class="section-result section-result--hidden" id="currentResultSection">
         <h3 class="section-title">Resultado</h3>
         <div id="outputPlaceholder" class="output-placeholder">
           <div class="placeholder-icon">🎬</div>
@@ -573,8 +593,79 @@
           <button type="button" class="btn-ver-mais" id="btnVerMais">Ver mais</button>
         </div>
         <div id="historyEmpty" class="creations-empty">
-          <p>Ainda não há criações</p>
-          <span class="history-hint">Tudo que você gerar aparecerá aqui</span>
+          <p>Seus vídeos aparecerão aqui</p>
+          <a href="#criar" class="btn-create-first" id="btnCreateFirst">Crie seu primeiro vídeo agora 🚀</a>
+          <div class="history-library-wrap">
+            <p class="history-library-label">Exemplos criados com Varvos</p>
+            <div class="carousel-wrapper samples-wrap samples-compact history-library">
+              <div class="carousel samples-carousel" id="historyLibraryCarousel">
+                <div class="carousel-track samples-track">
+                  <div class="video-card sample-thumb">
+                    <video src="https://juauagypsrgnmwsavrto.supabase.co/storage/v1/object/public/videos/_f45dd0f84993133d8e733f54e2cf6243_64bee8af-2f5c-48ed-9e28-183a4fa6e461.mp4" muted loop playsinline preload="metadata" autoplay></video>
+                    <button type="button" class="mute-btn" aria-label="Som">🔇</button>
+                  </div>
+                  <div class="video-card sample-thumb">
+                    <video src="https://juauagypsrgnmwsavrto.supabase.co/storage/v1/object/public/videos/w_cJFbV9JA91BnW5NsSoF_output%20(1).mp4" muted loop playsinline preload="metadata" autoplay></video>
+                    <button type="button" class="mute-btn" aria-label="Som">🔇</button>
+                  </div>
+                  <div class="video-card sample-thumb">
+                    <video src="https://juauagypsrgnmwsavrto.supabase.co/storage/v1/object/public/videos/preview_video_output_89.mp4" muted loop playsinline preload="metadata" autoplay></video>
+                    <button type="button" class="mute-btn" aria-label="Som">🔇</button>
+                  </div>
+                </div>
+              </div>
+              <div class="carousel-nav left" id="historyLibraryPrev" aria-label="Anterior">‹</div>
+              <div class="carousel-nav right" id="historyLibraryNext" aria-label="Próximo">›</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- FAQ -->
+      <section class="section-faq" id="faq">
+        <h3 class="section-title">Perguntas frequentes</h3>
+        <div class="faq-list">
+          <details class="faq-item">
+            <summary class="faq-question">Como faço para criar um vídeo?</summary>
+            <p class="faq-answer">Descreva o que você quer no campo de texto, opcionalmente anexe uma imagem de referência, ajuste as configurações (modelo, formato, duração) no ícone ⚙ e clique no botão de enviar (seta). O vídeo será gerado e aparecerá na tela quando estiver pronto.</p>
+          </details>
+          <details class="faq-item">
+            <summary class="faq-question">Preciso de uma imagem para gerar vídeo?</summary>
+            <p class="faq-answer">Depende do modelo. No <strong>Varvos Fast</strong>, a imagem de referência é obrigatória. Nos modelos Pro e Ultra você pode criar só com a descrição em texto, mas uma imagem ajuda a guiar o estilo e a cena.</p>
+          </details>
+          <details class="faq-item">
+            <summary class="faq-question">Quanto tempo leva para o vídeo ficar pronto?</summary>
+            <p class="faq-answer">Geralmente entre 3 e 5 minutos. Você pode gerar mais de um vídeo ao mesmo tempo e, se quiser, sair da página e voltar depois — o progresso fica salvo.</p>
+          </details>
+          <details class="faq-item">
+            <summary class="faq-question">Os créditos expiram?</summary>
+            <p class="faq-answer">Não. Os créditos que você compra não têm validade. Use quando quiser.</p>
+          </details>
+          <details class="faq-item">
+            <summary class="faq-question">Por quanto tempo posso baixar meus vídeos?</summary>
+            <p class="faq-answer">Os arquivos ficam disponíveis no servidor por até 24 horas. Recomendamos baixar assim que o vídeo estiver pronto para não perder.</p>
+          </details>
+          <details class="faq-item">
+            <summary class="faq-question">Posso usar os vídeos para redes sociais e propaganda?</summary>
+            <p class="faq-answer">Sim. Os vídeos gerados podem ser usados em redes sociais, anúncios e outros fins comerciais, respeitando as imagens e direitos de terceiros que você enviar como referência.</p>
+          </details>
+        </div>
+      </section>
+
+      <!-- Imitar movimento -->
+      <section class="section-imitar-movimento" id="imitar-movimento">
+        <h3 class="section-title">Outra forma de criar no VARVOS</h3>
+        <p class="section-imitar-sub">Além de gerar vídeos por texto e imagem, você também pode transferir o movimento de um vídeo para uma foto ou personagem.</p>
+        <div class="imitar-movimento-card">
+          <div class="imitar-movimento-media">
+            <video src="https://juauagypsrgnmwsavrto.supabase.co/storage/v1/object/public/videos/1767525988156_agwqddHU.mp4" autoplay loop muted playsinline preload="none" title="Vídeo de referência"></video>
+            <img src="https://juauagypsrgnmwsavrto.supabase.co/storage/v1/object/public/images/1767525967302_gwzU7iCn.webp" alt="Foto do personagem" width="480" height="360" loading="lazy">
+            <video src="https://juauagypsrgnmwsavrto.supabase.co/storage/v1/object/public/videos/1767526000254_4PoHMzzY.mp4" autoplay loop muted playsinline preload="none" title="Resultado"></video>
+          </div>
+          <p class="imitar-movimento-caption">1 vídeo + 1 imagem = resultado</p>
+          <h4 class="imitar-movimento-title"><em>Imitar movimento</em></h4>
+          <p class="imitar-movimento-desc">Transfira o movimento de um vídeo para uma foto ou personagem. Envie uma imagem e um vídeo de referência — a IA aplica danças, gestos ou poses ao resultado.</p>
+          <a href="../imitar-movimento/" class="imitar-movimento-cta">Criar vídeo com imitar movimento →</a>
         </div>
       </section>
     </main>
@@ -584,6 +675,19 @@
   <div id="noticeToast" class="notice-toast hidden" role="status" aria-live="polite">
     <p class="notice-toast-text" id="noticeToastText"></p>
     <button type="button" class="notice-toast-close" id="noticeToastClose" aria-label="Fechar">×</button>
+  </div>
+
+  <!-- Modal de confirmação de créditos -->
+  <div id="confirmGenerateModal" class="confirm-generate-modal hidden" role="dialog" aria-modal="true" aria-labelledby="confirmGenerateTitle">
+    <div class="confirm-generate-backdrop"></div>
+    <div class="confirm-generate-card">
+      <h2 id="confirmGenerateTitle" class="confirm-generate-title">Gerar vídeo?</h2>
+      <p id="confirmGenerateCredits" class="confirm-generate-credits">Esse vídeo irá consumir <strong id="confirmGenerateCost">—</strong> créditos.</p>
+      <div class="confirm-generate-actions">
+        <button type="button" class="confirm-generate-btn confirm-generate-cancel" id="confirmGenerateCancel">Cancelar</button>
+        <button type="button" class="confirm-generate-btn confirm-generate-submit" id="confirmGenerateSubmit">Gerar vídeo</button>
+      </div>
+    </div>
   </div>
 
   <!-- Modal sem créditos -->
@@ -628,6 +732,15 @@
         </div>
       </div>
       <button type="button" class="credits-modal-btn" id="creditsModalPlans">Ver todos os planos</button>
+    </div>
+  </div>
+
+  <!-- Lightbox: ampliar imagem do preview -->
+  <div id="imageLightbox" class="image-lightbox hidden" role="dialog" aria-modal="true" aria-label="Imagem ampliada">
+    <div class="image-lightbox-backdrop"></div>
+    <div class="image-lightbox-content">
+      <button type="button" class="image-lightbox-close" id="imageLightboxClose" aria-label="Fechar">×</button>
+      <img id="imageLightboxImg" src="" alt="Imagem ampliada" class="image-lightbox-img">
     </div>
   </div>
 
