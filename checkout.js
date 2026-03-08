@@ -14,9 +14,11 @@
     escala: '💰 Melhor custo por vídeo',
     'boas-vindas': 'Oferta especial',
   };
-  /** Vídeos por mês (exibição) por plano mensal — Creator 150 créditos ≈ 10 vídeos */
-  const MENSAIS_VIDEOS = { start: 10, pro: 80, agency: 300 };
-  const MENSAIS_BENEFIT = { start: '💰 Até 10 vídeos por mês', pro: '💰 80 vídeos por mês', agency: '💰 Até 300 vídeos por mês' };
+  /** Vídeos por mês (exibição) — alinhado aos cards do modal de planos */
+  const MENSAIS_VIDEOS = { start: 100, pro: 266, agency: 1000 };
+  /** Créditos por mês (exibição) — alinhado aos cards */
+  const MENSAIS_CREDITS_DISPLAY = { start: '1.500', pro: '4.000', agency: '15.000' };
+  const MENSAIS_BENEFIT = { start: '💰 Até 100 vídeos por mês', pro: '💰 Até 266 vídeos por mês', agency: '💰 Até 1.000 vídeos por mês' };
 
   function getPlan() {
     const params = new URLSearchParams(location.search);
@@ -338,21 +340,24 @@
     var isUpgrade = new URLSearchParams(location.search).get('upgrade') === '1';
     var amountCents = (plan.id === 'popular' && isUpgrade) ? 2990 : plan.amount;
     document.getElementById('avulsoTitle').textContent = 'Checkout — ' + plan.name;
+    var creditsDisplay = (plan.credits * 10).toLocaleString('pt-BR');
+    var avulsoCreditsNumEl = document.getElementById('avulsoCreditsNum');
+    if (avulsoCreditsNumEl) avulsoCreditsNumEl.textContent = creditsDisplay;
     var videoCount = AVULSO_VIDEOS[plan.id] || Math.round((plan.credits * 10) / 15);
     var priceStr = 'R$ ' + (amountCents / 100).toFixed(2).replace('.', ',');
     document.getElementById('avulsoPlan').textContent =
-      'Até ' + videoCount + ' vídeos com IA — ' + priceStr;
+      creditsDisplay + ' créditos — ' + priceStr;
     var benefitEl = document.getElementById('avulsoPlanBenefit');
     if (benefitEl) benefitEl.textContent = AVULSO_BENEFIT[plan.id] || '';
     var listEl = document.getElementById('avulsoYouAreBuyingList');
     if (listEl) {
       listEl.innerHTML =
-        '<li>Até ' + videoCount + ' vídeos com IA</li>' +
+        '<li class="checkout-credits-item">' + creditsDisplay + ' créditos</li>' +
+        '<li>Equivalente a até ' + videoCount + ' vídeos com IA</li>' +
         '<li>Sem marca d\'água</li>' +
         '<li>Qualidade até 4K</li>' +
         '<li>Liberação imediata</li>';
     }
-    var creditsDisplay = (plan.credits * 10).toLocaleString('pt-BR');
     var creditsNumEl = document.getElementById('avulsoPixCreditsNum');
     if (creditsNumEl) creditsNumEl.textContent = creditsDisplay;
     if (user?.email) document.getElementById('avulsoEmail').value = user.email;
@@ -364,22 +369,26 @@
     document.getElementById('checkoutMensal')?.classList.remove('hidden');
     document.getElementById('mensalPlanId').value = plan.id;
     document.getElementById('mensalTitle').textContent = 'Checkout — ' + plan.name;
+    var creditsDisplay = MENSAIS_CREDITS_DISPLAY[plan.id] || Number(plan.credits).toLocaleString('pt-BR');
+    var mensalCreditsNumBigEl = document.getElementById('mensalCreditsNumBig');
+    if (mensalCreditsNumBigEl) mensalCreditsNumBigEl.textContent = creditsDisplay;
     var videoCount = MENSAIS_VIDEOS[plan.id] || Math.round(plan.credits / 50);
     var priceStr = 'R$ ' + (plan.amount / 100).toFixed(2).replace('.', ',') + '/mês';
     document.getElementById('mensalPlan').textContent =
-      'Até ' + videoCount + ' vídeos por mês — ' + priceStr;
+      creditsDisplay + ' créditos/mês — ' + priceStr;
     var benefitEl = document.getElementById('mensalPlanBenefit');
     if (benefitEl) benefitEl.textContent = MENSAIS_BENEFIT[plan.id] || '';
     var listEl = document.getElementById('mensalYouAreBuyingList');
+    var creditsLabel = creditsDisplay;
     if (listEl) {
       listEl.innerHTML =
-        '<li>Até ' + videoCount + ' vídeos por mês com IA</li>' +
+        '<li class="checkout-credits-item">' + creditsLabel + ' créditos por mês</li>' +
+        '<li>Equivalente a até ' + videoCount + ' vídeos por mês com IA</li>' +
         '<li>Sem marca d\'água</li>' +
         '<li>Qualidade até 4K</li>' +
         '<li>Créditos renovados todo mês</li>' +
         '<li>Cancele quando quiser</li>';
     }
-    var creditsDisplay = Number(plan.credits).toLocaleString('pt-BR');
     var creditsNumEl = document.getElementById('mensalCreditsNum');
     if (creditsNumEl) creditsNumEl.textContent = creditsDisplay;
     if (user?.email) document.getElementById('mensalEmail').value = user.email;

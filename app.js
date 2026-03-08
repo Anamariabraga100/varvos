@@ -933,15 +933,15 @@ function openPlansModal() {
     refreshCreditsFromSupabase().then(() => updatePlansActiveSection());
     m.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
-    // Abre em Planos Mensais por padrão (mais lucrativo)
+    // Abre em Comprar Créditos por padrão
     document.querySelectorAll('.plans-tab').forEach(t => t.classList.remove('active'));
-    const mensaisTab = document.querySelector('.plans-tab[data-tab="mensais"]');
-    if (mensaisTab) {
-      mensaisTab.classList.add('active');
-      document.getElementById('plansAvulsos')?.classList.add('hidden');
-      document.getElementById('plansMensais')?.classList.remove('hidden');
+    const avulsosTab = document.querySelector('.plans-tab[data-tab="avulsos"]');
+    if (avulsosTab) {
+      avulsosTab.classList.add('active');
+      document.getElementById('plansAvulsos')?.classList.remove('hidden');
+      document.getElementById('plansMensais')?.classList.add('hidden');
       const note = document.getElementById('plansModalCreditNote');
-      if (note) note.classList.add('hidden');
+      if (note) note.classList.remove('hidden');
     }
   }
 }

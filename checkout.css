@@ -131,6 +131,44 @@ header {
   font-weight: 600;
 }
 
+/* Destaque dos créditos no checkout */
+.checkout-credits-highlight {
+  margin: 0 0 20px;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(5, 150, 105, 0.08) 100%);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: 12px;
+  text-align: center;
+}
+.checkout-credits-label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #065f46;
+  margin-bottom: 4px;
+}
+.checkout-credits-num {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #047857;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+.checkout-credits-suffix {
+  display: block;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #059669;
+  margin-top: 2px;
+}
+.checkout-you-buying-list li.checkout-credits-item {
+  font-weight: 700;
+  color: #047857;
+  list-style: none;
+  margin-left: -20px;
+  margin-bottom: 8px;
+}
+
 .checkout-you-buying {
   margin: 0 0 24px;
   padding: 16px;

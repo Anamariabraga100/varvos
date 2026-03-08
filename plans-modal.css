@@ -315,21 +315,40 @@
   display: none;
 }
 
-/* Grid 3 colunas: Starter | Popular | Pro (avulsos) */
+/* Comprar créditos: 1 coluna (desktop e mobile) — cards um abaixo do outro */
 .plans-avulsos-three {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: 1fr;
   gap: 14px;
   margin-bottom: 12px;
 }
+.plans-avulsos-three .plan-card-starter { order: 1; }
+.plans-avulsos-three .plan-card-popular { order: 2; }
+.plans-avulsos-three .plan-card-pro { order: 3; }
 
-/* Popular em destaque: card maior, borda e sombra fortes, badge, fundo levemente diferente */
-.plan-card-avulso-featured {
-  transform: scale(1.05);
-  border: 2px solid rgba(16, 185, 129, 0.5);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(16, 185, 129, 0.15);
-  background: linear-gradient(180deg, #f0fdf4 0%, #fff 30%);
+/* Todos os cards de créditos com a mesma altura mínima (padrão Starter) */
+#plansAvulsos .plan-card-avulso {
+  min-height: 420px;
+}
+
+/* Popular: fundo branco igual aos outros, só destaque sutil (borda + badge) */
+.plan-card-avulso-featured,
+#plansAvulsos .plan-card-popular.plan-card-avulso-featured {
+  background: #fff;
+  border: 2px solid rgba(16, 185, 129, 0.4);
+  box-shadow: 0 4px 20px rgba(16, 185, 129, 0.12);
   z-index: 1;
+}
+
+.plan-card-avulso-featured .plan-cta {
+  background: #10b981;
+  border-color: #10b981;
+  color: #fff;
+}
+.plan-card-avulso-featured .plan-cta:hover {
+  background: #059669;
+  border-color: #059669;
+  color: #fff;
 }
 
 .plan-card-avulso-featured .plan-badge-most-chosen {
@@ -345,37 +364,29 @@
   text-align: center;
 }
 
-/* Esconder preço por vídeo nos 3 planos principais — priorizar quantidade */
-.plans-avulsos-three .plan-price-sub {
-  display: none;
+/* Valor por vídeo visível em todos os cards (preço ÷ quantidade de vídeos) */
+.plans-avulsos-three .plan-price-sub,
+.plan-card-escala .plan-price-sub {
+  display: block;
+  font-weight: 600;
+  color: #047857;
+  margin-top: 4px;
 }
 
 .plan-starter-hint {
   margin: -4px 0 10px;
   font-size: 0.75rem;
-  color: #6b7280;
+  color: #4b5563;
   line-height: 1.35;
   max-width: 90%;
 }
 
 .plan-popular-value {
   margin: -4px 0 10px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: #047857;
-  line-height: 1.35;
-}
-
-/* CTA principal no Popular (verde) em vez do Starter */
-.plan-card-popular .plan-cta {
-  background: #10b981;
-  border-color: #10b981;
-  color: #fff;
-}
-.plan-card-popular .plan-cta:hover {
-  background: #059669;
-  border-color: #059669;
-  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #065f46;
+  line-height: 1.4;
 }
 
 /* Remover destaque verde do primeiro card quando Popular é o recomendado */
@@ -666,12 +677,13 @@
 .plan-card-avulso .plan-name {
   margin: 6px 0 0;
   font-size: 1.1rem;
+  color: #111827;
 }
 
 .plan-card-avulso .plan-desc {
   margin: 0 0 8px;
   font-size: 0.8rem;
-  color: var(--text-muted, #6b7280);
+  color: #374151;
 }
 
 .plan-card-avulso .plan-credits-block {
@@ -710,16 +722,35 @@
   letter-spacing: -0.01em;
 }
 
-/* Badge destaque quantidade de vídeos — fundo verde claro, formato pill */
+/* Badge créditos em destaque — acima do valor por vídeo, foco na quantidade */
 .plan-videos-badge {
-  display: inline-flex;
+  display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 10px 18px;
-  margin: 0 0 12px;
-  background: rgba(16, 185, 129, 0.12);
-  border-radius: 999px;
+  gap: 4px;
+  width: 100%;
+  padding: 14px 20px;
+  margin: 0 0 14px;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.18) 0%, rgba(5, 150, 105, 0.12) 100%);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  border-radius: 12px;
+}
+
+/* Créditos: destaque principal (grande, em cima) */
+.plan-videos-credits {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #047857;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+/* Vídeos: informação secundária (abaixo dos créditos) — verde escuro para contraste no badge claro */
+.plan-videos-main {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #034a38;
 }
 
 .plan-videos-icon {
@@ -727,34 +758,23 @@
   color: #059669;
 }
 
-.plan-videos-main {
-  font-size: 1.05rem;
-  font-weight: 700;
+/* Creator / Premium: mesmo destaque para créditos */
+.plan-videos-creator .plan-videos-credits,
+.plan-videos-premium .plan-videos-credits {
+  font-size: 1.45rem;
+  font-weight: 800;
   color: #047857;
 }
-
-.plan-videos-credits {
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: #059669;
-  opacity: 0.9;
-}
-
-/* Creator: créditos menores (usuário compra resultado, não créditos) */
-.plan-videos-creator .plan-videos-main {
-  font-size: 1.15rem;
-  font-weight: 700;
-}
-.plan-videos-creator .plan-videos-credits {
-  font-size: 0.72rem;
-  opacity: 0.75;
+.plan-videos-creator .plan-videos-main,
+.plan-videos-premium .plan-videos-main {
+  font-size: 0.82rem;
 }
 
 .plan-models-hint {
   margin: 6px 0 8px;
-  font-size: 0.8rem;
-  color: #6b7280;
-  font-weight: 500;
+  font-size: 0.85rem;
+  color: #4b5563;
+  font-weight: 600;
 }
 
 /* FAQ abaixo dos cards — visual aprimorado */
@@ -895,7 +915,10 @@
   width: 100%;
   margin-bottom: 10px;
   text-align: left;
-  font-size: 0.8rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #374151;
+  line-height: 1.45;
 }
 
 .plan-card-avulso .plan-features li {
@@ -1036,23 +1059,27 @@
   align-items: center;
   margin-bottom: 14px;
 }
-.plan-price-creator .plan-price-main {
+/* Ordem: old (cortado) → sub (por vídeo, destaque) → main (total, menor) */
+.plan-price-creator .plan-price-old {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #6b7280;
+  text-decoration: line-through;
+  order: 1;
+}
+.plan-price-creator .plan-price-sub {
   font-size: 2.1rem;
   font-weight: 800;
   color: #059669;
   letter-spacing: -0.02em;
   line-height: 1.1;
+  order: 2;
 }
-.plan-price-creator .plan-price-sub {
+.plan-price-creator .plan-price-main {
   font-size: 0.85rem;
   font-weight: 500;
   color: #6b7280;
-}
-.plan-price-creator .plan-price-old {
-  font-size: 0.8rem;
-  font-weight: 500;
-  color: #9ca3af;
-  text-decoration: line-through;
+  order: 3;
 }
 
 /* Creator: fallback para plan-price-inverted (não usado no Creator) */
@@ -1076,36 +1103,41 @@
   align-items: center;
   margin-bottom: 14px;
 }
-.plan-price-premium .plan-price-main {
-  font-size: 1.85rem;
-  font-weight: 800;
-  color: #111827;
-  letter-spacing: -0.02em;
-  line-height: 1.1;
-}
-.plan-card-pro .plan-price-premium .plan-price-main {
-  color: #059669;
-}
-.plan-price-premium .plan-price-sub {
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: #6b7280;
-}
+/* Ordem: old (cortado) → sub (por vídeo, destaque) → main (total, menor) */
 .plan-price-premium .plan-price-old {
   font-size: 0.8rem;
   font-weight: 500;
-  color: #9ca3af;
+  color: #6b7280;
   text-decoration: line-through;
+  order: 1;
+}
+.plan-price-premium .plan-price-sub {
+  font-size: 1.85rem;
+  font-weight: 800;
+  color: #059669;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  order: 2;
+}
+.plan-card-pro .plan-price-premium .plan-price-sub {
+  color: #059669;
+}
+.plan-price-premium .plan-price-main {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #6b7280;
+  order: 3;
 }
 
-/* Vídeos premium — créditos menores (Pro, Agency) */
+/* Premium: créditos em destaque (igual aos avulsos) */
 .plan-videos-premium .plan-videos-main {
-  font-size: 1.1rem;
-  font-weight: 700;
+  font-size: 0.82rem;
+  font-weight: 600;
 }
 .plan-videos-premium .plan-videos-credits {
-  font-size: 0.72rem;
-  opacity: 0.75;
+  font-size: 1.45rem;
+  font-weight: 800;
+  opacity: 1;
 }
 
 /* Botão premium (Pro, Agency) — maior para conversão */
@@ -1127,26 +1159,30 @@
   border-radius: 12px !important;
   padding: 16px 20px !important;
 }
-.plan-price-avulso .plan-price-main {
+/* Ordem no box: old (cortado em cima) → sub (por vídeo, destaque) → main (total, menor) */
+.plan-price-avulso .plan-price-old {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #4b5563;
+  text-decoration: line-through;
+  order: 1;
+}
+.plan-price-avulso .plan-price-sub {
   font-size: 1.65rem;
   font-weight: 800;
   color: #059669;
   letter-spacing: -0.02em;
   line-height: 1.1;
+  order: 2;
 }
-.plan-price-avulso .plan-price-sub {
-  font-size: 0.82rem;
-  font-weight: 500;
-  color: #6b7280;
-}
-.plan-price-avulso .plan-price-old {
-  font-size: 0.78rem;
-  font-weight: 500;
-  color: #9ca3af;
-  text-decoration: line-through;
+.plan-price-avulso .plan-price-main {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #374151;
+  order: 3;
 }
 .plan-card-starter .plan-price-avulso .plan-price-main {
-  color: #059669;
+  color: #6b7280;
 }
 
 /* Badge 50% nos planos */
@@ -1195,9 +1231,9 @@
 
 .plan-card-avulso .plan-guarantee {
   margin-top: 10px;
-  font-size: 0.8rem;
-  color: #059669;
-  font-weight: 500;
+  font-size: 0.85rem;
+  color: #047857;
+  font-weight: 600;
 }
 
 
@@ -1348,16 +1384,9 @@
     border-radius: 0;
   }
 
-  /* 1 coluna: não deixar os 3 juntos no mobile — ordem Popular, Starter, Pro */
-  .plans-avulsos-three {
-    grid-template-columns: 1fr;
-    gap: 12px;
-  }
-  .plans-avulsos-three .plan-card-starter { order: 2; }
-  .plans-avulsos-three .plan-card-popular { order: 1; }
-  .plans-avulsos-three .plan-card-pro { order: 3; }
+  .plans-avulsos-three { gap: 12px; }
   .plan-card-avulso-featured {
-    transform: scale(1.02);
+    transform: none;
   }
 }
 
