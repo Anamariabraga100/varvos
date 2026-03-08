@@ -136,7 +136,7 @@
           <div class="spotlight-media spotlight-media-three">
             <video src="https://juauagypsrgnmwsavrto.supabase.co/storage/v1/object/public/videos/FE7506VLVNK1D1OW.mp4" autoplay loop muted playsinline title="Emoção surpresa"></video>
             <video src="https://juauagypsrgnmwsavrto.supabase.co/storage/v1/object/public/videos/AFJZXFQXAW2VIHVZ.mp4" autoplay loop muted playsinline title="Emoção ansiosa"></video>
-            <video src="https://juauagypsrgnmwsavrto.supabase.co/storage/v1/object/public/videos/seedance15_ZQKYC91LA0NR4MBF_0.mp4" autoplay loop muted playsinline title="Emoção feliz"></video>
+            <video src="https://pub-d86536e7051f4f949cbf8c8a92edbabe.r2.dev/videos/1767526028977_PDqOuxcT.mp4" autoplay loop muted playsinline title="Emoção feliz"></video>
           </div>
           <h3>Controle total de <em>emoções</em></h3>
           <p class="spotlight-desc">Defina exatamente a emoção do seu ator. Basta escrever o que você quer transmitir.</p>
@@ -165,25 +165,25 @@
     <section class="features-section">
       <div class="features-intro">
         <h2>Anúncios que <em>chamam atenção e convertem</em></h2>
-        <p>Vídeo por texto e Imitar Movimento. Produza anúncios para TikTok Ads, Meta Ads e campanhas — sem estúdio, sem equipe.</p>
+        <p>Vídeo por texto e Imitar Movimento. Produção em segundos.</p>
       </div>
 
       <div class="features-grid">
         <div class="feature-card feature-card-center">
           <div class="feature-card-body">
             <span class="feature-badge">Criação por texto</span>
-            <h3>Volume que campanhas exigem</h3>
-            <p>TikTok Ads e Meta precisam de entrega constante. Descreva o anúncio em texto; a IA gera o vídeo pronto para rodar. Vertical, horizontal, 10s ou 15s.</p>
-            <a href="../video/" class="feature-cta">Criar anúncio por texto →</a>
+            <h3>Descreva o vídeo. A IA produz.</h3>
+            <p>Transforme texto em vídeo automaticamente. Formato ideal para redes sociais. Produção em segundos, não horas.</p>
+            <a href="../video/" class="feature-cta">Criar meu vídeo →</a>
           </div>
         </div>
 
         <div class="feature-card feature-card-center">
           <div class="feature-card-body">
             <span class="feature-badge">Imitar Movimento</span>
-            <h3>UGC com sua persona, sem gravar</h3>
-            <p>Anúncios com rosto convertem mais — mas produzir cada trend é caro. Foto + vídeo de referência: a IA coloca sua persona no movimento. Ideal para UGC e campanhas.</p>
-            <a href="../imitar-movimento/" class="feature-cta">Imitar movimento →</a>
+            <h3>Use seu rosto nas tendências — sem gravar nada</h3>
+            <p>Aplique danças e gestos em qualquer foto. Crie conteúdo viral sem filmar. Exportação em 720p ou 1080p.</p>
+            <a href="../imitar-movimento/" class="feature-cta">Experimentar Imitar Movimento →</a>
           </div>
         </div>
       </div>
@@ -375,6 +375,13 @@
       var video = card ? card.querySelector('video') : null;
       var btn = card ? card.querySelector('.mute-btn') : null;
       if (video) {
+        if (video.muted) {
+          document.querySelectorAll('.video-card').forEach(function(c) {
+            var v = c.querySelector('video');
+            var b = c.querySelector('.mute-btn');
+            if (v && v !== video) { v.muted = true; if (b) b.textContent = '🔇'; }
+          });
+        }
         video.muted = !video.muted;
         video.play().catch(function(){});
         if (btn) btn.textContent = video.muted ? '🔇' : '🔊';

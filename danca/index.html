@@ -128,7 +128,7 @@
           <div class="spotlight-media spotlight-media-three">
             <video src="https://juauagypsrgnmwsavrto.supabase.co/storage/v1/object/public/videos/FE7506VLVNK1D1OW.mp4" autoplay loop muted playsinline title="Emoção surpresa"></video>
             <video src="https://juauagypsrgnmwsavrto.supabase.co/storage/v1/object/public/videos/AFJZXFQXAW2VIHVZ.mp4" autoplay loop muted playsinline title="Emoção ansiosa"></video>
-            <video src="https://juauagypsrgnmwsavrto.supabase.co/storage/v1/object/public/videos/seedance15_ZQKYC91LA0NR4MBF_0.mp4" autoplay loop muted playsinline title="Emoção feliz"></video>
+            <video src="https://pub-d86536e7051f4f949cbf8c8a92edbabe.r2.dev/videos/1767526028977_PDqOuxcT.mp4" autoplay loop muted playsinline title="Emoção feliz"></video>
           </div>
           <h3>Controle total de <em>emoções</em></h3>
           <p class="spotlight-desc">Defina exatamente a emoção do seu ator. Basta escrever o que você quer transmitir.</p>
@@ -157,15 +157,15 @@
     <section class="features-section">
       <div class="features-intro">
         <h2><em>Imitar movimento</em> — sua cara, qualquer dança</h2>
-        <p>Use sua foto ou personagem imitando qualquer vídeo de referência. Dancinhas que viralizam, gestos de vendas, poses de treino. Sua identidade. O movimento que você quiser.</p>
+        <p>Use sua foto ou personagem imitando qualquer vídeo de referência.</p>
       </div>
 
       <div class="features-grid">
         <div class="feature-card feature-card-center">
           <div class="feature-card-body">
             <span class="feature-badge">Imitar Movimento</span>
-            <h3>Sua identidade em qualquer trend</h3>
-            <p>Trends mudam rápido; vídeos com rosto engajam mais. Use sua foto e um vídeo de referência — a IA transfere o movimento. Dancinhas, gestos, treinos. 720p ou 1080p.</p>
+            <h3>Use seu rosto nas tendências — sem gravar nada</h3>
+            <p>Aplique danças e gestos em qualquer foto. Crie conteúdo viral sem filmar. Exportação em 720p ou 1080p.</p>
             <a href="../imitar-movimento/" class="feature-cta">Experimentar Imitar Movimento →</a>
           </div>
         </div>
@@ -173,9 +173,9 @@
         <div class="feature-card feature-card-center">
           <div class="feature-card-body">
             <span class="feature-badge">Criação por texto</span>
-            <h3>Quando a ideia vem antes da referência</h3>
-            <p>Descreva o vídeo em uma frase e receba o resultado. Ideal para cenas, anúncios ou conceitos que você consegue explicar em texto. Formatos para TikTok, Reels e YouTube.</p>
-            <a href="../video/" class="feature-cta">Criar vídeo por texto →</a>
+            <h3>Descreva o vídeo. A IA produz.</h3>
+            <p>Transforme texto em vídeo automaticamente. Formato ideal para redes sociais. Produção em segundos, não horas.</p>
+            <a href="../video/" class="feature-cta">Criar meu vídeo →</a>
           </div>
         </div>
       </div>
@@ -367,6 +367,13 @@
       var video = card ? card.querySelector('video') : null;
       var btn = card ? card.querySelector('.mute-btn') : null;
       if (video) {
+        if (video.muted) {
+          document.querySelectorAll('.video-card').forEach(function(c) {
+            var v = c.querySelector('video');
+            var b = c.querySelector('.mute-btn');
+            if (v && v !== video) { v.muted = true; if (b) b.textContent = '🔇'; }
+          });
+        }
         video.muted = !video.muted;
         video.play().catch(function(){});
         if (btn) btn.textContent = video.muted ? '🔇' : '🔊';

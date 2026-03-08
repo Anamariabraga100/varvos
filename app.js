@@ -28,6 +28,14 @@ let imgRefUrl = '';   // Image reference (uploaded)
 let motionCharImageUrl = '';  // Kling: character image
 let motionRefVideoUrl = '';   // Kling: reference video
 
+// Mensagem inline: Varvos Fast requer imagem (próxima à área de upload, não toast)
+function showImageRefRequiredMessage(show) {
+  const msg = document.getElementById('imageRefRequiredMsg');
+  const btn = document.getElementById('imageRefChangeLink');
+  if (msg) msg.classList.toggle('hidden', !show);
+  if (btn) btn.classList.toggle('image-ref-required-highlight', !!show);
+}
+
 // Toast de aviso (substitui alert — mais discreto)
 let noticeToastTimeout = null;
 let noticeToastInitialized = false;
@@ -333,6 +341,7 @@ function updateVideoModelUI() {
   if (noticeSora) noticeSora.classList.toggle('hidden', isVEO && !isGrok);
   if (typeof syncConfigCardDisplays === 'function') syncConfigCardDisplays();
   if (currentMode === 'video') updateRefImageReadyState();
+  if (selectedModel !== 'grok-imagine/image-to-video' && typeof showImageRefRequiredMessage === 'function') showImageRefRequiredMessage(false);
 }
 document.getElementById('videoModel')?.addEventListener('change', updateVideoModelUI);
 
@@ -1889,7 +1898,7 @@ setupFileUpload({
   previewId: 'imageRefPreview',
   imgId: 'imageRefPreviewImg',
   removeId: 'imageRefRemove',
-  setUrl: (v) => { refImageUrl = v; updateRefImageReadyState(); saveDraft(); },
+  setUrl: (v) => { refImageUrl = v; showImageRefRequiredMessage(false); updateRefImageReadyState(); saveDraft(); },
   onUploadStart: () => { refImageUploading = true; updateRefImageReadyState(); },
   onUploadEnd: () => { refImageUploading = false; updateRefImageReadyState(); },
   progressElId: 'imageRefProgress'
@@ -2186,7 +2195,8 @@ function updateGenerateButtonLabel(showCredits = true) {
     btn.title = hasValue ? `${labelMain} (${cost} créditos)` : labelMain;
     const costBadge = document.getElementById('generateCostBadge');
     if (costBadge) {
-      costBadge.textContent = hasValue ? `${cost} créditos` : '— créditos';
+      const numEl = costBadge.querySelector('.cost-credits-num');
+      if (numEl) numEl.textContent = hasValue ? cost : '—';
       costBadge.classList.toggle('hidden', !hasValue);
     }
     return;
@@ -3427,7 +3437,7 @@ generateForm.addEventListener('submit', async (e) => {
     }
     const model = getEffectiveModel();
     if (model === 'grok-imagine/image-to-video' && !refImageUrl) {
-      showNoticeToast('O Varvos Fast precisa de uma imagem de referência.');
+      showImageRefRequiredMessage(true);
       return;
     }
     lastPrompt = prompt;
@@ -3454,11 +3464,49 @@ if (samplesNext && samplesCarousel) {
 const historyLibraryCarousel = document.getElementById('historyLibraryCarousel');
 const historyLibraryPrev = document.getElementById('historyLibraryPrev');
 const historyLibraryNext = document.getElementById('historyLibraryNext');
+
+// Carrossel "Exemplos criados com Varvos" — scroll normal (sem loop)
 if (historyLibraryPrev && historyLibraryCarousel) {
   historyLibraryPrev.addEventListener('click', () => historyLibraryCarousel.scrollBy({ left: -120, behavior: 'smooth' }));
 }
 if (historyLibraryNext && historyLibraryCarousel) {
   historyLibraryNext.addEventListener('click', () => historyLibraryCarousel.scrollBy({ left: 120, behavior: 'smooth' }));
+}
+document.querySelectorAll('.history-library .video-card.sample-thumb').forEach((card) => {
+  card.addEventListener('click', (e) => {
+    if (e.target.closest('.carousel-nav')) return;
+    toggleSampleMute(card);
+  });
+});
+
+// Toggle som ao clicar nos exemplos "Exemplos criados com Varvos"
+function toggleSampleMute(card) {
+  const video = card?.querySelector('video');
+  const btn = card?.querySelector('.mute-btn');
+  if (!video || !btn) return;
+  if (video.muted) {
+    document.querySelectorAll('.history-library .video-card.sample-thumb').forEach((c) => {
+      const v = c.querySelector('video');
+      const b = c.querySelector('.mute-btn');
+      if (v && v !== video) {
+        v.muted = true;
+        const im = b?.querySelector('.icon-muted');
+        const iu = b?.querySelector('.icon-unmuted');
+        if (im && iu) { im.classList.remove('hidden'); iu.classList.add('hidden'); }
+        if (b) { b.setAttribute('aria-label', 'Ativar som'); b.setAttribute('title', 'Clique para ativar o som'); }
+      }
+    });
+  }
+  video.muted = !video.muted;
+  video.play().catch(() => {});
+  const iconMuted = btn.querySelector('.icon-muted');
+  const iconUnmuted = btn.querySelector('.icon-unmuted');
+  if (iconMuted && iconUnmuted) {
+    iconMuted.classList.toggle('hidden', !video.muted);
+    iconUnmuted.classList.toggle('hidden', video.muted);
+  }
+  btn.setAttribute('aria-label', video.muted ? 'Ativar som' : 'Desativar som');
+  btn.setAttribute('title', video.muted ? 'Clique para ativar o som' : 'Clique para desativar o som');
 }
 
 // Load history on init (Supabase se logado, senão localStorage)
