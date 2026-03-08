@@ -20,6 +20,18 @@ header {
   justify-content: space-between;
   align-items: center;
   padding: 8px 0 12px;
+  gap: 16px;
+}
+
+.checkout-back {
+  font-size: 0.95rem;
+  color: #475569;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.checkout-back:hover {
+  color: #1a1a1a;
 }
 
 .logo {

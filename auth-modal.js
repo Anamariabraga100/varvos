@@ -33,7 +33,16 @@ function closeAuthModal() {
 }
 
 function getReturnTo() {
-  return authReturnTo ? authReturnTo.value : REDIRECT_URL;
+  const path = authReturnTo ? authReturnTo.value : REDIRECT_URL;
+  return addPlanosIfCreatePage(path);
+}
+
+function addPlanosIfCreatePage(path) {
+  const norm = (path || '').replace(/^\/+/, '').split('?')[0];
+  const isCreatePage = norm === 'video' || norm.startsWith('video/') || norm === 'imitar-movimento' || norm.startsWith('imitar-movimento/');
+  if (!isCreatePage) return path;
+  const sep = path.includes('?') ? '&' : '?';
+  return path + sep + 'planos=1';
 }
 
 function decodeJwtPayload(token) {

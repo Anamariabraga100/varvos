@@ -19,7 +19,7 @@ function populateLandingHamburgerUser(user) {
 }
 
 function updateLandingAuthUI() {
-  const authTrigger = document.getElementById('authTrigger');
+  const authTrigger = document.getElementById('navBtnEntrar') || document.getElementById('authTrigger');
   const navLogged = document.getElementById('navLogged');
   if (!authTrigger || !navLogged) return;
   function applyUI(user) {

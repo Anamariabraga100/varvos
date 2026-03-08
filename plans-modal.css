@@ -341,13 +341,13 @@
 }
 
 .plan-card-avulso-featured .plan-cta {
-  background: #10b981;
-  border-color: #10b981;
+  background: #000;
+  border-color: #000;
   color: #fff;
 }
 .plan-card-avulso-featured .plan-cta:hover {
-  background: #059669;
-  border-color: #059669;
+  background: #333;
+  border-color: #333;
   color: #fff;
 }
 

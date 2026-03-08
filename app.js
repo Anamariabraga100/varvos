@@ -11,6 +11,7 @@ const HISTORY_STORAGE_KEY = 'varvos_history';
 const CREDITS_STORAGE_KEY = 'varvos_credits';
 const AUTH_STORAGE = 'varvos_user';
 const ACTIVE_TASK_STORAGE = 'varvos_active_task';
+const DRAFT_STORAGE_KEY = 'varvos_draft';
 
 let selectedModel = 'veo3.1-fast';
 let hideModelGrok = false;
@@ -397,8 +398,16 @@ document.getElementById('btnClearPrompt')?.addEventListener('click', () => {
   }
 });
 
-document.getElementById('prompt')?.addEventListener('input', updateClearPromptVisibility);
-document.getElementById('prompt')?.addEventListener('change', updateClearPromptVisibility);
+let draftSaveTimeout = null;
+document.getElementById('prompt')?.addEventListener('input', () => {
+  updateClearPromptVisibility();
+  clearTimeout(draftSaveTimeout);
+  draftSaveTimeout = setTimeout(saveDraft, 400);
+});
+document.getElementById('prompt')?.addEventListener('change', () => {
+  updateClearPromptVisibility();
+  saveDraft();
+});
 
 // Init clear button visibility
 updateClearPromptVisibility();
@@ -773,6 +782,15 @@ document.addEventListener('keydown', (e) => {
 
 document.getElementById('creditsModalClose')?.addEventListener('click', closeCreditsModal);
 document.querySelector('.credits-modal-backdrop')?.addEventListener('click', closeCreditsModal);
+
+function redirectToLogin() {
+  const returnTo = window.location.pathname || '/video/';
+  if (typeof openAuthModal === 'function') {
+    openAuthModal(returnTo);
+  } else {
+    window.location.href = '/auth.html?return=' + encodeURIComponent(returnTo);
+  }
+}
 
 // Credits modal: CTA abre auth ou planos conforme o motivo
 document.getElementById('creditsModalPlans')?.addEventListener('click', () => {
@@ -1223,7 +1241,7 @@ userHasPurchased().then((hasPurchased) => {
   if (hasPurchased) applyPromotionalVisibility(true);
 });
 
-// Abre modal de planos quando ?planos=1 na URL (ex: vindo de "Planos e preços")
+// Abre modal de planos quando ?planos=1 na URL (fluxo: cadastro → compra de créditos → criar vídeo)
 if (new URLSearchParams(location.search).get('planos') === '1' && document.getElementById('plansModal')) {
   setTimeout(openPlansModal, 150);
 }
@@ -1781,18 +1799,68 @@ function updateRefImageReadyState() {
     btn.disabled = refImageUploading;
   }
 }
+
+function saveDraft() {
+  try {
+    const promptEl = document.getElementById('prompt');
+    const prompt = promptEl ? promptEl.value.trim() : '';
+    const draft = { prompt, refImageUrl: refImageUrl || '', imgRefUrl: imgRefUrl || '' };
+    sessionStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(draft));
+  } catch (_) {}
+}
+
+function restoreDraft() {
+  try {
+    const raw = sessionStorage.getItem(DRAFT_STORAGE_KEY);
+    if (!raw) return;
+    const draft = JSON.parse(raw);
+    if (draft.prompt) {
+      const promptEl = document.getElementById('prompt');
+      if (promptEl) {
+        promptEl.value = draft.prompt;
+        updateClearPromptVisibility?.();
+        updatePromptWrapValue?.();
+        promptEl.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+    }
+    if (draft.refImageUrl) {
+      refImageUrl = draft.refImageUrl;
+      const area = document.getElementById('imageRefArea');
+      const preview = document.getElementById('imageRefPreview');
+      const img = document.getElementById('imageRefPreviewImg');
+      if (area && preview && img) {
+        area.classList.add('hidden');
+        preview.classList.remove('hidden');
+        img.src = draft.refImageUrl;
+      }
+    }
+    if (draft.imgRefUrl) {
+      imgRefUrl = draft.imgRefUrl;
+      const area = document.getElementById('imgRefArea');
+      const preview = document.getElementById('imgRefPreview');
+      const img = document.getElementById('imgRefPreviewImg');
+      if (area && preview && img) {
+        area.classList.add('hidden');
+        preview.classList.remove('hidden');
+        img.src = draft.imgRefUrl;
+      }
+    }
+  } catch (_) {}
+}
+
 setupFileUpload({
   inputId: 'imageRefFile',
   areaId: 'imageRefArea',
   previewId: 'imageRefPreview',
   imgId: 'imageRefPreviewImg',
   removeId: 'imageRefRemove',
-  setUrl: (v) => { refImageUrl = v; updateRefImageReadyState(); },
+  setUrl: (v) => { refImageUrl = v; updateRefImageReadyState(); saveDraft(); },
   onUploadStart: () => { refImageUploading = true; updateRefImageReadyState(); },
   onUploadEnd: () => { refImageUploading = false; updateRefImageReadyState(); },
   progressElId: 'imageRefProgress'
 });
-setupFileUpload({ inputId: 'imgRefFile', areaId: 'imgRefArea', previewId: 'imgRefPreview', imgId: 'imgRefPreviewImg', removeId: 'imgRefRemove', setUrl: (v) => imgRefUrl = v });
+setupFileUpload({ inputId: 'imgRefFile', areaId: 'imgRefArea', previewId: 'imgRefPreview', imgId: 'imgRefPreviewImg', removeId: 'imgRefRemove', setUrl: (v) => { imgRefUrl = v; saveDraft(); } });
+restoreDraft();
 function updateMotionReadyState(forceState) {
   const el = document.getElementById('motionReadyState');
   const btn = document.getElementById('btnGenerate');
@@ -2265,11 +2333,11 @@ function openCreditsModal(opts = {}) {
 
     if (opts.needsLogin && titleEl && descEl && btnEl) {
       creditsModal.setAttribute('data-credits-reason', 'login');
-      titleEl.textContent = 'Entre para continuar';
+      titleEl.textContent = opts.loginTitle || 'Cadastre-se para gerar seu vídeo';
       const cost = opts.cost != null ? opts.cost : null;
       descEl.textContent = cost != null
-        ? `Para criar esse vídeo você precisa de ${cost} créditos. Faça login ou cadastre-se para continuar.`
-        : 'Faça login ou cadastre-se para acessar seus créditos e começar a criar vídeos com IA.';
+        ? (opts.loginDesc || `Para criar esse vídeo você precisa de ${cost} créditos. Faça login ou cadastre-se para continuar.`)
+        : (opts.loginDesc || 'Faça login ou cadastre-se para continuar e gerar seu primeiro vídeo.');
       if (balanceEl) balanceEl.classList.add('hidden');
       if (missingEl) missingEl.classList.add('hidden');
       if (noExpireEl) noExpireEl.classList.add('hidden');
@@ -2780,18 +2848,24 @@ function isLocalhost() {
 }
 
 async function generateMedia(body) {
+  saveDraft();
   const cost = getCreditsCostForBody(body);
-  const userId = getCurrentUserId();
-  const credits = getCredits();
   const skipAuthOnLocalhost = isLocalhost();
 
+  // Regra: sem conta → login; logado sem créditos → comprar créditos; logado com créditos → criar vídeo
   if (!SKIP_CREDITS) {
     await syncUserFromSupabaseSession();
-    if (!isLoggedIn() && !skipAuthOnLocalhost) {
-      openPlansModal();
+    const loggedIn = isLoggedIn();
+    if (!loggedIn && !skipAuthOnLocalhost) {
+      redirectToLogin();
       return;
     }
+    const credits = getCredits();
     if (credits == null || credits < cost) {
+      if (!loggedIn) {
+        redirectToLogin();
+        return;
+      }
       openPlansModal();
       return;
     }
