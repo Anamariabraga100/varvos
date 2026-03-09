@@ -143,14 +143,22 @@ function initLanding() {
   document.querySelectorAll('.video-card video[data-lazy]').forEach(video => {
     const card = video.closest('.video-card');
     if (!card?.dataset.videoSrc) return;
+    const placeholder = card?.querySelector('.video-placeholder.video-loading');
+    const hidePlaceholder = () => {
+      placeholder?.classList.add('hidden');
+    };
+    video.addEventListener('loadeddata', hidePlaceholder, { once: true });
+    video.addEventListener('canplay', hidePlaceholder, { once: true });
+    video.addEventListener('error', hidePlaceholder, { once: true });
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(e => {
         if (e.isIntersecting && !video.src) {
           video.src = card.dataset.videoSrc;
+          video.preload = 'auto';
           observer.disconnect();
         }
       });
-    }, { threshold: 0, rootMargin: '50px' });
+    }, { threshold: 0, rootMargin: '100px' });
     observer.observe(card);
   });
 
