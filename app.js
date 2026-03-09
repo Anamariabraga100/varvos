@@ -1178,7 +1178,10 @@ document.getElementById('userMenuPlans')?.addEventListener('click', () => {
   openPlansModal();
 });
 
-function logout() {
+async function logout() {
+  try {
+    await window.varvosSupabase?.auth?.signOut();
+  } catch (_) {}
   localStorage.removeItem(AUTH_STORAGE);
   updateUserMenu();
   updateUserMenuPlan();

@@ -69,13 +69,16 @@
             <input type="password" id="password" name="password" placeholder="Mínimo 8 caracteres" autocomplete="new-password">
             <button type="button" class="password-toggle" aria-label="Mostrar senha" title="Mostrar senha"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
           </div>
-          <label for="passwordConfirm">Confirmar senha</label>
-          <div class="password-input-wrap">
-            <input type="password" id="passwordConfirm" name="password_confirm" placeholder="Repita a senha" autocomplete="new-password">
-            <button type="button" class="password-toggle" aria-label="Mostrar senha" title="Mostrar senha"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          <div id="passwordConfirmWrap">
+            <label for="passwordConfirm">Confirmar senha</label>
+            <div class="password-input-wrap">
+              <input type="password" id="passwordConfirm" name="password_confirm" placeholder="Repita a senha" autocomplete="new-password">
+              <button type="button" class="password-toggle" aria-label="Mostrar senha" title="Mostrar senha"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+            </div>
           </div>
           <p class="auth-errors hidden" id="authErrors"></p>
-          <button type="submit" class="auth-btn auth-btn-submit">Criar conta</button>
+          <button type="submit" class="auth-btn auth-btn-submit" id="btnAuthSubmit">Criar conta</button>
+          <a href="#" class="auth-mode-toggle" id="authModeToggle">Já tem conta? Fazer login</a>
           <button type="button" class="auth-back" id="btnBack">← Voltar</button>
         </form>
 

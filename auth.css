@@ -121,8 +121,22 @@ body {
   justify-content: center;
 }
 
-.auth-options.hidden {
+.auth-options.hidden,
+.auth-email-form .hidden {
   display: none;
+}
+
+.auth-mode-toggle {
+  display: block;
+  margin-top: 12px;
+  font-size: 0.875rem;
+  color: #5f6368;
+  text-decoration: none;
+}
+
+.auth-mode-toggle:hover {
+  color: #1a73e8;
+  text-decoration: underline;
 }
 
 .auth-btn {

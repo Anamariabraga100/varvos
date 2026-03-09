@@ -88,7 +88,10 @@ function initLandingHamburger() {
   overlay?.querySelectorAll('a').forEach((a) => {
     a.addEventListener('click', () => toggleLandingHamburger(false));
   });
-  logoutBtn?.addEventListener('click', () => {
+  logoutBtn?.addEventListener('click', async () => {
+    try {
+      await window.varvosSupabase?.auth?.signOut();
+    } catch (_) {}
     localStorage.removeItem(AUTH_STORAGE);
     toggleLandingHamburger(false);
     updateLandingAuthUI();
@@ -116,56 +119,12 @@ function initLanding() {
   const carousel = document.getElementById('videoCarousel');
   const prevBtn = document.getElementById('carouselPrev');
   const nextBtn = document.getElementById('carouselNext');
-  const track = carousel?.querySelector('.carousel-track');
-
-  // Carrossel infinito: triplica o conteúdo e reseta ao chegar no fim
-  if (carousel && track) {
-    const cards = Array.from(track.querySelectorAll('.video-card'));
-    cards.forEach((card) => {
-      track.appendChild(card.cloneNode(true));
-      track.appendChild(card.cloneNode(true));
-    });
-    let firstSetWidth = 0;
-    const updateWidth = () => { firstSetWidth = track.scrollWidth / 3; };
-    requestAnimationFrame(updateWidth);
-    setTimeout(updateWidth, 100);
-
-    let isResetting = false;
-    const checkLoop = () => {
-      if (isResetting || !firstSetWidth) return;
-      const sl = carousel.scrollLeft;
-      const maxScroll = carousel.scrollWidth - carousel.clientWidth;
-      if (sl >= firstSetWidth - 20) {
-        isResetting = true;
-        carousel.scrollLeft = sl - firstSetWidth;
-        requestAnimationFrame(() => { isResetting = false; });
-      } else if (sl <= 5 && maxScroll > firstSetWidth) {
-        isResetting = true;
-        carousel.scrollLeft = firstSetWidth + sl;
-        requestAnimationFrame(() => { isResetting = false; });
-      }
-    };
-
-    carousel.addEventListener('scroll', () => requestAnimationFrame(checkLoop));
-    if ('onscrollend' in window) carousel.addEventListener('scrollend', checkLoop);
-
-    const scrollAmount = 192;
-    if (prevBtn) {
-      prevBtn.addEventListener('click', () => {
-        if (carousel.scrollLeft < scrollAmount) {
-          carousel.scrollLeft = Math.max(0, firstSetWidth + carousel.scrollLeft - scrollAmount);
-        }
-        carousel.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
-      });
-    }
-    if (nextBtn) {
-      nextBtn.addEventListener('click', () => carousel.scrollBy({ left: scrollAmount, behavior: 'smooth' }));
-    }
-  } else if (prevBtn && carousel) {
-    prevBtn.addEventListener('click', () => carousel.scrollBy({ left: -192, behavior: 'smooth' }));
+  const scrollAmount = 192;
+  if (prevBtn && carousel) {
+    prevBtn.addEventListener('click', () => carousel.scrollBy({ left: -scrollAmount, behavior: 'smooth' }));
   }
-  if (nextBtn && carousel && !track) {
-    nextBtn.addEventListener('click', () => carousel.scrollBy({ left: 192, behavior: 'smooth' }));
+  if (nextBtn && carousel) {
+    nextBtn.addEventListener('click', () => carousel.scrollBy({ left: scrollAmount, behavior: 'smooth' }));
   }
 
   // Modal de vídeo: lógica no index.html (script inline) para garantir execução antes de auth/supabase

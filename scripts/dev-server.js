@@ -33,8 +33,7 @@ app.get('/imagem/', sendIndex('imagem'));
 app.get('/admin', sendIndex('admin'));
 app.get('/admin/', sendIndex('admin'));
 
-app.use(express.static(ROOT, { redirect: false }));
-
+// APIs primeiro (antes do static) para evitar 404
 // API: upload-presign
 app.post('/api/upload-presign', async (req, res) => {
   try {
@@ -79,6 +78,17 @@ app.post('/api/refund-credits', async (req, res) => {
   }
 });
 
+// API: request-password-reset (e mode=check para verificar e-mail)
+app.post('/api/request-password-reset', async (req, res) => {
+  try {
+    const handler = (await import('../api/request-password-reset.js')).default;
+    await handler(req, res);
+  } catch (err) {
+    console.error('[dev-server] request-password-reset:', err);
+    res.status(500).json({ error: err?.message || 'Erro' });
+  }
+});
+
 // API: get-credits (créditos e plano do usuário)
 app.get('/api/app/get-credits', async (req, res) => {
   try {
@@ -89,6 +99,8 @@ app.get('/api/app/get-credits', async (req, res) => {
     res.status(500).json({ error: err?.message || 'Erro' });
   }
 });
+
+app.use(express.static(ROOT, { redirect: false }));
 
 // Fallback: SPA
 app.get(/^\/(?!api)/, (req, res) => {

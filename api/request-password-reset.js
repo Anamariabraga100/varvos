@@ -1,8 +1,9 @@
 /**
- * API: Solicitar redefinição de senha
+ * API: Solicitar redefinição de senha OU verificar se e-mail existe
  * POST /api/request-password-reset
- * Body: { email }
- * Gera link de recuperação via Supabase Admin e envia por e-mail via SES
+ * Body: { email, mode?: 'check' | 'reset' }
+ * mode=check: retorna { exists: boolean } (não envia e-mail)
+ * mode=reset ou omitido: envia link de recuperação
  */
 import { createClient } from '@supabase/supabase-js';
 import { sendEmail } from '../services/emailService.js';
@@ -13,7 +14,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Método não permitido' });
   }
 
-  const { email } = req.body || {};
+  const { email, mode } = req.body || {};
   if (!email || typeof email !== 'string') {
     return res.status(400).json({ error: 'email é obrigatório' });
   }
@@ -29,12 +30,26 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Supabase não configurado' });
   }
 
-  const baseUrl = (process.env.SITE_URL || '').trim() || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL.replace(/^https?:\/\//, '')}` : 'https://www.varvos.com');
-  const redirectTo = `${baseUrl.replace(/\/$/, '')}/auth.html#recovery`;
-
   const supabase = createClient(supabaseUrl, supabaseServiceKey, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
+
+  if (mode === 'check') {
+    try {
+      const { data: exists, error } = await supabase.rpc('check_email_registered', { p_email: trimmedEmail });
+      if (error) {
+        console.error('[request-password-reset] check_email:', error.message);
+        return res.status(500).json({ error: 'Não foi possível verificar o e-mail' });
+      }
+      return res.status(200).json({ exists: !!exists });
+    } catch (err) {
+      console.error('[request-password-reset] check:', err);
+      return res.status(500).json({ error: 'Erro ao verificar e-mail' });
+    }
+  }
+
+  const baseUrl = (process.env.SITE_URL || '').trim() || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL.replace(/^https?:\/\//, '')}` : 'https://www.varvos.com');
+  const redirectTo = `${baseUrl.replace(/\/$/, '')}/auth.html#recovery`;
 
   try {
     const { data, error } = await supabase.auth.admin.generateLink({

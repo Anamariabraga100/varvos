@@ -204,10 +204,35 @@
   gap: 16px;
 }
 
-.auth-modal .auth-email-form #passwordConfirmWrap {
+.auth-modal .auth-email-actions {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.auth-modal .auth-btn-outline {
+  background: transparent;
+  border: 1px solid #dadce0;
+  color: #1a1a1a;
+}
+
+.auth-modal .auth-btn-outline:hover {
+  background: #f1f3f4;
+  border-color: #dadce0;
+  color: #1a1a1a;
+}
+
+.auth-modal .auth-mode-toggle {
+  display: block;
+  margin-top: 12px;
+  font-size: 0.875rem;
+  color: #5f6368;
+  text-decoration: none;
+}
+
+.auth-modal .auth-mode-toggle:hover {
+  color: #1a73e8;
+  text-decoration: underline;
 }
 
 .auth-modal .auth-email-form label {
