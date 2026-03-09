@@ -12,7 +12,7 @@ const CREDITS_STORAGE_KEY = 'varvos_credits';
 const AUTH_STORAGE = 'varvos_user';
 const ACTIVE_TASK_STORAGE = 'varvos_active_task';
 const DRAFT_STORAGE_KEY = 'varvos_draft';
-const DEFAULT_REF_IMAGE_URL = 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&q=80';
+const DEFAULT_REF_IMAGE_URL = 'https://images.unsplash.com/photo-1566226786058-067ca89196f9?w=400&h=400&fit=crop&q=80';
 const DEFAULT_PROMPT_EXAMPLE = 'Influencer fazendo unboxing de tênis com reação surpresa, estilo vídeo de TikTok';
 
 let selectedModel = 'veo3.1-fast';

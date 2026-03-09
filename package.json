@@ -8,6 +8,7 @@
     "criar-plano-creator": "node scripts/create-creator-plan.js",
     "backup-db": "node scripts/backup-supabase-db.js",
     "backup-db-json": "node scripts/backup-supabase-json.js",
+    "restore-db": "node scripts/restore-supabase-json.js",
     "test-kie-upload": "node scripts/test-kie-upload.js"
   },
   "dependencies": {
@@ -18,5 +19,8 @@
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
     "multiparty": "^4.2.3"
+  },
+  "devDependencies": {
+    "sharp": "^0.34.5"
   }
 }
