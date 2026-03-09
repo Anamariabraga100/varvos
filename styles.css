@@ -1679,6 +1679,13 @@ body {
   border-color: #94a3b8;
   box-shadow: 0 1px 3px rgba(0,0,0,0.06);
 }
+.config-summary-card:focus {
+  outline: 2px solid var(--accent, #6366f1);
+  outline-offset: 2px;
+}
+.config-summary-card:focus:not(:focus-visible) {
+  outline: none;
+}
 
 .config-summary-card-icon {
   flex-shrink: 0;
@@ -1765,16 +1772,37 @@ body {
   min-height: 0;
 }
 
-/* Configurações expandíveis abaixo do botão (sem engrenagem em cima do preview) */
+/* Configurações expandíveis abaixo do botão */
 .config-expand-wrap {
-  margin-top: 0;
+  margin-top: 12px;
 }
 .config-expand-hidden-summary details:not([open]) {
   margin: 0;
   padding: 0;
 }
-.config-summary-cards.config-summary-below {
-  margin-top: 12px;
+.config-details-visible-summary .config-details-summary-visible {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 0;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #374151;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+.config-details-visible-summary .config-details-summary-visible::-webkit-details-marker { display: none; }
+.config-details-visible-summary .config-details-summary-visible:hover {
+  color: #111827;
+}
+.config-details-visible-summary .config-details-summary-visible .config-chevron {
+  font-size: 1rem;
+  color: #9ca3af;
+  transition: transform 0.2s;
+}
+.config-details-visible-summary[open] .config-details-summary-visible .config-chevron {
+  transform: rotate(90deg);
 }
 .config-details-below {
   margin: 0;

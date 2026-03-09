@@ -482,29 +482,7 @@ function syncConfigCardDisplays() {
   if (grokResolutionSel && grokResolutionDisp) grokResolutionDisp.textContent = grokResolutionSel.selectedOptions[0]?.text || grokResolutionSel.value;
   if (grokModeSel && grokModeDisp) grokModeDisp.textContent = grokModeSel.selectedOptions[0]?.text || grokModeSel.value;
 
-  // Atualizar barra de resumo visível (sem clicar na engrenagem)
-  const summaryModel = document.getElementById('configSummaryModel');
-  const summaryFormat = document.getElementById('configSummaryFormat');
-  const summaryDuration = document.getElementById('configSummaryDuration');
-  const summaryResolution = document.getElementById('configSummaryResolution');
-  const summaryBar = document.getElementById('configSummaryBar');
-  if (summaryBar && summaryModel && summaryFormat && summaryDuration && summaryResolution) {
-    summaryModel.textContent = modelDisp?.textContent || 'Varvos Fast';
-    summaryFormat.textContent = aspectDisp?.textContent || '9:16 Stories';
-    const isGrok = modelSel?.value === 'grok-imagine/image-to-video';
-    summaryDuration.textContent = isGrok ? (grokDurationDisp?.textContent || '6 segundos') : (durationDisp?.textContent || '15 segundos');
-    summaryResolution.textContent = isGrok ? (grokResolutionDisp?.textContent || '480p') : (resDisp?.textContent || '720p');
-  }
 }
-document.getElementById('configSummaryBar')?.addEventListener('click', () => {
-  document.getElementById('configDetails')?.setAttribute('open', '');
-});
-document.getElementById('configSummaryBar')?.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter' || e.key === ' ') {
-    e.preventDefault();
-    document.getElementById('configDetails')?.setAttribute('open', '');
-  }
-});
 document.getElementById('videoModel')?.addEventListener('change', () => {
   syncConfigCardDisplays();
   if (currentMode === 'video') updateGenerateButtonLabel(true);
@@ -1356,8 +1334,6 @@ function applyMode(mode) {
   if (configMain) configMain.classList.toggle('hidden', currentMode !== 'video');
   const configRef = document.getElementById('configRefWrap');
   if (configRef) configRef.classList.toggle('hidden', currentMode !== 'video');
-  const configSummaryBar = document.getElementById('configSummaryBar');
-  if (configSummaryBar) configSummaryBar.classList.toggle('hidden', currentMode !== 'video');
   const configExpandWrap = document.getElementById('configExpandWrap');
   if (configExpandWrap) configExpandWrap.classList.toggle('hidden', currentMode !== 'video');
   const generateBtnBelowImage = document.getElementById('generateBtnBelowImage');
