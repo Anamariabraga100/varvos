@@ -300,9 +300,9 @@
 }
 
 .plans-tab.active {
-  background: #111827;
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
   color: #fff !important;
-  border-color: #111827;
+  border-color: #059669;
 }
 
 .plans-tab-content {
@@ -722,7 +722,84 @@
   letter-spacing: -0.01em;
 }
 
-/* Badge créditos em destaque — acima do valor por vídeo, foco na quantidade */
+/* Card unificado: créditos + preço em um único bloco */
+.plan-info-unified {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 18px 20px;
+  margin: 0 0 14px;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.18) 0%, rgba(5, 150, 105, 0.12) 100%);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  border-radius: 12px;
+}
+.plan-info-unified .plan-videos-credits {
+  margin-bottom: 2px;
+}
+.plan-info-unified .plan-videos-main {
+  margin-bottom: 4px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(16, 185, 129, 0.25);
+}
+.plan-info-unified .plan-price-old {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #4b5563;
+  text-decoration: line-through;
+}
+.plan-info-unified .plan-price-main {
+  font-size: 1.65rem;
+  font-weight: 800;
+  color: #059669;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+.plan-info-unified .plan-price-sub {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #374151;
+}
+.plan-card-starter .plan-info-unified .plan-price-sub {
+  color: #6b7280;
+}
+.plan-info-unified.plan-info-creator .plan-videos-credits {
+  font-size: 1.45rem;
+}
+.plan-info-unified.plan-info-creator .plan-videos-main {
+  font-size: 0.82rem;
+}
+.plan-info-unified.plan-info-creator .plan-price-old {
+  font-size: 0.8rem;
+}
+.plan-info-unified.plan-info-creator .plan-price-main {
+  font-size: 2.1rem;
+}
+.plan-info-unified.plan-info-creator .plan-price-sub {
+  font-size: 0.85rem;
+}
+.plan-info-unified.plan-info-premium .plan-videos-credits {
+  font-size: 1.45rem;
+}
+.plan-info-unified.plan-info-premium .plan-videos-main {
+  font-size: 0.82rem;
+}
+.plan-info-unified.plan-info-premium .plan-price-old {
+  font-size: 0.8rem;
+}
+.plan-info-unified.plan-info-premium .plan-price-main {
+  font-size: 1.85rem;
+}
+.plan-card-pro .plan-info-unified.plan-info-premium .plan-price-main {
+  color: #059669;
+}
+.plan-info-unified.plan-info-premium .plan-price-sub {
+  font-size: 0.85rem;
+}
+
+/* Badge créditos em destaque — acima do valor por vídeo, foco na quantidade (legado) */
 .plan-videos-badge {
   display: flex;
   flex-direction: column;

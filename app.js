@@ -997,39 +997,9 @@ function updateUserMenuPlan() {
   }
 }
 
-let plansModalTimerInterval = null;
-
-function startPlansModalTimer() {
-  const el = document.getElementById('plansModalTimerCountdown');
-  if (!el) return;
-  const minutes = 15;
-  let remaining = minutes * 60;
-  const tick = () => {
-    if (remaining <= 0) {
-      if (plansModalTimerInterval) clearInterval(plansModalTimerInterval);
-      plansModalTimerInterval = null;
-      el.textContent = '0:00';
-      return;
-    }
-    const m = Math.floor(remaining / 60);
-    const s = remaining % 60;
-    el.textContent = m + ':' + String(s).padStart(2, '0');
-    remaining--;
-  };
-  tick();
-  if (plansModalTimerInterval) clearInterval(plansModalTimerInterval);
-  plansModalTimerInterval = setInterval(tick, 1000);
-}
-
 function applyPromotionalVisibility(hasPurchased) {
-  const timerEl = document.getElementById('plansModalTimer');
-  if (timerEl) timerEl.classList.toggle('hidden', !!hasPurchased);
   document.querySelectorAll('.plan-banner-starter').forEach(el => el.classList.toggle('hidden', !!hasPurchased));
   document.querySelectorAll('.plans-tab-badge-50').forEach(el => el.classList.toggle('hidden', !!hasPurchased));
-  if (hasPurchased && plansModalTimerInterval) {
-    clearInterval(plansModalTimerInterval);
-    plansModalTimerInterval = null;
-  }
 }
 
 function openPlansModal() {
@@ -1037,7 +1007,6 @@ function openPlansModal() {
   if (m) {
     userHasPurchased().then((hasPurchased) => {
       applyPromotionalVisibility(hasPurchased);
-      if (!hasPurchased) startPlansModalTimer();
     });
     updatePlansActiveSection();
     refreshCreditsFromSupabase().then(() => updatePlansActiveSection());
@@ -1050,8 +1019,6 @@ function openPlansModal() {
       avulsosTab.classList.add('active');
       document.getElementById('plansAvulsos')?.classList.remove('hidden');
       document.getElementById('plansMensais')?.classList.add('hidden');
-      const note = document.getElementById('plansModalCreditNote');
-      if (note) note.classList.remove('hidden');
     }
   }
 }
@@ -1124,10 +1091,6 @@ function closePlansModal() {
   if (m) {
     m.classList.add('hidden');
     document.body.style.overflow = '';
-    if (plansModalTimerInterval) {
-      clearInterval(plansModalTimerInterval);
-      plansModalTimerInterval = null;
-    }
   }
 }
 
@@ -1293,8 +1256,6 @@ function switchPlansTab(t) {
   if (tab) tab.classList.add('active');
   document.getElementById('plansAvulsos')?.classList.toggle('hidden', t !== 'avulsos');
   document.getElementById('plansMensais')?.classList.toggle('hidden', t !== 'mensais');
-  const note = document.getElementById('plansModalCreditNote');
-  if (note) note.classList.toggle('hidden', t !== 'avulsos');
   if (t === 'mensais') updatePlansCardsVisibility();
 }
 document.querySelectorAll('.plans-tab').forEach(tab => {

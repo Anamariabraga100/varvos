@@ -836,18 +836,10 @@
   </div>
 
   <!-- Modal de planos -->
-  <div id="plansModal" class="plans-modal hidden" role="dialog" aria-modal="true" aria-labelledby="plansModalTitle">
+  <div id="plansModal" class="plans-modal hidden" role="dialog" aria-modal="true" aria-label="Planos e créditos">
     <div class="plans-modal-backdrop"></div>
     <div class="plans-modal-card">
-      <div class="plans-modal-timer" id="plansModalTimer">
-        <span class="plans-modal-timer-icon">◎</span>
-        <span class="plans-modal-timer-text">Oferta expira em:</span>
-        <span class="plans-modal-timer-countdown" id="plansModalTimerCountdown">14:59</span>
-      </div>
       <button type="button" class="plans-modal-close" id="plansModalClose" aria-label="Fechar">×</button>
-      <h2 id="plansModalTitle" class="plans-modal-title">Escolha seu plano</h2>
-      <p class="plans-modal-sub">Assinatura mensal ou créditos avulsos. Flexível para o seu fluxo.</p>
-      <p id="plansModalCreditNote" class="plans-modal-credit-note">Pagamento único via Pix ou cartão</p>
 
       <div id="plansActiveSection" class="plans-active-section plans-active-summary hidden">
         <p id="plansActiveCongrats" class="plans-active-congrats">Parabéns! Você está com o plano mensal ativo.</p>
@@ -858,26 +850,21 @@
 
       <div class="plans-tabs">
         <button type="button" class="plans-tab active" data-tab="avulsos">Comprar créditos</button>
-        <button type="button" class="plans-tab plans-tab-mensais plans-tab-with-badge" data-tab="mensais"><span class="plans-tab-badge plans-tab-badge-50">50%</span><span>Planos Mensais</span></button>
+        <button type="button" class="plans-tab plans-tab-mensais" data-tab="mensais">Planos Mensais</button>
       </div>
 
       <div id="plansAvulsos" class="plans-tab-content">
         <div class="plans-avulsos-three">
           <div class="plan-card plan-card-avulso plan-card-starter">
-            <span class="plan-banner plan-banner-starter">APENAS HOJE</span>
             <h3 class="plan-name">Starter</h3>
             <p class="plan-desc">Para testar</p>
-            <div class="plan-videos-badge plan-videos-premium">
+            <div class="plan-info-unified">
               <span class="plan-videos-credits">150 créditos</span>
               <span class="plan-videos-main">Até 10 vídeos</span>
-            </div>
-            <div class="plan-price-box plan-price-avulso">
               <span class="plan-price-old">De R$ 18,90</span>
-              <span class="plan-price-sub">R$ 1,49 por vídeo</span>
               <span class="plan-price-main">R$ 14,90</span>
+              <span class="plan-price-sub">R$ 1,49 por vídeo</span>
             </div>
-            <p class="plan-starter-hint">Plano básico — pode acabar rápido se você criar vários vídeos</p>
-            <p class="plan-models-hint">Crie escrevendo texto ou enviando imagem de referência</p>
             <ul class="plan-features">
               <li>Qualidade de vídeos em até 4K</li>
               <li>Sem marca d'água — 100% seu</li>
@@ -892,17 +879,13 @@
             <span class="plan-badge-most-chosen">🔥 Mais escolhido</span>
             <h3 class="plan-name">Popular</h3>
             <p class="plan-desc">Para quem quer mais vídeos</p>
-            <div class="plan-videos-badge plan-videos-premium">
+            <div class="plan-info-unified">
               <span class="plan-videos-credits">650 créditos</span>
               <span class="plan-videos-main">Até 43 vídeos</span>
-            </div>
-            <div class="plan-price-box plan-price-avulso">
               <span class="plan-price-old">De R$ 49,90</span>
-              <span class="plan-price-sub">R$ 0,93 por vídeo</span>
               <span class="plan-price-main">R$ 39,90</span>
+              <span class="plan-price-sub">R$ 0,93 por vídeo</span>
             </div>
-            <p class="plan-popular-value">🔥 +30 vídeos a mais que o Starter (43 no total)</p>
-            <p class="plan-models-hint">Crie escrevendo texto ou enviando imagem de referência</p>
             <ul class="plan-features">
               <li>Qualidade de vídeos em até 4K</li>
               <li>Sem marca d'água — 100% seu</li>
@@ -916,16 +899,13 @@
           <div class="plan-card plan-card-avulso plan-card-pro">
             <h3 class="plan-name">Pro</h3>
             <p class="plan-desc">Para criadores frequentes</p>
-            <div class="plan-videos-badge plan-videos-premium">
+            <div class="plan-info-unified">
               <span class="plan-videos-credits">1.500 créditos</span>
               <span class="plan-videos-main">Até 100 vídeos</span>
-            </div>
-            <div class="plan-price-box plan-price-avulso">
               <span class="plan-price-old">De R$ 99,90</span>
-              <span class="plan-price-sub">R$ 0,80 por vídeo</span>
               <span class="plan-price-main">R$ 79,90</span>
+              <span class="plan-price-sub">R$ 0,80 por vídeo</span>
             </div>
-            <p class="plan-models-hint">Crie escrevendo texto ou enviando imagem de referência</p>
             <ul class="plan-features">
               <li>Qualidade de vídeos em até 4K</li>
               <li>Sem marca d'água — 100% seu</li>
@@ -942,27 +922,24 @@
         <div class="plan-card plan-card-avulso plan-card-escala">
           <h3 class="plan-name">Escala</h3>
           <p class="plan-desc">Para alto volume</p>
-          <div class="plan-videos-badge plan-videos-premium">
+          <div class="plan-info-unified">
             <span class="plan-videos-credits">6.100 créditos</span>
             <span class="plan-videos-main">Até 406 vídeos</span>
-          </div>
-          <div class="plan-price-box plan-price-avulso">
             <span class="plan-price-old">De R$ 367,00</span>
-            <span class="plan-price-sub">R$ 0,73 por vídeo</span>
             <span class="plan-price-main">R$ 297,00</span>
+            <span class="plan-price-sub">R$ 0,73 por vídeo</span>
           </div>
-          <p class="plan-models-hint">Crie escrevendo texto ou enviando imagem de referência</p>
-          <ul class="plan-features">
-            <li>Qualidade de vídeos em até 4K</li>
-            <li>Sem marca d'água — 100% seu</li>
-            <li>Vídeos de IA realistas</li>
-            <li>Pronto para redes sociais</li>
-            <li>Copiar danças e vídeos virais</li>
-            <li>Geração 2x mais rápida</li>
-            <li>Prioridade máxima na fila</li>
-            <li>Suporte prioritário</li>
-          </ul>
-          <a href="/checkout?plano=escala" class="plan-cta">Comprar créditos</a>
+            <ul class="plan-features">
+              <li>Qualidade de vídeos em até 4K</li>
+              <li>Sem marca d'água — 100% seu</li>
+              <li>Vídeos de IA realistas</li>
+              <li>Pronto para redes sociais</li>
+              <li>Copiar danças e vídeos virais</li>
+              <li>Geração 2x mais rápida</li>
+              <li>Prioridade máxima na fila</li>
+              <li>Suporte prioritário</li>
+            </ul>
+            <a href="/checkout?plano=escala" class="plan-cta">Comprar créditos</a>
           <span class="plan-guarantee">Garantia de 7 dias</span>
         </div>
 
@@ -989,21 +966,15 @@
 
       <div id="plansMensais" class="plans-tab-content hidden">
         <div class="plan-card plan-card-avulso plan-card-creator plan-card-most-chosen" data-plan-id="start">
-          <span class="plan-banner plan-banner-creator">50% OFF</span>
-          <span class="plan-badge-most-chosen">🔥 Mais escolhido pelos criadores</span>
           <h3 class="plan-name">Creator</h3>
           <p class="plan-desc">Ideal para criadores</p>
-          <div class="plan-videos-badge plan-videos-creator">
+          <div class="plan-info-unified plan-info-creator">
             <span class="plan-videos-credits">1.500 créditos/mês</span>
             <span class="plan-videos-main">Até 100 vídeos por mês</span>
-          </div>
-          <div class="plan-price-box plan-price-creator">
             <span class="plan-price-old">De R$ 119,80/mês</span>
-            <span class="plan-price-sub">R$ 0,60 por vídeo</span>
             <span class="plan-price-main">R$ 59,90/mês</span>
+            <span class="plan-price-sub">R$ 0,60 por vídeo</span>
           </div>
-          <p class="plan-economy-hint plan-economy-inline">💰 Economize até 70% vs créditos avulsos</p>
-          <p class="plan-models-hint">Crie escrevendo texto ou enviando imagem de referência</p>
           <ul class="plan-features">
             <li>Qualidade de vídeos em até 4K</li>
             <li>Sem marca d'água — 100% seu</li>
@@ -1013,24 +984,19 @@
             <li>Geração 2x mais rápida</li>
             <li>Renovação automática</li>
           </ul>
-          <p class="plan-social-proof">Mais de 1.200 criadores já usam este plano</p>
-          <a href="/checkout?plano=start" class="plan-cta plan-cta-green plan-cta-creator">QUERO APROVEITAR 50% OFF</a>
+          <a href="/checkout?plano=start" class="plan-cta plan-cta-green plan-cta-creator">ATIVAR PLANO</a>
           <span class="plan-guarantee">Garantia de 7 dias</span>
         </div>
         <div class="plan-card plan-card-avulso plan-card-pro plan-card-pro-mensal" data-plan-id="pro">
-          <span class="plan-badge-pro">Melhor custo-benefício</span>
           <h3 class="plan-name">Pro</h3>
           <p class="plan-desc">Para criadores em escala</p>
-          <div class="plan-videos-badge plan-videos-premium">
+          <div class="plan-info-unified plan-info-premium">
             <span class="plan-videos-credits">4.000 créditos/mês</span>
             <span class="plan-videos-main">Até 266 vídeos por mês</span>
-          </div>
-          <div class="plan-price-box plan-price-premium">
             <span class="plan-price-old">De R$ 179,90/mês</span>
-            <span class="plan-price-sub">R$ 0,56 por vídeo</span>
             <span class="plan-price-main">R$ 149,90/mês</span>
+            <span class="plan-price-sub">R$ 0,56 por vídeo</span>
           </div>
-          <p class="plan-models-hint">Crie escrevendo texto ou enviando imagem de referência</p>
           <ul class="plan-features">
             <li>Qualidade de vídeos em até 4K</li>
             <li>Sem marca d'água — 100% seu</li>
@@ -1045,19 +1011,15 @@
           <span class="plan-guarantee">Garantia de 7 dias</span>
         </div>
         <div class="plan-card plan-card-avulso plan-card-agency" data-plan-id="agency">
-          <span class="plan-badge-agency">Máximo volume — menor preço</span>
           <h3 class="plan-name">Agency</h3>
           <p class="plan-desc">Para agências e alto volume</p>
-          <div class="plan-videos-badge plan-videos-premium">
+          <div class="plan-info-unified plan-info-premium">
             <span class="plan-videos-credits">15.000 créditos/mês</span>
             <span class="plan-videos-main">Até 1.000 vídeos por mês</span>
-          </div>
-          <div class="plan-price-box plan-price-premium">
             <span class="plan-price-old">De R$ 549/mês</span>
-            <span class="plan-price-sub">R$ 0,45 por vídeo</span>
             <span class="plan-price-main">R$ 449/mês</span>
+            <span class="plan-price-sub">R$ 0,45 por vídeo</span>
           </div>
-          <p class="plan-models-hint">Crie escrevendo texto ou enviando imagem de referência</p>
           <ul class="plan-features">
             <li>Qualidade de vídeos em até 4K</li>
             <li>Sem marca d'água — 100% seu</li>
