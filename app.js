@@ -12,7 +12,7 @@ const CREDITS_STORAGE_KEY = 'varvos_credits';
 const AUTH_STORAGE = 'varvos_user';
 const ACTIVE_TASK_STORAGE = 'varvos_active_task';
 const DRAFT_STORAGE_KEY = 'varvos_draft';
-const DEFAULT_REF_IMAGE_URL = 'https://images.unsplash.com/photo-1566226786058-067ca89196f9?w=400&h=400&fit=crop&q=80';
+const DEFAULT_REF_IMAGE_URL = 'https://pub-d86536e7051f4f949cbf8c8a92edbabe.r2.dev/videos/ChatGPT%20Image%209%20de%20mar.%20de%202026%2C%2003_21_11.png';
 const DEFAULT_PROMPT_EXAMPLE = 'Influencer fazendo unboxing de tênis com reação surpresa, estilo vídeo de TikTok';
 
 let selectedModel = 'veo3.1-fast';
@@ -481,7 +481,30 @@ function syncConfigCardDisplays() {
   if (grokDurationSel && grokDurationDisp) grokDurationDisp.textContent = grokDurationSel.selectedOptions[0]?.text || grokDurationSel.value + ' segundos';
   if (grokResolutionSel && grokResolutionDisp) grokResolutionDisp.textContent = grokResolutionSel.selectedOptions[0]?.text || grokResolutionSel.value;
   if (grokModeSel && grokModeDisp) grokModeDisp.textContent = grokModeSel.selectedOptions[0]?.text || grokModeSel.value;
+
+  // Atualizar barra de resumo visível (sem clicar na engrenagem)
+  const summaryModel = document.getElementById('configSummaryModel');
+  const summaryFormat = document.getElementById('configSummaryFormat');
+  const summaryDuration = document.getElementById('configSummaryDuration');
+  const summaryResolution = document.getElementById('configSummaryResolution');
+  const summaryBar = document.getElementById('configSummaryBar');
+  if (summaryBar && summaryModel && summaryFormat && summaryDuration && summaryResolution) {
+    summaryModel.textContent = modelDisp?.textContent || 'Varvos Fast';
+    summaryFormat.textContent = aspectDisp?.textContent || '9:16 Stories';
+    const isGrok = modelSel?.value === 'grok-imagine/image-to-video';
+    summaryDuration.textContent = isGrok ? (grokDurationDisp?.textContent || '6 segundos') : (durationDisp?.textContent || '15 segundos');
+    summaryResolution.textContent = isGrok ? (grokResolutionDisp?.textContent || '480p') : (resDisp?.textContent || '720p');
+  }
 }
+document.getElementById('configSummaryBar')?.addEventListener('click', () => {
+  document.getElementById('configDetails')?.setAttribute('open', '');
+});
+document.getElementById('configSummaryBar')?.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' || e.key === ' ') {
+    e.preventDefault();
+    document.getElementById('configDetails')?.setAttribute('open', '');
+  }
+});
 document.getElementById('videoModel')?.addEventListener('change', () => {
   syncConfigCardDisplays();
   if (currentMode === 'video') updateGenerateButtonLabel(true);
@@ -1333,6 +1356,12 @@ function applyMode(mode) {
   if (configMain) configMain.classList.toggle('hidden', currentMode !== 'video');
   const configRef = document.getElementById('configRefWrap');
   if (configRef) configRef.classList.toggle('hidden', currentMode !== 'video');
+  const configSummaryBar = document.getElementById('configSummaryBar');
+  if (configSummaryBar) configSummaryBar.classList.toggle('hidden', currentMode !== 'video');
+  const configExpandWrap = document.getElementById('configExpandWrap');
+  if (configExpandWrap) configExpandWrap.classList.toggle('hidden', currentMode !== 'video');
+  const generateBtnBelowImage = document.getElementById('generateBtnBelowImage');
+  if (generateBtnBelowImage) generateBtnBelowImage.classList.toggle('hidden', currentMode !== 'video');
   const promptBlock = document.getElementById('createPromptBlock');
   const promptInputWrap = document.getElementById('promptInputWrap');
   if (promptBlock) {
@@ -2164,8 +2193,8 @@ function updateGenerateButtonLabel(showCredits = true) {
   const labels = { video: 'Gerar vídeo', image: 'Gerar imagem', motion: 'Imitar movimento' };
   const labelMain = labels[currentMode] || 'Gerar';
   if (!showCredits) {
-    if (isChatSend && btn) btn.title = 'Gerando...';
-    else btnText.textContent = 'Gerando...';
+    if (btn) btn.title = 'Gerando...';
+    btnText.textContent = 'Gerando...';
     if (creditsSpan) creditsSpan.classList.add('hidden');
     return;
   }
@@ -2193,6 +2222,7 @@ function updateGenerateButtonLabel(showCredits = true) {
   }
   if (isChatSend && btn) {
     btn.title = hasValue ? `${labelMain} (${cost} créditos)` : labelMain;
+    btnText.textContent = labelMain;
     const costBadge = document.getElementById('generateCostBadge');
     if (costBadge) {
       const numEl = costBadge.querySelector('.cost-credits-num');

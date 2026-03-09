@@ -96,8 +96,8 @@
                 </div>
               </div>
 
-              <!-- Linha de cima: preview da imagem (quando anexada) -->
-              <div class="chat-attach-row" id="configRefWrap">
+              <!-- Imagem de referência -->
+              <div class="chat-attach-row chat-attach-row-above" id="configRefWrap">
                 <div class="file-preview chat-input-preview hidden" id="imageRefPreview">
                   <div class="motion-preview-wrap chat-preview-click-wrap" id="imageRefPreviewWrap" role="button" tabindex="0" aria-label="Ampliar imagem">
                     <img id="imageRefPreviewImg" class="motion-preview-media" alt="Preview">
@@ -113,9 +113,8 @@
                   </div>
                 </div>
               </div>
-
-              <!-- Prompts de recomendação em scroll (marquee) -->
-              <div class="prompt-chips-marquee-wrap">
+              <!-- Dicas de prompt logo abaixo da imagem ref -->
+              <div class="prompt-chips-below-ref prompt-chips-marquee-wrap prompt-chips-inside" id="promptChipsBelowRef">
                 <div class="prompt-chips-marquee" aria-label="Sugestões de prompt">
                   <button type="button" class="chip chip-inline" data-prompt="Influencer fazendo unboxing de tênis">Influencer fazendo unboxing de tênis</button>
                   <button type="button" class="chip chip-inline" data-prompt="Propaganda de tênis com modelo em estúdio">Propaganda de tênis com modelo em estúdio</button>
@@ -132,9 +131,9 @@
                   <button type="button" class="chip chip-inline" data-prompt="Receita de bolo em close-up">Receita de bolo em close-up</button>
                 </div>
               </div>
-              <!-- Rótulo fora da caixa para não sobrepor a engrenagem -->
+              <!-- Descreva o vídeo (abaixo das dicas) -->
               <p class="chat-input-label" id="promptLabel">Descreva o vídeo...</p>
-              <!-- Campo de texto estilo ChatGPT: + integrado na mesma caixa -->
+              <!-- Campo de texto -->
               <div class="chat-input-row chat-input-row-prompt">
                 <div id="promptInputWrap" class="chat-input-field-wrap chat-input-field-wrap-chatgpt">
                   <div class="prompt-field-wrap prompt-field-wrap-seamless prompt-field-wrap-chatgpt">
@@ -145,19 +144,59 @@
                     <p class="image-ref-required-msg hidden" id="imageRefRequiredMsg" role="alert">⚡ Varvos Fast requer uma imagem de referência.</p>
                     <div class="prompt-attach-row prompt-footer">
                       <button type="button" class="chat-attach-btn chat-attach-btn-inline" id="imageRefChangeLink" title="Anexar imagem" aria-label="Anexar imagem">+</button>
-                      <span class="generate-cost-badge prompt-footer-credits" id="generateCostBadge" aria-live="polite"><span class="cost-credits-icon" aria-hidden="true">⚡</span> Geração: <span class="cost-credits-num">—</span> créditos</span>
-                      <button type="submit" class="chat-send-btn" id="btnGenerate" title="Gerar vídeo" aria-label="Enviar e gerar vídeo">
-                        <span id="btnGenerateText"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"/><path d="M5 12l7-7 7 7"/></svg></span>
-                      </button>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <!-- Configurações no cantinho do card -->
-              <div class="chat-card-config-corner">
-                <details id="configDetails" class="config-details config-details-inline">
-                  <summary class="config-details-summary-inline" aria-label="Configurações">⚙</summary>
+              <!-- Botão Gerar vídeo grande, abaixo do campo de texto -->
+              <div class="generate-btn-below-image" id="generateBtnBelowImage">
+                <button type="submit" class="chat-send-btn chat-send-btn-large" id="btnGenerate" title="Gerar vídeo" aria-label="Enviar e gerar vídeo">
+                  <span id="btnGenerateText">Gerar vídeo</span>
+                </button>
+                <span class="generate-cost-badge generate-cost-below-btn" id="generateCostBadge" aria-live="polite"><span class="cost-credits-icon" aria-hidden="true">⚡</span> Geração: <span class="cost-credits-num">—</span> créditos</span>
+              </div>
+
+              <!-- 4 cards de configuração abaixo do botão -->
+              <div class="config-summary-cards config-summary-below" id="configSummaryBar" role="button" tabindex="0">
+                <div class="config-summary-card">
+                  <span class="config-summary-card-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 2L11 13"/><path d="M22 2L15 22L11 13L2 9L22 2Z"/></svg></span>
+                  <div class="config-summary-card-content">
+                    <span class="config-summary-card-label">Modelo</span>
+                    <span class="config-summary-card-value" id="configSummaryModel">Varvos Fast</span>
+                  </div>
+                  <span class="config-summary-card-chevron">›</span>
+                </div>
+                <div class="config-summary-card">
+                  <span class="config-summary-card-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18"/></svg></span>
+                  <div class="config-summary-card-content">
+                    <span class="config-summary-card-label">Formato</span>
+                    <span class="config-summary-card-value" id="configSummaryFormat">9:16 Stories</span>
+                  </div>
+                  <span class="config-summary-card-chevron">›</span>
+                </div>
+                <div class="config-summary-card">
+                  <span class="config-summary-card-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
+                  <div class="config-summary-card-content">
+                    <span class="config-summary-card-label">Duração</span>
+                    <span class="config-summary-card-value" id="configSummaryDuration">6 segundos</span>
+                  </div>
+                  <span class="config-summary-card-chevron">›</span>
+                </div>
+                <div class="config-summary-card">
+                  <span class="config-summary-card-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></span>
+                  <div class="config-summary-card-content">
+                    <span class="config-summary-card-label">Resolução</span>
+                    <span class="config-summary-card-value" id="configSummaryResolution">480p</span>
+                  </div>
+                  <span class="config-summary-card-chevron">›</span>
+                </div>
+              </div>
+
+              <!-- Configurações (abre ao clicar nos cards; sem label "Configurações") -->
+              <div class="config-expand-wrap config-expand-hidden-summary" id="configExpandWrap">
+                <details id="configDetails" class="config-details config-details-below">
+                  <summary class="config-details-summary-below visually-hidden" aria-label="Abrir configurações"></summary>
                   <div class="config-details-dropdown">
                     <div id="configMainOptions" class="config-main-options config-above-btn">
                     <div id="videoFields" class="mode-fields">

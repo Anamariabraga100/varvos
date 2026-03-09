@@ -1604,10 +1604,21 @@ body {
 
 /* Prompts de recomendação em scroll (marquee) */
 .prompt-chips-marquee-wrap {
-  margin: 10px 0 8px 0;
+  margin: 6px 0 4px 0;
   overflow: hidden;
   mask-image: linear-gradient(to right, transparent, black 24px, black calc(100% - 24px), transparent);
   -webkit-mask-image: linear-gradient(to right, transparent, black 24px, black calc(100% - 24px), transparent);
+}
+.prompt-chips-inside {
+  margin: 0 0 4px 0;
+  order: -1;
+}
+.prompt-chips-inside .chip-inline {
+  background: #e5e7eb;
+  border-color: #d1d5db;
+}
+.prompt-chips-inside .chip-inline:hover {
+  background: #d1d5db;
 }
 .prompt-chips-marquee {
   display: flex;
@@ -1634,6 +1645,77 @@ body {
   background: #e5e7eb;
   border-color: #d1d5db;
 }
+/* Barra de resumo das configurações em cards (estilo Imitar Movimento) */
+.config-summary-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 8px 0 12px 0;
+  cursor: pointer;
+  outline: none;
+}
+.config-summary-cards:focus {
+  outline: 2px solid var(--accent, #6366f1);
+  outline-offset: 2px;
+}
+
+.config-summary-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  min-width: 0;
+  flex: 1;
+  min-width: 100px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.config-summary-cards:hover .config-summary-card {
+  border-color: #cbd5e1;
+}
+.config-summary-card:hover {
+  border-color: #94a3b8;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+.config-summary-card-icon {
+  flex-shrink: 0;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.config-summary-card-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.config-summary-card-label {
+  font-size: 0.7rem;
+  color: #94a3b8;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+.config-summary-card-value {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #334155;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.config-summary-card-chevron {
+  flex-shrink: 0;
+  font-size: 1.1rem;
+  color: #94a3b8;
+  font-weight: 400;
+}
+
 @keyframes prompt-chips-scroll {
   0% { transform: translateX(0); }
   100% { transform: translateX(-50%); }
@@ -1669,7 +1751,7 @@ body {
   background: #f9fafb;
   border: 1px solid #e5e7eb;
   border-radius: 24px;
-  padding: 12px 14px 12px 16px;
+  padding: 10px 12px 10px 14px;
   margin-top: 8px;
   transition: border-color 0.2s, box-shadow 0.2s;
   overflow: visible;
@@ -1683,13 +1765,68 @@ body {
   min-height: 0;
 }
 
-/* Engrenagem à esquerda para não ficar em cima do botão enviar */
-.chat-card-config-corner {
-  position: absolute;
-  top: 12px;
-  left: 12px;
-  right: auto;
-  z-index: 2;
+/* Configurações expandíveis abaixo do botão (sem engrenagem em cima do preview) */
+.config-expand-wrap {
+  margin-top: 0;
+}
+.config-expand-hidden-summary details:not([open]) {
+  margin: 0;
+  padding: 0;
+}
+.config-summary-cards.config-summary-below {
+  margin-top: 12px;
+}
+.config-details-below {
+  margin: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+}
+.config-details-summary-below {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 0;
+  margin: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  color: #6b7280;
+  font-size: 0.9rem;
+  cursor: pointer;
+  list-style: none;
+  transition: color 0.2s;
+}
+.config-details-summary-below::-webkit-details-marker { display: none; }
+.config-details-summary-below:hover {
+  color: #374151;
+}
+.config-details-summary-below .config-chevron {
+  font-size: 0.85rem;
+  transition: transform 0.2s;
+}
+.config-details-below[open] .config-chevron {
+  transform: rotate(180deg);
+}
+.config-details-below .config-details-dropdown {
+  position: static;
+  margin-top: 8px;
+  margin-bottom: 0;
+  min-width: auto;
+  max-height: 70vh;
+  overflow-y: auto;
+  background: #f9fafb;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: none;
+  padding: 12px;
+  z-index: 1;
+}
+.config-details-below .config-main-options {
+  padding: 0;
+}
+.config-details-below .config-details-note {
+  margin: 0 0 8px;
 }
 .config-details-inline {
   margin: 0;
@@ -1755,10 +1892,51 @@ body {
 /* Linha de cima: preview da imagem (só aparece quando há imagem anexada) */
 .chat-attach-row {
   display: none;
-  margin-bottom: 10px;
+  margin-bottom: 4px;
 }
 .chat-attach-row:has(.chat-input-preview:not(.hidden)) {
   display: block;
+}
+/* Imagem de referência acima do campo (não espreme o texto) */
+.chat-attach-row-above {
+  display: none;
+  margin-bottom: 4px;
+}
+.chat-attach-row-above:has(.chat-input-preview:not(.hidden)) {
+  display: flex;
+  justify-content: flex-start;
+}
+.chat-attach-row-above .chat-input-preview .motion-preview-wrap {
+  width: 120px;
+  height: 120px;
+  min-width: 120px;
+  min-height: 120px;
+  aspect-ratio: 1/1;
+  flex-shrink: 0;
+  border-radius: 10px;
+  overflow: hidden;
+}
+.chat-attach-row-above .chat-input-preview .file-remove-inside-preview {
+  top: 4px;
+  right: 4px;
+  width: 22px;
+  height: 22px;
+  font-size: 12px;
+}
+/* Anula .file-preview img (max-height: 100px) que força retângulo horizontal */
+.chat-attach-row-above .chat-input-preview .motion-preview-wrap img.motion-preview-media {
+  max-width: none !important;
+  max-height: none !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover;
+}
+/* Dicas de prompt logo abaixo da imagem ref */
+.prompt-chips-below-ref {
+  margin: 6px 0 4px 0;
+}
+.prompt-chips-below-ref.prompt-chips-inside {
+  order: unset;
 }
 
 .chat-input-row {
@@ -2075,7 +2253,7 @@ body {
 }
 /* Rótulo e input alinhados */
 .chat-input-card .chat-input-label {
-  margin: 0 0 8px 0;
+  margin: 0 0 4px 0;
   font-size: 0.95rem;
   font-weight: 500;
   color: #374151;
@@ -2162,6 +2340,46 @@ body {
 }
 .chat-send-btn #btnGenerateText svg {
   display: block;
+}
+.chat-send-btn.chat-send-btn-text {
+  width: auto;
+  min-width: 140px;
+  height: 44px;
+  padding: 0 24px;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+}
+.chat-send-btn.chat-send-btn-text #btnGenerateText svg {
+  display: none;
+}
+/* Botão Gerar vídeo grande abaixo do quadrado da imagem */
+.generate-btn-below-image {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin: 16px 0 20px;
+}
+.generate-btn-below-image .chat-send-btn.chat-send-btn-large {
+  width: 100%;
+  max-width: 320px;
+  min-width: 300px;
+  height: 56px;
+  padding: 0 32px;
+  border-radius: 16px;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+.generate-btn-below-image .chat-send-btn.chat-send-btn-large #btnGenerateText svg {
+  display: none;
+}
+.generate-btn-below-image .generate-cost-badge.generate-cost-below-btn {
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+.generate-btn-below-image .generate-cost-badge .cost-credits-icon {
+  color: #f59e0b;
 }
 .chat-send-btn:disabled #btnGenerateText {
   display: inline-flex;
