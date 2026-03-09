@@ -1,4 +1,4 @@
-const AUTH_STORAGE = 'varvos_user';
+var AUTH_STORAGE = 'varvos_user';
 
 function populateLandingHamburgerUser(user) {
   const nameEl = document.getElementById('landingHamburgerUserName');
