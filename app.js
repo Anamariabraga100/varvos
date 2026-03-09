@@ -11,8 +11,9 @@ const HISTORY_STORAGE_KEY = 'varvos_history';
 const CREDITS_STORAGE_KEY = 'varvos_credits';
 const ACTIVE_TASK_STORAGE = 'varvos_active_task';
 const DRAFT_STORAGE_KEY = 'varvos_draft';
-const DEFAULT_REF_IMAGE_URL = 'https://pub-d86536e7051f4f949cbf8c8a92edbabe.r2.dev/videos/ChatGPT%20Image%209%20de%20mar.%20de%202026%2C%2003_56_39.png';
+const DEFAULT_REF_IMAGE_URL = 'https://pub-d86536e7051f4f949cbf8c8a92edbabe.r2.dev/videos/ChatGPT%20Image%209%20de%20mar.%20de%202026%2C%2003_21_11.png';
 const DEFAULT_PROMPT_EXAMPLE = 'Influencer fazendo unboxing de tênis com reação surpresa, estilo vídeo de TikTok';
+const EXAMPLE_VIDEO_URL = 'https://pub-d86536e7051f4f949cbf8c8a92edbabe.r2.dev/videos/Design%20sem%20nome%20(1).mp4';
 
 let selectedModel = 'veo3.1-fast';
 let hideModelGrok = false;
@@ -185,8 +186,19 @@ function getCardRefs(cardEl) {
     downloadBtn: cardEl.querySelector('.btn-download'),
     shareSection: cardEl.querySelector('.share-video-buttons'),
     whatsappBtn: cardEl.querySelector('.btn-share-whatsapp'),
-    resultPromptEl: cardEl.querySelector('.result-prompt-wrap')
+    resultPromptEl: cardEl.querySelector('.result-prompt-wrap'),
+    modelBadge: cardEl.querySelector('.result-model-badge')
   };
+}
+
+function getModelDisplayName(model) {
+  const map = {
+    'grok-imagine/image-to-video': 'Varvos Fast',
+    'veo3.1-fast': 'Varvos Pro',
+    'sora-2': 'Varvos Ultra',
+    'kling-2.6/motion-control': 'Imitar movimento'
+  };
+  return map[model] || model || 'Varvos Pro';
 }
 function getCardByIndex(i) {
   const card = outputResultsList?.querySelector(`.output-result-card[data-card="${i}"]`);
@@ -320,11 +332,14 @@ function updateVideoModelUI() {
   selectedModel = modelSelect.value;
   const isVEO = selectedModel === 'veo3.1-fast';
   const isGrok = selectedModel === 'grok-imagine/image-to-video';
-  const isSoraOrVeo = selectedModel === 'sora-2' || selectedModel === 'veo3.1-fast';
+  const isSora = selectedModel === 'sora-2';
+  const isSoraOrVeo = isSora || selectedModel === 'veo3.1-fast';
+  const soraResolutionWrap = document.getElementById('soraResolutionWrap');
   if (durationWrap) durationWrap.classList.toggle('hidden', isGrok);
   if (durationSelect) durationSelect.classList.toggle('hidden', isVEO || isGrok);
   if (durationFixed) durationFixed.classList.toggle('hidden', !isVEO);
   if (veoResolutionWrap) veoResolutionWrap.classList.toggle('hidden', !isVEO);
+  if (soraResolutionWrap) soraResolutionWrap.classList.toggle('hidden', !isSora);
   if (aspectRatioWrap) aspectRatioWrap.classList.toggle('hidden', isGrok);
   if (grokDurationWrap) grokDurationWrap.classList.toggle('hidden', !isGrok);
   if (grokResolutionWrap) grokResolutionWrap.classList.toggle('hidden', !isGrok);
@@ -453,6 +468,7 @@ function syncConfigCardDisplays() {
   const aspectSel = document.getElementById('aspectRatio');
   const durationSel = document.getElementById('duration');
   const resSel = document.getElementById('veoResolution');
+  const soraResSel = document.getElementById('soraResolution');
   const grokDurationSel = document.getElementById('grokDuration');
   const grokResolutionSel = document.getElementById('grokResolution');
   const grokModeSel = document.getElementById('grokMode');
@@ -460,6 +476,7 @@ function syncConfigCardDisplays() {
   const aspectDisp = document.getElementById('aspectRatioDisplay');
   const durationDisp = document.getElementById('durationDisplay');
   const resDisp = document.getElementById('veoResolutionDisplay');
+  const soraResDisp = document.getElementById('soraResolutionDisplay');
   const grokDurationDisp = document.getElementById('grokDurationDisplay');
   const grokResolutionDisp = document.getElementById('grokResolutionDisplay');
   const grokModeDisp = document.getElementById('grokModeDisplay');
@@ -469,6 +486,7 @@ function syncConfigCardDisplays() {
     durationDisp.textContent = modelSel?.value === 'veo3.1-fast' ? '8 segundos' : (durationSel.selectedOptions[0]?.text || durationSel.value + ' segundos');
   }
   if (resSel && resDisp) resDisp.textContent = resSel.selectedOptions[0]?.text || resSel.value;
+  if (soraResSel && soraResDisp) soraResDisp.textContent = soraResSel.selectedOptions[0]?.text || soraResSel.value;
   if (grokDurationSel && grokDurationDisp) grokDurationDisp.textContent = grokDurationSel.selectedOptions[0]?.text || grokDurationSel.value + ' segundos';
   if (grokResolutionSel && grokResolutionDisp) grokResolutionDisp.textContent = grokResolutionSel.selectedOptions[0]?.text || grokResolutionSel.value;
   if (grokModeSel && grokModeDisp) grokModeDisp.textContent = grokModeSel.selectedOptions[0]?.text || grokModeSel.value;
@@ -480,6 +498,10 @@ document.getElementById('videoModel')?.addEventListener('change', () => {
 document.getElementById('aspectRatio')?.addEventListener('change', syncConfigCardDisplays);
 document.getElementById('duration')?.addEventListener('change', syncConfigCardDisplays);
 document.getElementById('veoResolution')?.addEventListener('change', () => {
+  syncConfigCardDisplays();
+  if (currentMode === 'video') updateGenerateButtonLabel(true);
+});
+document.getElementById('soraResolution')?.addEventListener('change', () => {
   syncConfigCardDisplays();
   if (currentMode === 'video') updateGenerateButtonLabel(true);
 });
@@ -711,12 +733,36 @@ outputResultsList?.addEventListener('click', (e) => {
     return;
   }
   const downloadBtn = e.target.closest('.btn-download');
-  if (!downloadBtn) return;
-  const href = downloadBtn.getAttribute('href');
-  if (href && href !== '#') {
+  if (downloadBtn) {
+    const href = downloadBtn.getAttribute('href');
+    if (href && href !== '#') {
+      e.preventDefault();
+      const name = downloadBtn.getAttribute('download') || 'varvos-video.mp4';
+      triggerDownload(href, name);
+      return;
+    }
+  }
+});
+
+// Placeholder: clique no vídeo = toggle mute, download
+outputPlaceholder?.addEventListener('click', (e) => {
+  const muteBtn = e.target.closest('.mute-btn');
+  if (muteBtn) {
     e.preventDefault();
-    const name = downloadBtn.getAttribute('download') || 'varvos-video.mp4';
-    triggerDownload(href, name);
+    const card = muteBtn.closest('.placeholder-example-video');
+    if (card) toggleResultOrPlaceholderMute(card);
+    return;
+  }
+  const downloadBtn = e.target.closest('.btn-download');
+  if (downloadBtn && downloadBtn.getAttribute('href') && downloadBtn.getAttribute('href') !== '#') {
+    e.preventDefault();
+    triggerDownload(downloadBtn.getAttribute('href'), downloadBtn.getAttribute('download') || 'varvos-exemplo.mp4');
+    return;
+  }
+  const videoArea = e.target.closest('.placeholder-example-video');
+  if (videoArea) {
+    e.preventDefault();
+    toggleResultOrPlaceholderMute(videoArea);
   }
 });
 
@@ -746,19 +792,36 @@ outputResultsList?.addEventListener('click', (e) => {
     }
     return;
   }
+  const muteBtn = e.target.closest('.mute-btn');
+  if (muteBtn) {
+    e.preventDefault();
+    const card = muteBtn.closest('.output-result-card');
+    if (card) toggleResultOrPlaceholderMute(card);
+    return;
+  }
   const mediaContainer = e.target.closest('.media-container');
-  if (!mediaContainer) return;
-  if (e.target.closest('.btn-download, .btn-share-whatsapp')) return;
-  const loadingPlaceholder = mediaContainer.querySelector('.loading-placeholder');
-  if (loadingPlaceholder && !loadingPlaceholder.classList.contains('hidden')) return;
-  const video = mediaContainer.querySelector('.media-output');
-  const src = video?.src || video?.getAttribute('src');
-  if (!src || src === 'about:blank' || src.length < 10) return;
-  const card = mediaContainer.closest('.output-result-card');
-  const downloadBtn = card?.querySelector('.btn-download');
-  const aspectRatio = card?.dataset?.aspectRatio || '9:16';
-  const prompt = card?.dataset?.prompt || '';
-  openVideoModalForResult(src, downloadBtn, null, aspectRatio, prompt);
+  if (mediaContainer) {
+    if (e.target.closest('.btn-download, .btn-share-whatsapp')) return;
+    const loadingPlaceholder = mediaContainer.querySelector('.loading-placeholder');
+    if (loadingPlaceholder && !loadingPlaceholder.classList.contains('hidden')) return;
+    const video = mediaContainer.querySelector('.media-output');
+    const src = video?.src || video?.getAttribute('src');
+    if (video && src && src !== 'about:blank' && src.length >= 10) {
+      const card = mediaContainer.closest('.output-result-card');
+      if (card) {
+        e.preventDefault();
+        if (e.detail === 2) {
+          const downloadBtn = card?.querySelector('.btn-download');
+          const aspectRatio = card?.dataset?.aspectRatio || '9:16';
+          const prompt = card?.dataset?.prompt || '';
+          openVideoModalForResult(src, downloadBtn, null, aspectRatio, prompt);
+        } else {
+          toggleResultOrPlaceholderMute(card);
+        }
+        return;
+      }
+    }
+  }
 });
 
 // Ver mais / Ver menos — Seus vídeos
@@ -781,7 +844,7 @@ historyList?.addEventListener('click', (e) => {
   if (thumb) {
     const video = thumb.querySelector('video');
     if (video) {
-      const src = video.src || video.getAttribute('src');
+      const src = video.src || video.getAttribute('src') || video.dataset?.src || '';
       const itemEl = thumb.closest('.creation-item');
       const downloadLink = itemEl?.querySelector('.creation-actions a[href]');
       const href = downloadLink?.getAttribute('href');
@@ -1525,18 +1588,30 @@ async function addToHistory(data, prompt, aspectRatio) {
 
 function renderHistory() {
   const items = getHistory();
-  historyList.classList.toggle('hidden', !items.length);
-  historyEmpty.classList.toggle('hidden', !!items.length);
-  document.querySelector('.history-download-hint')?.classList.toggle('hidden', !items.length);
+  const pathname = (window.location.pathname || '').toLowerCase();
+  const isVideoPage = pathname.includes('video');
+  const exampleItem = isVideoPage ? {
+    task_id: 'example',
+    prompt: 'Exemplo — Gerado no modelo Varvos Pro',
+    mode: 'video',
+    aspect_ratio: '9:16',
+    created_time: new Date().toISOString(),
+    files: [{ file_url: EXAMPLE_VIDEO_URL, file_type: 'video' }]
+  } : null;
+  const allItems = exampleItem ? [exampleItem, ...items] : items;
 
-  if (!items.length) {
+  historyList.classList.toggle('hidden', !allItems.length);
+  historyEmpty.classList.toggle('hidden', !!allItems.length);
+  document.querySelector('.history-download-hint')?.classList.toggle('hidden', !allItems.length);
+
+  if (!allItems.length) {
     historyVerMaisWrap?.classList.add('hidden');
     return;
   }
 
-  const limit = historyShowingAll ? items.length : 4;
-  const toShow = items.slice(0, limit);
-  const hasMore = items.length > 4;
+  const limit = historyShowingAll ? allItems.length : 4;
+  const toShow = allItems.slice(0, limit);
+  const hasMore = allItems.length > 4;
 
   historyVerMaisWrap?.classList.toggle('hidden', !hasMore);
   if (btnVerMais) {
@@ -1545,30 +1620,52 @@ function renderHistory() {
 
   historyList.innerHTML = toShow.map(item => {
     const mainFile = item.files[0];
+    const isExample = item.task_id === 'example';
     const thumb = mainFile.file_type === 'image'
       ? `<img src="${mainFile.file_url}" alt="" loading="lazy">`
-      : `<video data-src="${mainFile.file_url}" muted loop playsinline preload="none"></video>`;
+      : isExample
+        ? `<div class="creation-thumb-video-wrap"><video src="${mainFile.file_url}" muted loop playsinline preload="metadata" autoplay></video><div class="video-error-fallback hidden" data-video-error>Vídeo não carregou</div></div>`
+        : `<div class="creation-thumb-video-wrap"><video data-src="${mainFile.file_url}" muted loop playsinline preload="metadata"></video><div class="video-error-fallback hidden" data-video-error>Vídeo não carregou</div></div>`;
     const date = item.created_time ? new Date(item.created_time).toLocaleDateString('pt-BR') : '';
     const aspectRatio = item.aspect_ratio || '9:16';
+    const downloadName = item.task_id === 'example' ? 'varvos-exemplo' : `varvos-${item.task_id}`;
     const downloads = item.files.map((f, i) =>
-      `<a href="${f.file_url}" download="varvos-${item.task_id}-${i + 1}.${f.file_type === 'video' ? 'mp4' : 'png'}">Baixar${item.files.length > 1 ? ' ' + (i + 1) : ''}</a>`
+      `<a href="${f.file_url}" download="${downloadName}-${i + 1}.${f.file_type === 'video' ? 'mp4' : 'png'}">Baixar${item.files.length > 1 ? ' ' + (i + 1) : ''}</a>`
     ).join('');
     const firstVideo = item.files.find(f => f.file_type === 'video');
     const shareUrl = firstVideo ? encodeURIComponent(firstVideo.file_url) : '';
     const shareLinks = firstVideo
       ? `<a href="https://api.whatsapp.com/send?text=${shareUrl}" target="_blank" rel="noopener" class="creation-share creation-share-whatsapp" title="Enviar por WhatsApp">WhatsApp</a>`
       : '';
+    const metaLabel = item.task_id === 'example' ? 'Exemplo · Varvos Pro' : (item.mode === 'video' ? '🎬 Vídeo' : '🖼️ Imagem') + (date ? ' · ' + date : '');
     return `
       <div class="creation-item" data-aspect-ratio="${escapeHtml(aspectRatio)}" data-prompt="${escapeHtml(item.prompt || '')}">
         <div class="creation-thumb">${thumb}</div>
         <div class="creation-info">
-          <div class="meta">${item.mode === 'video' ? '🎬 Vídeo' : '🖼️ Imagem'}${date ? ' · ' + date : ''}</div>
+          <div class="meta">${metaLabel}</div>
         </div>
         <div class="creation-actions">${downloads}${shareLinks}</div>
       </div>
     `;
   }).join('');
   setupHistoryVideoLazyLoad();
+  setupVideoErrorHandlers();
+}
+
+function setupVideoErrorHandlers() {
+  const showError = (video) => {
+    const wrap = video.closest('.placeholder-example-video, .creation-thumb-video-wrap');
+    const fallback = wrap?.querySelector('[data-video-error]');
+    if (fallback) {
+      fallback.classList.remove('hidden');
+    }
+  };
+  document.querySelectorAll('[data-video-placeholder]').forEach((v) => {
+    v.addEventListener('error', () => showError(v));
+  });
+  historyList?.querySelectorAll('.creation-thumb video').forEach((v) => {
+    v.addEventListener('error', () => showError(v));
+  });
 }
 
 function setupHistoryVideoLazyLoad() {
@@ -1581,12 +1678,17 @@ function setupHistoryVideoLazyLoad() {
         v.pause();
         return;
       }
-      if (!v.src && v.dataset.src) {
-        v.src = v.dataset.src;
+      const url = v.dataset.src;
+      if (!url) return;
+      if (v.src !== url) {
+        v.src = url;
+      }
+      if (v.readyState < 2) {
+        v.load();
       }
       v.play().catch(() => {});
     });
-  }, { rootMargin: '50px', threshold: 0.1 });
+  }, { rootMargin: '80px', threshold: 0.01 });
   videos.forEach((v) => io.observe(v));
 }
 
@@ -2267,8 +2369,7 @@ function buildRequestBody() {
     const duration = parseInt(document.getElementById('duration').value, 10);
     const aspectRatio = document.getElementById('aspectRatio').value;
     const style = document.getElementById('style')?.value;
-    /* Sora 2 gera nativamente em 720p */
-    const resolution = '720p';
+    const resolution = document.getElementById('soraResolution')?.value || '720p';
 
     const promptPt = prompt + ' [IMPORTANTE: Áudio e diálogos em português brasileiro.]';
     const input = { prompt: promptPt, duration, aspect_ratio: aspectRatio, resolution };
@@ -2640,6 +2741,11 @@ function updateOutputUI(data, cardRefs, startTime) {
         }
       }
       if (downloadWarning) downloadWarning.classList.remove('hidden');
+      if (cardRefs.modelBadge) {
+        const modelName = getModelDisplayName(taskMeta?.model);
+        cardRefs.modelBadge.textContent = 'Gerado no modelo ' + modelName;
+        cardRefs.modelBadge.classList.remove('hidden');
+      }
     } else if (imageFiles?.length) {
       if (imageGallery) {
         imageGallery.classList.remove('hidden');
@@ -2657,6 +2763,11 @@ function updateOutputUI(data, cardRefs, startTime) {
         if (cardRefs.shareSection) cardRefs.shareSection.classList.remove('hidden');
       }
       if (downloadWarning) downloadWarning.classList.remove('hidden');
+      if (cardRefs.modelBadge) {
+        const modelName = getModelDisplayName(taskMeta?.model);
+        cardRefs.modelBadge.textContent = 'Gerado no modelo ' + modelName;
+        cardRefs.modelBadge.classList.remove('hidden');
+      }
     }
     } else if (data.status === 'failed') {
     const taskMeta = activeTasks.get(data.task_id);
@@ -3477,6 +3588,23 @@ document.querySelectorAll('.history-library .video-card.sample-thumb').forEach((
     toggleSampleMute(card);
   });
 });
+
+// Toggle som nos cards de resultado e no placeholder
+function toggleResultOrPlaceholderMute(card) {
+  const video = card?.querySelector('video');
+  const btn = card?.querySelector('.mute-btn');
+  if (!video || !btn) return;
+  video.muted = !video.muted;
+  video.play().catch(() => {});
+  const iconMuted = btn.querySelector('.icon-muted');
+  const iconUnmuted = btn.querySelector('.icon-unmuted');
+  if (iconMuted && iconUnmuted) {
+    iconMuted.classList.toggle('hidden', !video.muted);
+    iconUnmuted.classList.toggle('hidden', video.muted);
+  }
+  btn.setAttribute('aria-label', video.muted ? 'Ativar som' : 'Desativar som');
+  btn.setAttribute('title', video.muted ? 'Clique para ativar o som' : 'Clique para desativar o som');
+}
 
 // Toggle som ao clicar nos exemplos "Exemplos criados com Varvos"
 function toggleSampleMute(card) {
