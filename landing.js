@@ -141,18 +141,6 @@ function initLanding() {
     attempt();
   }
 
-  // Hero: carregamento escalonado (evita muitas conexões simultâneas ao R2)
-  document.querySelectorAll('.video-card video[data-hero-priority]').forEach(video => {
-    const card = video.closest('.video-card');
-    const src = card?.dataset.videoSrc;
-    if (!src) return;
-    const priority = parseInt(video.dataset.heroPriority || '1', 10);
-    const delay = (priority - 1) * 1500; // 0ms, 1.5s, 3s
-    const load = () => loadVideoWithRetry(video, src);
-    if (delay <= 0) load();
-    else setTimeout(load, delay);
-  });
-
   // Click-to-toggle mute em vídeos da seção de features
   document.querySelectorAll('.feature-card-media video').forEach(video => {
     const media = video.closest('.feature-card-media');
