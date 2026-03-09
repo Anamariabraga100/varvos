@@ -1,5 +1,3 @@
-var AUTH_STORAGE = 'varvos_user';
-
 function populateLandingHamburgerUser(user) {
   const nameEl = document.getElementById('landingHamburgerUserName');
   const avatarEl = document.getElementById('landingHamburgerAvatar');
@@ -34,7 +32,7 @@ function updateLandingAuthUI() {
     }
   }
   try {
-    const raw = localStorage.getItem(AUTH_STORAGE);
+    const raw = localStorage.getItem(window.AUTH_STORAGE);
     let user = raw ? JSON.parse(raw) : null;
     if (user && (user.email || user.sub || user.id)) {
       applyUI(user);
@@ -51,7 +49,7 @@ function updateLandingAuthUI() {
         if (sync) {
           sync(authUser).then(function(u) {
             var final = u || { provider: 'email', email: authUser.email, id: authUser.id };
-            try { localStorage.setItem(AUTH_STORAGE, JSON.stringify(final)); } catch (_) {}
+            try { localStorage.setItem(window.AUTH_STORAGE, JSON.stringify(final)); } catch (_) {}
             applyUI(final);
           }).catch(function() { applyUI({ email: authUser.email, id: authUser.id }); });
         } else {
@@ -92,7 +90,7 @@ function initLandingHamburger() {
     try {
       await window.varvosSupabase?.auth?.signOut();
     } catch (_) {}
-    localStorage.removeItem(AUTH_STORAGE);
+    localStorage.removeItem(window.AUTH_STORAGE);
     toggleLandingHamburger(false);
     updateLandingAuthUI();
     window.location.href = '/';

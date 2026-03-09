@@ -154,15 +154,13 @@
                 <button type="submit" class="chat-send-btn chat-send-btn-large" id="btnGenerate" title="Gerar vídeo" aria-label="Enviar e gerar vídeo">
                   <span id="btnGenerateText">Gerar vídeo</span>
                 </button>
+                <!-- Custo por vídeo (mesmo da mensagem ao clicar em Gerar vídeo) -->
+                <p id="generateCostBadge" class="generate-cost-badge generate-cost-below-btn" aria-live="polite">Esse vídeo irá consumir <span class="cost-credits-num">—</span> créditos.</p>
               </div>
 
-              <!-- Configurações expansível -->
+              <!-- Configurações sempre visíveis (sem precisar clicar) -->
               <div class="config-expand-wrap" id="configExpandWrap">
-                <details id="configDetails" class="config-details config-details-below config-details-visible-summary" open>
-                  <summary class="config-details-summary-below config-details-summary-visible">
-                    <span class="config-chevron" aria-hidden="true">›</span>
-                    Configurações
-                  </summary>
+                <div id="configDetails" class="config-details config-details-below config-details-always-open">
                   <div class="config-details-dropdown">
                     <div id="configMainOptions" class="config-main-options config-above-btn">
                     <div id="videoFields" class="mode-fields">
@@ -274,7 +272,7 @@
             </div>
             </div>
                   </div>
-                </details>
+                </div>
               </div>
             </div>
 
@@ -1061,6 +1059,7 @@
   </div>
 
   <script src="../config.js"></script>
+  <script src="../constants.js"></script>
   <script src="../plans-config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../supabase.js"></script>

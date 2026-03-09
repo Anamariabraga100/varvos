@@ -1,4 +1,3 @@
-const AUTH_STORAGE = 'varvos_user';
 const REDIRECT_URL = 'video/';
 
 const clientId = window.VARVOS_CONFIG?.googleClientId;
@@ -65,7 +64,7 @@ function addPlanosIfCreatePage(path) {
 }
 
 function saveUserAndRedirect(user) {
-  localStorage.setItem(AUTH_STORAGE, JSON.stringify(user));
+  localStorage.setItem(window.AUTH_STORAGE, JSON.stringify(user));
   window.location.href = getReturnTo();
 }
 
@@ -126,7 +125,7 @@ function initGoogleSignIn() {
 function setupFakeGoogleBtn() {
   if (btnGoogle) btnGoogle.style.display = '';
   btnGoogle?.addEventListener('click', () => {
-    localStorage.setItem(AUTH_STORAGE, JSON.stringify({ provider: 'google', email: 'google-user@varvos.com' }));
+    localStorage.setItem(window.AUTH_STORAGE, JSON.stringify({ provider: 'google', email: 'google-user@varvos.com' }));
     window.location.href = getReturnTo();
   });
 }

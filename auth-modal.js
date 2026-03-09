@@ -1,4 +1,3 @@
-var AUTH_STORAGE = 'varvos_user';
 const REDIRECT_URL = 'video/';
 
 const authModal = document.getElementById('authModal');
@@ -66,7 +65,7 @@ async function handleGoogleCredential(response) {
       user = await window.varvosAuthSupabase.syncUserFromGoogle(payload) || base;
     } catch {}
   }
-  localStorage.setItem(AUTH_STORAGE, JSON.stringify(user));
+  localStorage.setItem(window.AUTH_STORAGE, JSON.stringify(user));
   fetch('/api/send-welcome-email', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -112,7 +111,7 @@ if (clientId) {
 } else if (btnGoogle) {
   btnGoogle.style.display = '';
   btnGoogle.addEventListener('click', () => {
-    localStorage.setItem(AUTH_STORAGE, JSON.stringify({ provider: 'google', email: 'google-user@varvos.com' }));
+    localStorage.setItem(window.AUTH_STORAGE, JSON.stringify({ provider: 'google', email: 'google-user@varvos.com' }));
     closeAuthModal();
     window.location.href = getReturnTo();
   });
@@ -138,7 +137,7 @@ document.getElementById('authTriggerHero')?.addEventListener('click', (e) => {
 
 function isLoggedIn() {
   try {
-    const raw = localStorage.getItem(AUTH_STORAGE);
+    const raw = localStorage.getItem(window.AUTH_STORAGE);
     const user = raw ? JSON.parse(raw) : null;
     return !!(user && user.email);
   } catch (_) {
@@ -281,13 +280,13 @@ document.getElementById('btnAuthSubmit')?.addEventListener('click', () => {
         const { data, error } = await sb.auth.signInWithPassword({ email, password });
         if (error) throw error;
         const user = await (window.varvosAuthSupabase?.syncUserFromEmail(data.user) || Promise.resolve(null));
-        localStorage.setItem(AUTH_STORAGE, JSON.stringify(user || { provider: 'email', email: data.user.email, id: data.user.id }));
+        localStorage.setItem(window.AUTH_STORAGE, JSON.stringify(user || { provider: 'email', email: data.user.email, id: data.user.id }));
       } else {
         const { data, error } = await sb.auth.signUp({ email, password });
         if (error) throw error;
         if (data?.user) {
           const user = await (window.varvosAuthSupabase?.syncUserFromEmail(data.user) || Promise.resolve(null));
-          localStorage.setItem(AUTH_STORAGE, JSON.stringify(user || { provider: 'email', email: data.user.email }));
+          localStorage.setItem(window.AUTH_STORAGE, JSON.stringify(user || { provider: 'email', email: data.user.email }));
           fetch('/api/send-welcome-email', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },

@@ -9,10 +9,9 @@ const SKIP_CREDITS = false;  // true = criar vídeos sem deduzir créditos (para
 const STORAGE_KEY = 'varvos_api_key';
 const HISTORY_STORAGE_KEY = 'varvos_history';
 const CREDITS_STORAGE_KEY = 'varvos_credits';
-const AUTH_STORAGE = 'varvos_user';
 const ACTIVE_TASK_STORAGE = 'varvos_active_task';
 const DRAFT_STORAGE_KEY = 'varvos_draft';
-const DEFAULT_REF_IMAGE_URL = 'https://pub-d86536e7051f4f949cbf8c8a92edbabe.r2.dev/videos/ChatGPT%20Image%209%20de%20mar.%20de%202026%2C%2003_21_11.png';
+const DEFAULT_REF_IMAGE_URL = 'https://pub-d86536e7051f4f949cbf8c8a92edbabe.r2.dev/videos/ChatGPT%20Image%209%20de%20mar.%20de%202026%2C%2003_56_39.png';
 const DEFAULT_PROMPT_EXAMPLE = 'Influencer fazendo unboxing de tênis com reação surpresa, estilo vídeo de TikTok';
 
 let selectedModel = 'veo3.1-fast';
@@ -448,14 +447,6 @@ setTimeout(() => {
   }
 }, 600);
 
-// Fechar config dropdown ao clicar fora
-document.addEventListener('click', (e) => {
-  const configDetails = document.getElementById('configDetails');
-  if (!configDetails || !configDetails.hasAttribute('open')) return;
-  if (configDetails.contains(e.target)) return;
-  configDetails.removeAttribute('open');
-});
-
 // Sincroniza displays dos config cards
 function syncConfigCardDisplays() {
   const modelSel = document.getElementById('videoModel');
@@ -481,7 +472,6 @@ function syncConfigCardDisplays() {
   if (grokDurationSel && grokDurationDisp) grokDurationDisp.textContent = grokDurationSel.selectedOptions[0]?.text || grokDurationSel.value + ' segundos';
   if (grokResolutionSel && grokResolutionDisp) grokResolutionDisp.textContent = grokResolutionSel.selectedOptions[0]?.text || grokResolutionSel.value;
   if (grokModeSel && grokModeDisp) grokModeDisp.textContent = grokModeSel.selectedOptions[0]?.text || grokModeSel.value;
-
 }
 document.getElementById('videoModel')?.addEventListener('change', () => {
   syncConfigCardDisplays();
