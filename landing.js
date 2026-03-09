@@ -125,8 +125,33 @@ function initLanding() {
     nextBtn.addEventListener('click', () => carousel.scrollBy({ left: scrollAmount, behavior: 'smooth' }));
   }
 
-  // Modal de vídeo: lógica no index.html (script inline) para garantir execução antes de auth/supabase
-  // Carrossel scroll e toggleMute ficam no landing.js; abertura do modal no inline
+  // Carrega vídeo com retry (evita ERR_CONNECTION_CLOSED do R2)
+  function loadVideoWithRetry(video, src, maxRetries) {
+    maxRetries = maxRetries ?? 2;
+    function attempt() {
+      video.src = src;
+      video.preload = 'auto';
+      video.load();
+      video.addEventListener('error', () => {
+        if (maxRetries <= 0) return;
+        maxRetries--;
+        setTimeout(attempt, 2000);
+      }, { once: true });
+    }
+    attempt();
+  }
+
+  // Hero: carregamento escalonado (evita muitas conexões simultâneas ao R2)
+  document.querySelectorAll('.video-card video[data-hero-priority]').forEach(video => {
+    const card = video.closest('.video-card');
+    const src = card?.dataset.videoSrc;
+    if (!src) return;
+    const priority = parseInt(video.dataset.heroPriority || '1', 10);
+    const delay = (priority - 1) * 1500; // 0ms, 1.5s, 3s
+    const load = () => loadVideoWithRetry(video, src);
+    if (delay <= 0) load();
+    else setTimeout(load, delay);
+  });
 
   // Click-to-toggle mute em vídeos da seção de features
   document.querySelectorAll('.feature-card-media video').forEach(video => {
@@ -139,22 +164,14 @@ function initLanding() {
     }
   });
 
-  // Lazy-load vídeos do carrossel: carrega src quando o card entra na viewport
+  // Lazy-load vídeos 4 e 5 do carrossel: carrega quando o card entra na viewport
   document.querySelectorAll('.video-card video[data-lazy]').forEach(video => {
     const card = video.closest('.video-card');
     if (!card?.dataset.videoSrc) return;
-    const placeholder = card?.querySelector('.video-placeholder.video-loading');
-    const hidePlaceholder = () => {
-      placeholder?.classList.add('hidden');
-    };
-    video.addEventListener('loadeddata', hidePlaceholder, { once: true });
-    video.addEventListener('canplay', hidePlaceholder, { once: true });
-    video.addEventListener('error', hidePlaceholder, { once: true });
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(e => {
         if (e.isIntersecting && !video.src) {
-          video.src = card.dataset.videoSrc;
-          video.preload = 'auto';
+          loadVideoWithRetry(video, card.dataset.videoSrc);
           observer.disconnect();
         }
       });
@@ -207,19 +224,31 @@ function initLanding() {
     featureObserver.observe(block);
   });
 
-  // Spotlight section: play videos when in view
+  // Spotlight section: lazy-load vídeos escalonado + retry, play quando em view
   const spotlightSection = document.querySelector('.spotlight-section');
   if (spotlightSection) {
     const spotlightObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
-        const video = entry.target.querySelector('video');
-        if (video) {
-          if (entry.isIntersecting) {
-            video.muted = true;
-            video.play().catch(() => {});
-          } else {
-            video.pause();
-          }
+        const block = entry.target;
+        const videos = Array.from(block.querySelectorAll('video[data-src]'));
+        if (entry.isIntersecting) {
+          videos.forEach((video, i) => {
+            if (!video.src && video.dataset.src) {
+              const delay = i * 800; // escalona: 0, 800ms, 1600ms...
+              const load = () => {
+                loadVideoWithRetry(video, video.dataset.src);
+                video.muted = true;
+                video.play().catch(() => {});
+              };
+              if (delay <= 0) load();
+              else setTimeout(load, delay);
+            } else {
+              video.muted = true;
+              video.play().catch(() => {});
+            }
+          });
+        } else {
+          videos.forEach(v => v.pause());
         }
       });
     }, { threshold: 0.2 });
