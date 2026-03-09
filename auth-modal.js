@@ -237,19 +237,19 @@ document.getElementById('btnEmailContinue')?.addEventListener('click', async () 
   if (!email) return;
   if (errorsEl) errorsEl.classList.add('hidden');
 
-  const sb = window.varvosSupabase;
-  if (!sb) {
-    if (errorsEl) { errorsEl.textContent = 'Serviço temporariamente indisponível.'; errorsEl.classList.remove('hidden'); }
-    return;
-  }
-
   const btn = document.getElementById('btnEmailContinue');
   const origText = btn?.textContent;
   if (btn) { btn.disabled = true; btn.textContent = 'Verificando...'; }
 
   try {
-    const { data: exists, error } = await sb.rpc('check_email_registered', { p_email: email });
-    if (error) throw error;
+    const res = await fetch('/api/check-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(json.error || 'Erro ao verificar');
+    const exists = !!json.exists;
 
     document.getElementById('emailStep')?.classList.add('hidden');
     const passwordStep = document.getElementById('passwordStep');

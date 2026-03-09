@@ -79,6 +79,17 @@ app.post('/api/refund-credits', async (req, res) => {
   }
 });
 
+// API: check-email (verificar se e-mail já cadastrado — auth por e-mail)
+app.post('/api/check-email', async (req, res) => {
+  try {
+    const handler = (await import('../api/check-email.js')).default;
+    await handler(req, res);
+  } catch (err) {
+    console.error('[dev-server] check-email:', err);
+    res.status(500).json({ error: err?.message || 'Erro ao verificar e-mail' });
+  }
+});
+
 // API: get-credits (créditos e plano do usuário)
 app.get('/api/app/get-credits', async (req, res) => {
   try {
