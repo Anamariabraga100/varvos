@@ -225,7 +225,7 @@ document.querySelectorAll('.chip, .suggestion-theme-box').forEach(btn => {
 const PROMPT_EXAMPLES = [
   'Descreva o vídeo que você quer criar...',
   'Ex: Influencer fazendo unboxing de tênis',
-  'Ex: Propaganda de perfume com modelo em estúdio',
+  'Ex: Propaganda de tênis com modelo em estúdio',
   'Ex: Pessoa explicando produto na câmera'
 ];
 let promptExampleIndex = 0;

@@ -12,8 +12,32 @@
     gtag('config', 'AW-17389764552');
   </script>
   <title>VARVOS — Crie anúncios online com IA</title>
+  <meta name="description" content="Gere vídeos para anúncios, UGC e e-commerce. Descreva sua ideia ou use uma foto como base — sem câmera ou estúdio.">
+  <link rel="canonical" href="https://www.varvos.com/marketing/">
+  <meta name="robots" content="index, follow">
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://www.varvos.com/marketing/">
+  <meta property="og:title" content="VARVOS — Crie anúncios online com IA">
+  <meta property="og:description" content="Gere vídeos para anúncios, UGC e e-commerce.">
+  <meta property="og:locale" content="pt_BR">
+  <meta property="og:image" content="https://www.varvos.com/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="VARVOS — Crie anúncios online com IA">
+  <meta name="twitter:description" content="Gere vídeos para anúncios, UGC e e-commerce.">
+  <meta name="twitter:image" content="https://www.varvos.com/og-image.png">
+
+  <!-- Performance: preconnect -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://juauagypsrgnmwsavrto.supabase.co" crossorigin>
+  <link rel="preconnect" href="https://pub-d86536e7051f4f949cbf8c8a92edbabe.r2.dev" crossorigin>
+
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="stylesheet" href="../landing.css">
@@ -30,7 +54,7 @@
         <span>VARVOS</span>
       </a>
       <div class="nav-auth">
-        <a href="../video/" class="nav-btn">Entrar</a>
+        <a href="#" class="nav-btn auth-trigger" id="navBtnEntrar" data-return="../video/">Entrar</a>
         <div class="nav-logged hidden" id="navLogged">
           <button type="button" class="hamburger-btn" id="landingHamburgerBtn" aria-label="Menu" aria-expanded="false">
             <span></span><span></span><span></span>
@@ -39,39 +63,34 @@
       </div>
     </header>
 
-    <section class="hero hero-compact">
-      <span class="hero-badge hero-badge-small">Anúncios online · Vídeo por texto · IA</span>
+    <section class="hero">
       <h1>Crie anúncios em vídeo que <em>convertem</em> usando IA</h1>
       <p>Descreva seu produto ou envie uma imagem.<br>Gere vídeos prontos para Meta Ads, TikTok Ads e YouTube em segundos.</p>
-      <a href="../video/" class="cta">Criar meu anúncio</a>
+      <a href="#" class="cta auth-trigger" id="authTriggerCta" data-return="../video/">Criar meu anúncio</a>
     </section>
 
-    <section class="carousel-section carousel-section-compact">
+    <section class="carousel-section">
       <div class="carousel-wrapper">
         <div class="carousel" id="videoCarousel">
           <div class="carousel-track">
-            <div class="video-card" data-video-src="https://juauagypsrgnmwsavrto.supabase.co/storage/v1/object/public/videos/_f45dd0f84993133d8e733f54e2cf6243_64bee8af-2f5c-48ed-9e28-183a4fa6e461.mp4">
-              <video src="https://juauagypsrgnmwsavrto.supabase.co/storage/v1/object/public/videos/_f45dd0f84993133d8e733f54e2cf6243_64bee8af-2f5c-48ed-9e28-183a4fa6e461.mp4" muted loop playsinline autoplay preload="auto"></video>
+            <div class="video-card" data-video-src="https://pub-d86536e7051f4f949cbf8c8a92edbabe.r2.dev/videos/062dcd0d-2b81-4e82-8757-8bb1cd491581.mp4">
+              <video src="https://pub-d86536e7051f4f949cbf8c8a92edbabe.r2.dev/videos/062dcd0d-2b81-4e82-8757-8bb1cd491581.mp4" muted loop playsinline autoplay preload="auto"></video>
               <button type="button" class="mute-btn" aria-label="Som">🔇</button>
             </div>
-            <div class="video-card" data-video-src="https://juauagypsrgnmwsavrto.supabase.co/storage/v1/object/public/videos/w_cJFbV9JA91BnW5NsSoF_output%20(1).mp4">
-              <video src="https://juauagypsrgnmwsavrto.supabase.co/storage/v1/object/public/videos/w_cJFbV9JA91BnW5NsSoF_output%20(1).mp4" muted loop playsinline autoplay preload="metadata"></video>
+            <div class="video-card" data-video-src="https://pub-d86536e7051f4f949cbf8c8a92edbabe.r2.dev/videos/Influencer%20Digital.mp4">
+              <video src="https://pub-d86536e7051f4f949cbf8c8a92edbabe.r2.dev/videos/Influencer%20Digital.mp4" muted loop playsinline autoplay preload="metadata"></video>
               <button type="button" class="mute-btn" aria-label="Som">🔇</button>
             </div>
-            <div class="video-card" data-video-src="https://juauagypsrgnmwsavrto.supabase.co/storage/v1/object/public/videos/preview_video_Aesthetic_Clips_-_White_-_2.mp4">
-              <video src="https://juauagypsrgnmwsavrto.supabase.co/storage/v1/object/public/videos/preview_video_Aesthetic_Clips_-_White_-_2.mp4" muted loop playsinline autoplay preload="metadata"></video>
+            <div class="video-card" data-video-src="https://pub-d86536e7051f4f949cbf8c8a92edbabe.r2.dev/videos/preview_video_2b3bf35b_compressed_v2.mp4">
+              <video src="https://pub-d86536e7051f4f949cbf8c8a92edbabe.r2.dev/videos/preview_video_2b3bf35b_compressed_v2.mp4" muted loop playsinline autoplay preload="metadata"></video>
               <button type="button" class="mute-btn" aria-label="Som">🔇</button>
             </div>
-            <div class="video-card" data-video-src="https://juauagypsrgnmwsavrto.supabase.co/storage/v1/object/public/videos/preview_video_2b3bf35b_compressed_v2.mp4">
-              <video src="https://juauagypsrgnmwsavrto.supabase.co/storage/v1/object/public/videos/preview_video_2b3bf35b_compressed_v2.mp4" muted loop playsinline autoplay preload="metadata"></video>
+            <div class="video-card" data-video-src="https://pub-d86536e7051f4f949cbf8c8a92edbabe.r2.dev/videos/preview_video_output_89.mp4">
+              <video src="https://pub-d86536e7051f4f949cbf8c8a92edbabe.r2.dev/videos/preview_video_output_89.mp4" muted loop playsinline autoplay preload="metadata"></video>
               <button type="button" class="mute-btn" aria-label="Som">🔇</button>
             </div>
-            <div class="video-card" data-video-src="https://juauagypsrgnmwsavrto.supabase.co/storage/v1/object/public/videos/preview_video_36d094ec_compressed_v2.mp4">
-              <video src="https://juauagypsrgnmwsavrto.supabase.co/storage/v1/object/public/videos/preview_video_36d094ec_compressed_v2.mp4" muted loop playsinline autoplay preload="metadata"></video>
-              <button type="button" class="mute-btn" aria-label="Som">🔇</button>
-            </div>
-            <div class="video-card" data-video-src="https://juauagypsrgnmwsavrto.supabase.co/storage/v1/object/public/videos/preview_video_output_89.mp4">
-              <video src="https://juauagypsrgnmwsavrto.supabase.co/storage/v1/object/public/videos/preview_video_output_89.mp4" muted loop playsinline autoplay preload="metadata"></video>
+            <div class="video-card" data-video-src="https://pub-d86536e7051f4f949cbf8c8a92edbabe.r2.dev/videos/varvos-NBAR2D3YPX6S64U3-1.mp4">
+              <video src="https://pub-d86536e7051f4f949cbf8c8a92edbabe.r2.dev/videos/varvos-NBAR2D3YPX6S64U3-1.mp4" muted loop playsinline autoplay preload="metadata"></video>
               <button type="button" class="mute-btn" aria-label="Som">🔇</button>
             </div>
           </div>
@@ -84,7 +103,7 @@
 
   <div class="landing">
     <section class="social-proof">
-      <p>Usado por criadores, e-commerces e agências para gerar vídeos que performam em TikTok Ads, Meta e campanhas.</p>
+      <p>Usado por criadores, e-commerces e agências para gerar vídeos que performam em TikTok Ads, Meta e campanhas</p>
     </section>
 
     <section class="integrations-strip">
@@ -113,8 +132,8 @@
       <div class="spotlight-grid">
         <div class="spotlight-card">
           <div class="spotlight-media spotlight-media-images">
-            <video src="https://juauagypsrgnmwsavrto.supabase.co/storage/v1/object/public/videos/cgt-20260303133820-tvb52.mp4" autoplay loop muted playsinline title="Modelo com boné VARVOS"></video>
-            <video src="https://juauagypsrgnmwsavrto.supabase.co/storage/v1/object/public/videos/seedance15_768Z6AH22KKI2NG8_0.mp4" autoplay loop muted playsinline title="Atores segurando seu produto"></video>
+            <video src="https://pub-d86536e7051f4f949cbf8c8a92edbabe.r2.dev/videos/cgt-20260303133820-tvb52.mp4" autoplay loop muted playsinline preload="none" title="Modelo com boné VARVOS"></video>
+            <video src="https://pub-d86536e7051f4f949cbf8c8a92edbabe.r2.dev/videos/seedance15_768Z6AH22KKI2NG8_0.mp4" autoplay loop muted playsinline preload="none" title="Atores segurando seu produto"></video>
           </div>
           <p class="spotlight-caption">Atores segurando seu produto</p>
           <h3>Crie seu próprio <em>ator IA</em></h3>
@@ -123,9 +142,9 @@
         </div>
         <div class="spotlight-card">
           <div class="spotlight-media spotlight-media-three">
-            <video src="https://juauagypsrgnmwsavrto.supabase.co/storage/v1/object/public/videos/1767525988156_agwqddHU.mp4" autoplay loop muted playsinline title="Vídeo de referência"></video>
-            <img src="https://juauagypsrgnmwsavrto.supabase.co/storage/v1/object/public/images/1767525967302_gwzU7iCn.webp" alt="Foto do personagem">
-            <video src="https://juauagypsrgnmwsavrto.supabase.co/storage/v1/object/public/videos/1767526000254_4PoHMzzY.mp4" autoplay loop muted playsinline title="Resultado"></video>
+            <video src="https://pub-d86536e7051f4f949cbf8c8a92edbabe.r2.dev/videos/1767525988156_agwqddHU.mp4" autoplay loop muted playsinline preload="none" title="Vídeo de referência"></video>
+            <img src="https://pub-d86536e7051f4f949cbf8c8a92edbabe.r2.dev/videos/1767525967302_gwzU7iCn.webp" alt="Foto do personagem" width="480" height="360" loading="lazy">
+            <video src="https://pub-d86536e7051f4f949cbf8c8a92edbabe.r2.dev/videos/1767526000254_4PoHMzzY.mp4" autoplay loop muted playsinline preload="none" title="Resultado"></video>
           </div>
           <p class="spotlight-caption">1 vídeo + 1 imagem = resultado</p>
           <h3><em>Imitar movimento</em></h3>
@@ -134,9 +153,9 @@
         </div>
         <div class="spotlight-card">
           <div class="spotlight-media spotlight-media-three">
-            <video src="https://juauagypsrgnmwsavrto.supabase.co/storage/v1/object/public/videos/FE7506VLVNK1D1OW.mp4" autoplay loop muted playsinline title="Emoção surpresa"></video>
-            <video src="https://juauagypsrgnmwsavrto.supabase.co/storage/v1/object/public/videos/AFJZXFQXAW2VIHVZ.mp4" autoplay loop muted playsinline title="Emoção ansiosa"></video>
-            <video src="https://pub-d86536e7051f4f949cbf8c8a92edbabe.r2.dev/videos/1767526028977_PDqOuxcT.mp4" autoplay loop muted playsinline title="Emoção feliz"></video>
+            <video src="https://pub-d86536e7051f4f949cbf8c8a92edbabe.r2.dev/videos/FE7506VLVNK1D1OW.mp4" autoplay loop muted playsinline preload="none" title="Emoção surpresa"></video>
+            <video src="https://pub-d86536e7051f4f949cbf8c8a92edbabe.r2.dev/videos/AFJZXFQXAW2VIHVZ.mp4" autoplay loop muted playsinline preload="none" title="Emoção ansiosa"></video>
+            <video src="https://pub-d86536e7051f4f949cbf8c8a92edbabe.r2.dev/videos/seedance15_ZQKYC91LA0NR4MBF_0.mp4" autoplay loop muted playsinline preload="none" title="Emoção feliz"></video>
           </div>
           <h3>Controle total de <em>emoções</em></h3>
           <p class="spotlight-desc">Defina exatamente a emoção do seu ator. Basta escrever o que você quer transmitir.</p>
@@ -149,23 +168,23 @@
       <div class="value-props-inner">
         <div class="value-stat">
           <span class="value-stat-num">Escreva</span>
-          <span class="value-stat-label">Descreva o anúncio em texto — sem roteiro complexo, sem produção cara</span>
+          <span class="value-stat-label">Pense no vídeo, escreva e pronto — sem edição</span>
         </div>
         <div class="value-stat">
-          <span class="value-stat-num">TikTok Ads · Meta</span>
-          <span class="value-stat-label">Formatos prontos para rodar em qualquer plataforma de anúncios</span>
+          <span class="value-stat-num">Sem fricção</span>
+          <span class="value-stat-label">Anúncio, cena copiada ou algo novo — você decide, a IA entrega</span>
         </div>
         <div class="value-stat">
-          <span class="value-stat-num">Imitar Movimento</span>
-          <span class="value-stat-label">Use referências virais ou UGC — sua persona fazendo o movimento</span>
+          <span class="value-stat-num">Qualquer formato</span>
+          <span class="value-stat-label">YouTube, Stories, Reels e Destaque — um clique</span>
         </div>
       </div>
     </section>
 
     <section class="features-section">
       <div class="features-intro">
-        <h2>Anúncios que <em>chamam atenção e convertem</em></h2>
-        <p>Vídeo por texto e Imitar Movimento. Produção em segundos.</p>
+        <h2>Vídeos que <em>chamam atenção e vendem</em></h2>
+        <p>Uma ferramenta. Todos os formatos. Produção em segundos.</p>
       </div>
 
       <div class="features-grid">
@@ -191,10 +210,10 @@
 
     <section class="cta-section">
       <div class="cta-inner">
-        <h2>Pronto para criar anúncios que <em>convertem</em>?</h2>
-        <p>Vídeo por texto e Imitar Movimento. Produza anúncios para TikTok Ads, Meta e campanhas — sem experiência em edição.</p>
-        <a href="../video/" class="cta cta-large">Criar meu anúncio</a>
-        <p class="cta-trust">Anúncios em vídeo com IA — texto e Imitar Movimento em um só lugar.</p>
+        <h2>Pronto para criar vídeos que <em>destacam</em>?</h2>
+        <p>Transforme ideias em vídeos profissionais — sem experiência em edição. Anúncio, cena inspirada ou algo totalmente novo: você decide, a IA entrega.</p>
+        <a href="../video/" class="cta cta-large">Criar meu primeiro vídeo ✨</a>
+        <p class="cta-trust">Criação de vídeo por texto e Imitar Movimento em um só lugar.</p>
       </div>
     </section>
 
@@ -259,9 +278,9 @@
         <video id="videoModalPlayer" autoplay playsinline loop muted></video>
       </div>
       <div class="video-modal-actions">
-        <p class="video-modal-desc">Crie um anúncio semelhante ou use o Imitar Movimento para sua persona fazer os movimentos.</p>
+        <p class="video-modal-desc">Crie um vídeo semelhante ou use o Imitar Movimento para colocar outra pessoa imitando os movimentos.</p>
         <div class="video-modal-buttons">
-          <a href="../video/" class="video-modal-btn video-modal-btn-primary" data-video-modal-action="video/">Criar anúncio</a>
+          <a href="../video/" class="video-modal-btn video-modal-btn-primary" data-video-modal-action="video/">Criar vídeo semelhante</a>
           <a href="../imitar-movimento/" class="video-modal-btn" data-video-modal-action="imitar-movimento/">Imitar movimento</a>
         </div>
       </div>
@@ -338,6 +357,7 @@
               </div>
               <p class="auth-errors hidden" id="authErrorsStep2"></p>
               <button type="button" class="auth-btn auth-btn-submit" id="btnPasswordSubmit">Entrar</button>
+              <a href="#" class="auth-forgot-link hidden" id="btnForgotPassword">Esqueci minha senha</a>
             </div>
             <button type="button" class="auth-back" id="btnBack">Voltar</button>
           </form>
@@ -394,54 +414,36 @@
         if (!dest) return;
         var user = null;
         try { user = JSON.parse(localStorage.getItem('varvos_user') || 'null'); } catch(_) {}
-        var base = '../';
         if (user && user.email) {
-          window.location.href = base + dest;
+          window.location.href = dest.startsWith('../') ? dest : '../' + dest;
         } else {
           closeModal();
-          if (typeof openAuthModal === 'function') { openAuthModal(dest); }
-          else { window.location.href = base + dest; }
+          if (typeof openAuthModal === 'function') { openAuthModal(dest.startsWith('../') ? dest : '../' + dest); }
+          else { window.location.href = dest.startsWith('../') ? dest : '../' + dest; }
         }
       });
     });
     document.querySelectorAll('.video-card').forEach(function(card) {
       card.addEventListener('click', function(e) {
         if (e.target.closest('.mute-btn')) { toggleMute(card); return; }
-        var src = card.dataset.videoSrc || (card.querySelector('video') && card.querySelector('video').src);
-        if (!src) return;
-        modalVideo.src = src;
-        modalVideo.muted = false;
-        modalVideo.load();
-        videoModal.classList.remove('hidden');
-        document.querySelectorAll('.video-card video').forEach(function(v){ v.muted = true; v.pause(); });
-        modalVideo.play().catch(function(){});
+        toggleMute(card);
       });
     });
   })();
   </script>
-  <script src="../config.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="../supabase.js"></script>
-  <script src="../auth-supabase.js"></script>
+  <script src="../config.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <script src="../supabase.js" defer></script>
+  <script src="../auth-supabase.js" defer></script>
   <script src="https://accounts.google.com/gsi/client" async></script>
-  <script src="../auth-modal.js"></script>
-  <script src="../landing.js"></script>
+  <script src="../auth-modal.js" defer></script>
+  <script src="../landing.js" defer></script>
   <script>
   (function() {
-    var base = '../';
     document.querySelectorAll('.auth-trigger').forEach(function(el) {
       el.addEventListener('click', function(e) {
         var returnTo = el.getAttribute('data-return');
         if (returnTo) document.getElementById('authReturnTo').value = returnTo;
-      });
-    });
-    var authTriggerEls = document.querySelectorAll('#authTrigger, #authTriggerHero, #authTriggerCta');
-    authTriggerEls.forEach(function(el) {
-      if (el) el.addEventListener('click', function(e) {
-        e.preventDefault();
-        document.getElementById('authReturnTo').value = base + 'video/';
-        if (typeof openAuthModal === 'function') openAuthModal(base + 'video/');
-        else window.location.href = base + 'video/';
       });
     });
   })();

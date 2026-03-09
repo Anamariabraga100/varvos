@@ -1059,7 +1059,7 @@
   align-items: center;
   margin-bottom: 14px;
 }
-/* Ordem: old (cortado) → sub (por vídeo, destaque) → main (total, menor) */
+/* Ordem: old (cortado) → main (total, destaque) → sub (por vídeo, menor) */
 .plan-price-creator .plan-price-old {
   font-size: 0.8rem;
   font-weight: 500;
@@ -1067,7 +1067,7 @@
   text-decoration: line-through;
   order: 1;
 }
-.plan-price-creator .plan-price-sub {
+.plan-price-creator .plan-price-main {
   font-size: 2.1rem;
   font-weight: 800;
   color: #059669;
@@ -1075,7 +1075,7 @@
   line-height: 1.1;
   order: 2;
 }
-.plan-price-creator .plan-price-main {
+.plan-price-creator .plan-price-sub {
   font-size: 0.85rem;
   font-weight: 500;
   color: #6b7280;
@@ -1103,7 +1103,7 @@
   align-items: center;
   margin-bottom: 14px;
 }
-/* Ordem: old (cortado) → sub (por vídeo, destaque) → main (total, menor) */
+/* Ordem: old (cortado) → main (total, destaque) → sub (por vídeo, menor) */
 .plan-price-premium .plan-price-old {
   font-size: 0.8rem;
   font-weight: 500;
@@ -1111,7 +1111,7 @@
   text-decoration: line-through;
   order: 1;
 }
-.plan-price-premium .plan-price-sub {
+.plan-price-premium .plan-price-main {
   font-size: 1.85rem;
   font-weight: 800;
   color: #059669;
@@ -1119,10 +1119,10 @@
   line-height: 1.1;
   order: 2;
 }
-.plan-card-pro .plan-price-premium .plan-price-sub {
+.plan-card-pro .plan-price-premium .plan-price-main {
   color: #059669;
 }
-.plan-price-premium .plan-price-main {
+.plan-price-premium .plan-price-sub {
   font-size: 0.85rem;
   font-weight: 500;
   color: #6b7280;
@@ -1159,7 +1159,7 @@
   border-radius: 12px !important;
   padding: 16px 20px !important;
 }
-/* Ordem no box: old (cortado em cima) → sub (por vídeo, destaque) → main (total, menor) */
+/* Ordem no box: old (cortado em cima) → main (total, destaque) → sub (por vídeo, menor) */
 .plan-price-avulso .plan-price-old {
   font-size: 0.85rem;
   font-weight: 600;
@@ -1167,7 +1167,7 @@
   text-decoration: line-through;
   order: 1;
 }
-.plan-price-avulso .plan-price-sub {
+.plan-price-avulso .plan-price-main {
   font-size: 1.65rem;
   font-weight: 800;
   color: #059669;
@@ -1175,13 +1175,13 @@
   line-height: 1.1;
   order: 2;
 }
-.plan-price-avulso .plan-price-main {
+.plan-price-avulso .plan-price-sub {
   font-size: 0.9rem;
   font-weight: 600;
   color: #374151;
   order: 3;
 }
-.plan-card-starter .plan-price-avulso .plan-price-main {
+.plan-card-starter .plan-price-avulso .plan-price-sub {
   color: #6b7280;
 }
 
